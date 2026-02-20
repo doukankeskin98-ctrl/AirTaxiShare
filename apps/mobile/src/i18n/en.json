@@ -1,0 +1,210 @@
+{
+    "app": {
+        "name": "AirTaxiShare",
+        "tagline": "Share a taxi with people going the same way."
+    },
+    "common": {
+        "error": "Error"
+    },
+    "login": {
+        "title": "Welcome Back",
+        "subtitle": "Enter your phone number to continue.",
+        "placeholder": "Phone Number",
+        "button": "Continue"
+    },
+    "welcome": {
+        "title": "Welcome to AirTaxiShare",
+        "subtitle": "Fast matching for Istanbul Airport arrivals.",
+        "apple": "Continue with Apple",
+        "google": "Continue with Google",
+        "email": "Continue with Email",
+        "login": "Sign in",
+        "signup": "Create account",
+        "disclaimer": "AirTaxiShare does not provide transport services, it only matches passengers."
+    },
+    "auth": {
+        "email": {
+            "title": "Continue with Email"
+        },
+        "label": "Email",
+        "password": "Password",
+        "forgot": "Forgot password",
+        "signin": "Sign in",
+        "signup": "Create account",
+        "or": "or",
+        "back": "Back"
+    },
+    "profile": {
+        "title": "Create your profile",
+        "subtitle": "Required for safer matching.",
+        "photo": {
+            "label": "Profile photo"
+        },
+        "name": {
+            "label": "Full name"
+        },
+        "phone": {
+            "label": "Phone (optional)",
+            "helper": "Can be verified later for trust."
+        },
+        "continue": "Continue",
+        "consent": {
+            "title": "Consents",
+            "tos": "I have read and accept the Terms of Service.",
+            "privacy": "I have read the Privacy Policy.",
+            "marketing": {
+                "optional": "I want to receive updates (optional)."
+            }
+        },
+        "error": {
+            "photoRequired": "Profile photo is required.",
+            "nameRequired": "Full name is required."
+        }
+    },
+    "home": {
+        "title": "Home",
+        "createMatch": "Find a Match",
+        "myMatches": "My Matches",
+        "safetyBanner": {
+            "title": "Safety",
+            "body": "Complete your profile, check ratings, report any issues."
+        }
+    },
+    "create": {
+        "title": "Create a Match",
+        "step": {
+            "destination": "Destination",
+            "time": "Time",
+            "luggage": "Luggage",
+            "group": "Group"
+        },
+        "destination": {
+            "title": "Where are you going?"
+        },
+        "time": {
+            "title": "When are you leaving?"
+        },
+        "luggage": {
+            "title": "Luggage size"
+        },
+        "group": {
+            "title": "Group size"
+        },
+        "cta": {
+            "findMatch": "Search Match"
+        },
+        "note": {
+            "clusterLimited": "Only Maslak, Levent, Ataşehir are supported for now.",
+            "timeLimit": "Matching window is 15 minutes."
+        }
+    },
+    "queue": {
+        "title": "Searching for a match",
+        "subtitle": "We are matching you with someone suitable.",
+        "liveCount": "{{count}} people searching for {{destination}} now",
+        "eta": "Estimated wait: {{minutes}} min",
+        "cancel": "Cancel",
+        "cancelConfirm": {
+            "title": "Cancel search?",
+            "body": "You will leave the queue."
+        },
+        "noMatch": {
+            "title": "No match yet",
+            "body": "Wait a bit more or widen your time window.",
+            "suggestion": "Widen by +15 min"
+        }
+    },
+    "match": {
+        "title": "Match found",
+        "found": "Great, you’re matched!",
+        "otherUser": "Matched user",
+        "meetingPoint": {
+            "title": "Meeting point",
+            "exitA": "Exit A",
+            "exitB": "Exit B",
+            "taxiQueue": "Taxi queue"
+        },
+        "code": {
+            "title": "Meetup Code",
+            "subtitle": "Confirm this code together when you meet."
+        },
+        "cta": {
+            "openChat": "Open chat",
+            "confirmMeetup": "We met"
+        }
+    },
+    "chat": {
+        "title": "Chat",
+        "placeholder": "Type a message…",
+        "report": "Report",
+        "block": "Block",
+        "system": {
+            "autoDelete": "This chat will be deleted after 24 hours."
+        }
+    },
+    "meetup": {
+        "title": "Meetup confirmation",
+        "subtitle": "Both users must confirm to complete.",
+        "cta": {
+            "met": "We met"
+        },
+        "waitingOther": "Waiting for the other user to confirm…",
+        "dispute": {
+            "title": "Report an issue",
+            "body": "Report if you could not meet or had an issue."
+        }
+    },
+    "rating": {
+        "title": "Rate",
+        "subtitle": "Share your experience.",
+        "tags": {
+            "polite": "Polite",
+            "ontime": "On time",
+            "communication": "Good communication"
+        },
+        "cta": {
+            "submit": "Submit"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "language": {
+            "title": "Language",
+            "tr": "Türkçe",
+            "en": "English"
+        },
+        "legal": "Legal",
+        "tos": "Terms of Service",
+        "privacy": "Privacy",
+        "account": "Account",
+        "deleteAccount": "Delete account",
+        "logout": "Log out"
+    },
+    "legal": {
+        "disclaimer": {
+            "title": "Important Notice",
+            "body": "AirTaxiShare does not provide transport services. Taxi rides are arranged independently by users. AirTaxiShare only matches passengers."
+        },
+        "tos": {
+            "title": "Terms of Service",
+            "body": "Welcome to AirTaxiShare!\n\n1. Acceptance of Terms\nBy accessing or using the AirTaxiShare application, you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the service.\n\n2. Service Description\nAirTaxiShare is a platform designed exclusively to connect passengers traveling from the same airport to similar destinations. We do not provide transportation, taxi, or logistics services. Any agreement for transportation is solely between the passengers and the licensed taxi driver.\n\n3. User Conduct\nYou agree to provide accurate information (such as your phone number, destination, and luggage size) and to treat other matched passengers with respect and courtesy. Any form of harassment, fraud, or misuse of the platform will result in immediate termination of your account.\n\n4. Financial Transactions\nAirTaxiShare does not process payments for your taxi rides. All fare splits and payments must be handled directly between the passengers and the driver. AirTaxiShare is not responsible for any financial disputes arising from shared rides.\n\n5. Limitation of Liability\nAirTaxiShare shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your access to or use of the platform.\n\nBy continuing, you acknowledge that you have read and understood these terms."
+        },
+        "privacy": {
+            "title": "Privacy Policy",
+            "body": "Privacy Policy\n\nLast updated: 2026\n\n1. Information We Collect\nWe collect information you provide directly to us when you create an account, such as your phone number, name, and profile picture (if provided). We also temporarily collect your location data to facilitate passenger matching at the airport. We use Apple Sign-In and Google Sign-In, which provide us with your name and email address.\n\n2. How We Use Your Information\nWe use the information we collect to:\n- Provide, maintain, and improve our services\n- Match you with other passengers heading in a similar direction\n- Send you technical notices, updates, security alerts, and support messages\n- Facilitate communication between matched users via in-app chat\n\n3. Data Sharing\nWe do not sell your personal information. We only share necessary information (such as your first name, approximate destination, and luggage size) with other users when a match is found to facilitate the meetup.\n\n4. Data Retention\nYour location data is only used during active matching sessions and is not stored permanently. Chat histories are retained temporarily to facilitate the current trip and are deleted within 24 hours after the trip concludes.\n\n5. Your Rights\nYou have the right to request the deletion of your account and personal data at any time via the Settings screen within the application.\n\nIf you have any questions about this Privacy Policy, please contact us."
+        }
+    },
+    "admin": {
+        "title": "Admin",
+        "activeSearches": "Active Searches",
+        "matchRate": "Match Rate",
+        "avgTimeToMatch": "Avg Match Time",
+        "reports": "Reports",
+        "users": "Users",
+        "actions": {
+            "suspend": "Suspend",
+            "warn": "Warn",
+            "resolve": "Resolve"
+        }
+    }
+}

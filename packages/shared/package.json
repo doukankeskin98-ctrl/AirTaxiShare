@@ -1,0 +1,13 @@
+{
+    "name": "@airtaxishare/shared",
+    "version": "1.0.0",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w"
+    },
+    "devDependencies": {
+        "typescript": "^5.1.3"
+    }
+}

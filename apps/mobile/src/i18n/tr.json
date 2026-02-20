@@ -1,0 +1,210 @@
+{
+    "app": {
+        "name": "AirTaxiShare",
+        "tagline": "Havalimanında aynı yöne gidenlerle taksiyi paylaş."
+    },
+    "common": {
+        "error": "Hata"
+    },
+    "login": {
+        "title": "Tekrar Hoş Geldin",
+        "subtitle": "Devam etmek için telefon numaranı gir.",
+        "placeholder": "Telefon Numarası",
+        "button": "Devam Et"
+    },
+    "welcome": {
+        "title": "AirTaxiShare’a hoş geldin",
+        "subtitle": "İstanbul Havalimanı varış yolcuları için hızlı eşleşme.",
+        "apple": "Apple ile devam et",
+        "google": "Google ile devam et",
+        "email": "E-posta ile devam et",
+        "login": "Giriş yap",
+        "signup": "Kayıt ol",
+        "disclaimer": "AirTaxiShare ulaşım hizmeti sunmaz, yalnızca yolcuları eşleştirir."
+    },
+    "auth": {
+        "email": {
+            "title": "E-posta ile devam et"
+        },
+        "label": "E-posta",
+        "password": "Şifre",
+        "forgot": "Şifremi unuttum",
+        "signin": "Giriş yap",
+        "signup": "Hesap oluştur",
+        "or": "veya",
+        "back": "Geri"
+    },
+    "profile": {
+        "title": "Profilini oluştur",
+        "subtitle": "Güvenli eşleşme için bilgiler gerekli.",
+        "photo": {
+            "label": "Profil fotoğrafı"
+        },
+        "name": {
+            "label": "Ad Soyad"
+        },
+        "phone": {
+            "label": "Telefon (opsiyonel)",
+            "helper": "Güven için daha sonra doğrulanabilir."
+        },
+        "continue": "Devam et",
+        "consent": {
+            "title": "Onaylar",
+            "tos": "Kullanım Şartları’nı okudum ve kabul ediyorum.",
+            "privacy": "Gizlilik Politikası / KVKK Aydınlatma Metni’ni okudum.",
+            "marketing": {
+                "optional": "Kampanya bildirimleri almak istiyorum (opsiyonel)."
+            }
+        },
+        "error": {
+            "photoRequired": "Profil fotoğrafı gerekli.",
+            "nameRequired": "Ad Soyad gerekli."
+        }
+    },
+    "home": {
+        "title": "Ana Sayfa",
+        "createMatch": "Eşleşme Bul",
+        "myMatches": "Eşleşmelerim",
+        "safetyBanner": {
+            "title": "Güvenlik",
+            "body": "Profilini tamamla, puanlamalara dikkat et, sorun olursa bildir."
+        }
+    },
+    "create": {
+        "title": "Eşleşme Oluştur",
+        "step": {
+            "destination": "Varış Noktası",
+            "time": "Ne Zaman",
+            "luggage": "Bagaj",
+            "group": "Grup"
+        },
+        "destination": {
+            "title": "Nereye gidiyorsun?"
+        },
+        "time": {
+            "title": "Ne zaman çıkacaksın?"
+        },
+        "luggage": {
+            "title": "Bagaj boyutu"
+        },
+        "group": {
+            "title": "Kişi sayısı"
+        },
+        "cta": {
+            "findMatch": "Eşleşme Ara"
+        },
+        "note": {
+            "clusterLimited": "Şimdilik yalnızca Maslak, Levent, Ataşehir destekleniyor.",
+            "timeLimit": "Eşleşme penceresi 15 dakikadır."
+        }
+    },
+    "queue": {
+        "title": "Eşleşme aranıyor",
+        "subtitle": "Seni uygun biriyle eşleştiriyoruz.",
+        "liveCount": "{{count}} kişi şu an {{destination}} için arıyor",
+        "eta": "Tahmini bekleme: {{minutes}} dk",
+        "cancel": "İptal",
+        "cancelConfirm": {
+            "title": "Eşleşmeyi iptal et?",
+            "body": "İptal edersen sıradan çıkarsın."
+        },
+        "noMatch": {
+            "title": "Henüz eşleşme yok",
+            "body": "Biraz daha bekleyebilir veya zamanı genişletebilirsin.",
+            "suggestion": "Zamanı +15 dk genişlet"
+        }
+    },
+    "match": {
+        "title": "Eşleşme bulundu",
+        "found": "Harika, eşleştin!",
+        "otherUser": "Eşleştiğin kişi",
+        "meetingPoint": {
+            "title": "Buluşma noktası",
+            "exitA": "Çıkış A",
+            "exitB": "Çıkış B",
+            "taxiQueue": "Taksi kuyruğu"
+        },
+        "code": {
+            "title": "Buluşma Kodu",
+            "subtitle": "Buluşunca bu kodu karşılıklı doğrulayın."
+        },
+        "cta": {
+            "openChat": "Sohbeti aç",
+            "confirmMeetup": "Buluştuk"
+        }
+    },
+    "chat": {
+        "title": "Sohbet",
+        "placeholder": "Mesaj yaz…",
+        "report": "Bildir",
+        "block": "Engelle",
+        "system": {
+            "autoDelete": "Bu sohbet 24 saat sonra silinir."
+        }
+    },
+    "meetup": {
+        "title": "Buluşma onayı",
+        "subtitle": "İki taraf da onaylayınca süreç tamamlanır.",
+        "cta": {
+            "met": "Buluştuk"
+        },
+        "waitingOther": "Diğer kullanıcının onayı bekleniyor…",
+        "dispute": {
+            "title": "Sorun bildir",
+            "body": "Buluşamadıysan veya sorun yaşadıysan bildir."
+        }
+    },
+    "rating": {
+        "title": "Puanla",
+        "subtitle": "Deneyimini paylaş.",
+        "tags": {
+            "polite": "Kibar",
+            "ontime": "Dakik",
+            "communication": "İyi iletişim"
+        },
+        "cta": {
+            "submit": "Gönder"
+        }
+    },
+    "settings": {
+        "title": "Ayarlar",
+        "language": {
+            "title": "Dil",
+            "tr": "Türkçe",
+            "en": "English"
+        },
+        "legal": "Yasal",
+        "tos": "Kullanım Şartları",
+        "privacy": "Gizlilik / KVKK",
+        "account": "Hesap",
+        "deleteAccount": "Hesabı sil",
+        "logout": "Çıkış yap"
+    },
+    "legal": {
+        "disclaimer": {
+            "title": "Önemli Bilgilendirme",
+            "body": "AirTaxiShare ulaşım hizmeti sunmaz. Taksi hizmeti, kullanıcıların bağımsız olarak aldığı bir hizmettir. AirTaxiShare yalnızca yolcuların eşleşmesini sağlar."
+        },
+        "tos": {
+            "title": "Kullanım Şartları",
+            "body": "AirTaxiShare'a Hoş Geldiniz!\n\n1. Şartların Kabulü\nAirTaxiShare uygulamasını kullanarak veya erişim sağlayarak bu Kullanım Şartlarına bağlı kalmayı kabul etmiş olursunuz. Bu şartların herhangi bir kısmını kabul etmiyorsanız, hizmeti kullanamazsınız.\n\n2. Hizmet Tanımı\nAirTaxiShare, yalnızca aynı havalimanından benzer yönlere giden yolcuları birbirine bağlamak için tasarlanmış bir platformdur. Taşıma, taksi veya lojistik hizmeti sağlamıyoruz. Taşıma ile ilgili her türlü anlaşma yalnızca yolcular ve lisanslı taksi şoförü arasındadır.\n\n3. Kullanıcı Davranışı\nUygulamaya doğru bilgiler (telefon numaranız, gidilecek yer ve bagaj boyutu gibi) sağlamayı ve eşleştiğiniz diğer yolculara saygı ve nezaket çerçevesinde davranmayı kabul edersiniz. Her türlü taciz, dolandırıcılık veya platformun kötüye kullanımı hesabınızın derhal feshedilmesine neden olacaktır.\n\n4. Finansal İşlemler\nAirTaxiShare, taksi yolculuklarınız için herhangi bir ödeme işlemi gerçekleştirmez. Tüm ücret bölüşümleri ve ödemeler doğrudan yolcular ile şoför arasında halledilmelidir. AirTaxiShare, paylaşımlı yolculuklardan doğan hiçbir finansal anlaşmazlıktan sorumlu değildir.\n\n5. Sorumluluğun Sınırlandırılması\nAirTaxiShare, platforma erişiminizden veya kullanımınızdan kaynaklanan hiçbir dolaylı, arızi, özel, sonuç olarak ortaya çıkan veya cezai zarardan veya kar veya gelir kaybından, veri kaybından, kullanım, itibar veya diğer soyut kayıplardan sorumlu tutulamaz.\n\nDevam ederek, bu şartları okuduğunuzu ve anladığınızı kabul edersiniz."
+        },
+        "privacy": {
+            "title": "Gizlilik Politikası / KVKK",
+            "body": "Gizlilik Politikası (KVKK Aydınlatma Metni)\n\nSon güncelleme: 2026\n\n1. Topladığımız Bilgiler\nBir hesap oluşturduğunuzda bize doğrudan sağladığınız bilgileri (telefon numaranız, adınız ve profil resminiz gibi) toplarız. Ayrıca, havalimanında yolcu eşleşmesini sağlamak amacıyla anlık konum verilerinizi geçici olarak kullanırız. Bize adınızı ve e-posta adresinizi sağlayan Apple ve Google ile Giriş yöntemlerini kullanıyoruz.\n\n2. Bilgilerinizi Nasıl Kullanıyoruz\nTopladığımız bilgileri şu amaçlarla kullanırız:\n- Hizmetlerimizi sağlamak, sürdürmek ve iyileştirmek\n- Sizi benzer yöne giden diğer yolcularla eşleştirmek\n- Size teknik bildirimler, güncellemeler, güvenlik uyarıları ve destek mesajları göndermek\n- Uygulama içi sohbet aracılığıyla eşleşen kullanıcılar arasındaki iletişimi sağlamak\n\n3. Veri Paylaşımı\nKişisel bilgilerinizi satmıyoruz. Buluşmayı sağlamak amacıyla, bir eşleşme bulunduğunda sadece gerekli bilgileri (isminiz, yaklaşık varış noktanız ve bagaj boyutunuz gibi) diğer kullanıcılarla paylaşırız.\n\n4. Veri Saklama\nKonum verileriniz yalnızca aktif eşleştirme oturumları sırasında kullanılır ve kalıcı olarak saklanmaz. Sohbet geçmişleri mevcut seyahati kolaylaştırmak için geçici olarak tutulur ve seyahat bittikten sonra 24 saat içinde otomatik olarak silinir.\n\n5. Haklarınız\nUygulama içerisindeki Ayarlar ekranı aracılığıyla hesabınızın ve kişisel verilerinizin silinmesini istediğiniz an talep etme hakkına sahipsiniz.\n\nBu Gizlilik Politikası hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin."
+        }
+    },
+    "admin": {
+        "title": "Admin",
+        "activeSearches": "Aktif Aramalar",
+        "matchRate": "Eşleşme Oranı",
+        "avgTimeToMatch": "Ort. Eşleşme Süresi",
+        "reports": "Raporlar",
+        "users": "Kullanıcılar",
+        "actions": {
+            "suspend": "Askıya Al",
+            "warn": "Uyar",
+            "resolve": "Çözümle"
+        }
+    }
+}
