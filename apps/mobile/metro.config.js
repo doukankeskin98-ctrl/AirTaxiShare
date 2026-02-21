@@ -18,4 +18,7 @@ config.resolver.nodeModulesPaths = [
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
 
+// 4. Add support for .mjs files (needed for framer-motion/moti on web)
+config.resolver.sourceExts.push('mjs');
+
 module.exports = config;
