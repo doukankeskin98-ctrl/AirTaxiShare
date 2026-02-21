@@ -18,6 +18,7 @@
         "ios": {
             "supportsTablet": true,
             "bundleIdentifier": "com.airtaxishare.mobile",
+            "usesAppleSignIn": true,
             "infoPlist": {
                 "NSLocationWhenInUseUsageDescription": "AirTaxiShare needs your location to find nearby passengers for matching at the airport.",
                 "NSCameraUsageDescription": "AirTaxiShare needs access to your camera to scan meeting point QR codes or set your profile picture.",
@@ -63,6 +64,9 @@
                     "color": "#4F46E5",
                     "sounds": []
                 }
+            ],
+            [
+                "expo-apple-authentication"
             ]
         ]
     }

@@ -70,9 +70,9 @@ export default function WelcomeScreen() {
     };
 
     const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: 'YOUR_GOOGLE_CLIENT_ID', // Replace with real ID
-        iosClientId: 'YOUR_IOS_GOOGLE_CLIENT_ID',
-        androidClientId: 'YOUR_ANDROID_GOOGLE_CLIENT_ID',
+        clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
+        iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'YOUR_IOS_GOOGLE_CLIENT_ID',
+        androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || 'YOUR_ANDROID_GOOGLE_CLIENT_ID',
     });
 
     React.useEffect(() => {
