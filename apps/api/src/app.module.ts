@@ -30,8 +30,8 @@ import { HealthModule } from './health/health.module';
 
                 const base = {
                     entities: [User, TripRequest, Rating, MatchHistory],
-                    // Temporarily enabling synchronize in production to update schema
-                    synchronize: true,
+                    // synchronize: false in production — use migrations
+                    synchronize: !isProduction,
                     logging: !isProduction ? (['error'] as any) : false,
                     // Connection pool for high concurrency
                     extra: {

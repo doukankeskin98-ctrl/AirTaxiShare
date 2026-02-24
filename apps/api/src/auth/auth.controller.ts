@@ -11,7 +11,7 @@ import {
 } from './auth.dto';
 
 @Controller('auth')
-// @UseGuards(ThrottlerGuard)
+@UseGuards(ThrottlerGuard)
 export class AuthController {
     constructor(private authService: AuthService) { }
 
