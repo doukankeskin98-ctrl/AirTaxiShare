@@ -32,35 +32,30 @@ export class AuthService {
     }
 
     async emailLogin(email: string, password: string): Promise<{ accessToken: string; user: any }> {
-        try {
-            this.logger.log(`Attempting email login for: ${email}`);
-            const user = await this.userService.findByEmail(email);
+        this.logger.log(`Attempting login: ${email}`);
+        const user = await this.userService.findByEmail(email);
 
-            if (!user) {
-                this.logger.warn(`Login failed: User not found for ${email}`);
-                throw new UnauthorizedException('Invalid email or password');
-            }
-
-            if (!user.passwordHash) {
-                this.logger.warn(`Login failed: User ${email} has no password hash (social login user?)`);
-                throw new UnauthorizedException('Invalid email or password');
-            }
-
-            const isValid = await bcrypt.compare(password, user.passwordHash);
-            if (!isValid) {
-                this.logger.warn(`Login failed: Invalid password for ${email}`);
-                throw new UnauthorizedException('Invalid email or password');
-            }
-
-            const payload = { sub: user.id, email: user.email };
-            return {
-                accessToken: this.jwtService.sign(payload),
-                user: this.sanitizeUser(user),
-            };
-        } catch (error) {
-            this.logger.error(`Email login fatal error for ${email}: ${error.message}`, error.stack);
-            throw error;
+        if (!user) {
+            this.logger.warn(`Login failed: User ${email} not found`);
+            throw new UnauthorizedException('Invalid email or password');
         }
+
+        if (!user.passwordHash) {
+            this.logger.warn(`Login failed: User ${email} has no password (social account)`);
+            throw new UnauthorizedException('Invalid email or password');
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+            this.logger.warn(`Login failed: Wrong password for ${email}`);
+            throw new UnauthorizedException('Invalid email or password');
+        }
+
+        const payload = { sub: user.id, email: user.email };
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: this.sanitizeUser(user),
+        };
     }
 
     // --- PHONE OTP ---
