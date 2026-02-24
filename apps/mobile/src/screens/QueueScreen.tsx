@@ -1,34 +1,29 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import {
+    View, Text, StyleSheet, SafeAreaView,
+    TouchableOpacity, Platform, StatusBar
+} from 'react-native';
 import { showConfirm } from '../utils/alert';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { colors, spacing } from '../theme';
+import { colors, spacing, layout } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MotiView, MotiText } from 'moti';
+import { MotiView } from 'moti';
 import { Easing } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
 import SocketService, { MatchFoundPayload } from '../services/socket';
 import { getAuthToken } from '../services/api';
 import { showAlert } from '../utils/alert';
 
 const LUGGAGE_LABELS: Record<string, string> = {
-    small: 'Küçük Bagaj',
-    medium: 'Orta Bagaj',
-    large: 'Büyük Bagaj',
-};
-
-const DEST_COLORS: Record<string, string> = {
-    maslak: '#6366F1',
-    levent: '#0EA5E9',
-    atasehir: '#10B981',
-    istanbul: '#F59E0B',
+    small: 'Küçük bagaj',
+    medium: 'Orta bagaj',
+    large: 'Büyük bagaj',
 };
 
 const TIPS = [
     'Eşleşme bulunduğunda bildirim alacaksınız.',
     'Ortalama bekleme süresi 2-3 dakika.',
-    'Aynı havalimanından aynı yöne giden yolcular eşleştiriliyor.',
+    'Aynı yöne giden yolcular eşleştiriliyor.',
     'Profil puanınız eşleşme kalitesini artırır.',
 ];
 
@@ -38,14 +33,11 @@ export default function QueueScreen() {
     const { destination, time, luggage } = route.params || {};
 
     const [liveCount, setLiveCount] = useState<number | null>(null);
-    const [isFinding, setIsFinding] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [tipIndex, setTipIndex] = useState(0);
+
     const timerRef = useRef<any>(null);
     const tipRef = useRef<any>(null);
-
-    const destColor = DEST_COLORS[destination?.toLowerCase()] || '#6366F1';
 
     // Timer
     useEffect(() => {
@@ -63,11 +55,10 @@ export default function QueueScreen() {
         return `${m}:${sec}`;
     };
 
+    // Socket
     useEffect(() => {
         const startSearch = async () => {
             try {
-                setIsFinding(true);
-                setError(null);
                 const token = getAuthToken();
                 await SocketService.connect(token || undefined);
                 await SocketService.joinQueue({ destination, time, luggage });
@@ -82,328 +73,188 @@ export default function QueueScreen() {
 
                 SocketService.onQueueCount((count: number) => setLiveCount(count));
             } catch (err: any) {
-                setIsFinding(false);
-                setError(err.message || 'Sunucuya bağlanılamadı.');
-                showAlert('Bağlantı Hatası', err.message || 'Sunucuya bağlanılamadı. Lütfen internetinizi kontrol edin.');
+                showAlert('Bağlantı Hatası', err.message || 'Sunucuya bağlanılamadı. Lütfen internet bağlantınızı kontrol edin.');
                 navigation.goBack();
             }
         };
         startSearch();
-
         return () => {
             SocketService.leaveQueue();
             SocketService.offMatchFound();
             SocketService.offQueueCount();
-            setIsFinding(false);
         };
     }, [navigation, destination, time, luggage]);
 
     const handleCancel = () => {
         showConfirm(
             'Aramayı İptal Et',
-            'Eşleşme aramasını iptal etmek istediğinize emin misiniz?',
+            'Eşleşme aramasını iptal etmek istiyor musunuz?',
             () => { SocketService.leaveQueue(); navigation.goBack(); },
-            'Evet, İptal Et',
-            'Hayır',
-            true
+            'İptal Et', 'Devam Et', true
         );
     };
 
     return (
         <View style={styles.container}>
-            {/* Background */}
-            <LinearGradient colors={['#090818', '#13112A', colors.background]} style={StyleSheet.absoluteFillObject} />
+            <StatusBar barStyle="light-content" />
 
-            {/* Ambient orbs */}
-            <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.35, scale: 1.3 }}
-                transition={{ type: 'timing', duration: 4000, loop: true, repeatReverse: true } as any}
-                style={[styles.orb, { top: -120, right: -180, backgroundColor: destColor }]}
-            />
-            <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.2, scale: 1.1 }}
-                transition={{ type: 'timing', duration: 5500, loop: true, repeatReverse: true } as any}
-                style={[styles.orb, { bottom: -120, left: -180, backgroundColor: '#7C3AED' }]}
-            />
-
-            <SafeAreaView style={styles.safeArea}>
-                {/* Header */}
+            {/* ── HEADER ── */}
+            <SafeAreaView>
                 <View style={styles.header}>
-                    <MotiText
-                        from={{ opacity: 0, translateY: -6 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 100 } as any}
-                        style={styles.headerTitle}
-                    >
-                        Eşleşme Aranıyor
-                    </MotiText>
-                    {/* Timer */}
-                    <BlurView intensity={20} tint="dark" style={styles.timerPill}>
-                        <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.5)" />
-                        <Text style={styles.timerText}>{formatTime(elapsedSeconds)}</Text>
-                    </BlurView>
-                </View>
-
-                <View style={styles.content}>
-                    {/* ── RADAR ── */}
-                    <View style={styles.radarWrapper}>
-                        {/* Outer pulsing rings (4 of them, staggered) */}
-                        {[0, 1, 2, 3].map(i => (
-                            <MotiView
-                                key={i}
-                                from={{ opacity: 0.6, scale: 0.9 }}
-                                animate={{ opacity: 0, scale: 3.2 }}
-                                transition={{
-                                    type: 'timing', duration: 3000,
-                                    loop: true, delay: i * 650,
-                                    easing: Easing.out(Easing.exp),
-                                } as any}
-                                style={[styles.radarRing, { borderColor: `${destColor}60` }]}
-                            />
-                        ))}
-
-                        {/* Static reference ring */}
-                        <View style={[styles.staticRing, { borderColor: `${destColor}18` }]} />
-                        <View style={[styles.staticRingMid, { borderColor: `${destColor}10` }]} />
-
-                        {/* Center glass orb */}
-                        <BlurView intensity={60} tint="dark" style={styles.radarCenter}>
-                            <View style={styles.radarCenterShimmer} />
-                            <LinearGradient
-                                colors={[`${destColor}30`, `${destColor}10`]}
-                                style={styles.radarGlow}
-                            />
-                            <MotiView
-                                from={{ rotate: '0deg' }}
-                                animate={{ rotate: '360deg' }}
-                                transition={{ type: 'timing', duration: 3000, loop: true, easing: Easing.linear } as any}
-                                style={styles.radarSweep}
-                            >
-                                <LinearGradient
-                                    colors={[destColor, `${destColor}00`]}
-                                    start={{ x: 0, y: 0.5 }}
-                                    end={{ x: 1, y: 0.5 }}
-                                    style={styles.sweepLine}
-                                />
-                            </MotiView>
-                            <Ionicons name="search" size={36} color="#FFF" />
-                        </BlurView>
-
-                        {/* Floating "user found" dots */}
-                        {liveCount !== null && liveCount > 0 && (
-                            <View style={styles.floatingDots}>
-                                {Array.from({ length: Math.min(liveCount, 4) }).map((_, i) => {
-                                    const angle = (i / Math.max(liveCount, 1)) * 2 * Math.PI;
-                                    const r = 90;
-                                    const x = Math.cos(angle) * r;
-                                    const y = Math.sin(angle) * r;
-                                    return (
-                                        <MotiView
-                                            key={i}
-                                            from={{ opacity: 0, scale: 0 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: 800 + i * 200, type: 'spring' } as any}
-                                            style={[styles.floatDot, { transform: [{ translateX: x }, { translateY: y }] }]}
-                                        >
-                                            <LinearGradient colors={['#4F46E5', '#06B6D4']} style={styles.floatDotGrad} />
-                                            <Ionicons name="person" size={12} color="#FFF" />
-                                        </MotiView>
-                                    );
-                                })}
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Status text */}
-                    <MotiText
-                        from={{ opacity: 0, translateY: 8 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 600 } as any}
-                        style={styles.statusText}
-                    >
-                        Yakınınızdaki yolcular taranıyor
-                    </MotiText>
-
-                    {/* Info card */}
-                    <MotiView
-                        from={{ opacity: 0, translateY: 20 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 800, type: 'spring' } as any}
-                        style={styles.infoCard}
-                    >
-                        <BlurView intensity={30} tint="dark" style={styles.infoCardInner}>
-                            <View style={styles.infoCardShimmer} />
-                            <View style={styles.infoRow}>
-                                {/* Destination */}
-                                <View style={styles.infoItem}>
-                                    <View style={[styles.infoIcon, { backgroundColor: `${destColor}20` }]}>
-                                        <Ionicons name="location" size={18} color={destColor} />
-                                    </View>
-                                    <Text style={styles.infoVal}>{destination?.toUpperCase() || 'HEDEF'}</Text>
-                                    <Text style={styles.infoKey}>Varış</Text>
-                                </View>
-
-                                <View style={styles.infoDivider} />
-
-                                {/* Luggage */}
-                                <View style={styles.infoItem}>
-                                    <View style={[styles.infoIcon, { backgroundColor: 'rgba(139,92,246,0.18)' }]}>
-                                        <Ionicons name="briefcase" size={18} color="#A78BFA" />
-                                    </View>
-                                    <Text style={styles.infoVal}>{LUGGAGE_LABELS[luggage] || 'Orta'}</Text>
-                                    <Text style={styles.infoKey}>Bagaj</Text>
-                                </View>
-
-                                <View style={styles.infoDivider} />
-
-                                {/* Live count */}
-                                <View style={styles.infoItem}>
-                                    <View style={[styles.infoIcon, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
-                                        <Ionicons name="people" size={18} color="#10B981" />
-                                    </View>
-                                    <Text style={styles.infoVal}>
-                                        {liveCount !== null ? `${liveCount}` : '—'}
-                                    </Text>
-                                    <Text style={styles.infoKey}>Kişi</Text>
-                                </View>
-                            </View>
-                        </BlurView>
-                    </MotiView>
-
-                    {/* Tip rotator */}
-                    <MotiView
-                        from={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1200 } as any}
-                        style={styles.tipWrap}
-                    >
-                        <Ionicons name="information-circle" size={14} color="rgba(255,255,255,0.3)" />
-                        <MotiText
-                            key={tipIndex}
-                            from={{ opacity: 0, translateY: 4 }}
-                            animate={{ opacity: 1, translateY: 0 }}
-                            transition={{ type: 'timing', duration: 400 } as any}
-                            style={styles.tipText}
-                        >
-                            {TIPS[tipIndex]}
-                        </MotiText>
-                    </MotiView>
-                </View>
-
-                {/* Cancel */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 24 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 1000, type: 'spring' } as any}
-                    style={styles.cancelWrap}
-                >
-                    <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn} activeOpacity={0.85}>
-                        <BlurView intensity={30} tint="dark" style={styles.cancelBlur}>
-                            <View style={styles.cancelShimmer} />
-                            <Ionicons name="close" size={20} color="rgba(255,255,255,0.6)" />
-                            <Text style={styles.cancelText}>İptal Et</Text>
-                        </BlurView>
+                    <TouchableOpacity onPress={handleCancel} style={styles.closeBtn} activeOpacity={0.75} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                        <Ionicons name="close" size={20} color={colors.textSecondary} />
                     </TouchableOpacity>
-                </MotiView>
+                    <View style={styles.timerWrap}>
+                        <Ionicons name="time-outline" size={13} color={colors.textTertiary} />
+                        <Text style={styles.timerText}>{formatTime(elapsedSeconds)}</Text>
+                    </View>
+                </View>
             </SafeAreaView>
+
+            {/* ── CENTER CONTENT ── */}
+            <View style={styles.center}>
+                {/* Radar animation — clean concentric rings */}
+                <View style={styles.radarCon}>
+                    {[0, 1, 2].map(i => (
+                        <MotiView
+                            key={i}
+                            from={{ opacity: 0.8, scale: 0.95 }}
+                            animate={{ opacity: 0, scale: 2.6 }}
+                            transition={{
+                                type: 'timing', duration: 2800,
+                                loop: true, delay: i * 700,
+                                easing: Easing.out(Easing.cubic),
+                            } as any}
+                            style={styles.radarRing}
+                        />
+                    ))}
+                    {/* Center circle */}
+                    <View style={styles.radarCenter}>
+                        <Ionicons name="airplane" size={30} color={colors.primary} />
+                    </View>
+                </View>
+
+                {/* Headline */}
+                <Text style={styles.headline}>Yolcu aranıyor</Text>
+                <Text style={styles.subheadline}>
+                    Sizin için en uygun yolcuyu buluyoruz
+                </Text>
+
+                {/* ── TRIP DETAILS CARD ── */}
+                <View style={styles.detailCard}>
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Varış</Text>
+                            <Text style={styles.detailValue}>
+                                {destination ? destination.charAt(0).toUpperCase() + destination.slice(1) : '—'}
+                            </Text>
+                        </View>
+                        <View style={styles.detailDivider} />
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Bagaj</Text>
+                            <Text style={styles.detailValue}>{LUGGAGE_LABELS[luggage] || 'Orta bagaj'}</Text>
+                        </View>
+                        <View style={styles.detailDivider} />
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>Sıradaki</Text>
+                            <Text style={[styles.detailValue, { color: colors.success }]}>
+                                {liveCount !== null ? `${liveCount} kişi` : '...'}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Tip */}
+                <MotiView
+                    key={tipIndex}
+                    from={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 400 } as any}
+                    style={styles.tipWrap}
+                >
+                    <Ionicons name="information-circle-outline" size={14} color={colors.textDisabled} style={{ marginTop: 1 }} />
+                    <Text style={styles.tipText}>{TIPS[tipIndex]}</Text>
+                </MotiView>
+            </View>
+
+            {/* ── CANCEL BUTTON ── */}
+            <View style={styles.footer}>
+                <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn} activeOpacity={0.8}>
+                    <Text style={styles.cancelText}>Aramayı İptal Et</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    orb: {
-        position: 'absolute', width: 400, height: 400, borderRadius: 200,
-        opacity: 0.35, transform: [{ scale: 1.5 }],
-        ...(Platform.OS === 'web' ? { filter: 'blur(100px)' } as any : {}),
-    },
-    safeArea: { flex: 1 },
 
     // Header
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: spacing.l, paddingTop: spacing.m, paddingBottom: spacing.l,
+        paddingHorizontal: 20, paddingVertical: 12,
     },
-    headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
-    timerPill: {
+    closeBtn: {
+        width: 36, height: 36, borderRadius: 18,
+        backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center',
+        borderWidth: 1, borderColor: colors.border,
+    },
+    timerWrap: {
         flexDirection: 'row', alignItems: 'center', gap: 5,
-        paddingVertical: 6, paddingHorizontal: 12, borderRadius: 100, overflow: 'hidden',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: colors.surface, borderRadius: 20,
+        paddingHorizontal: 12, paddingVertical: 6,
+        borderWidth: 1, borderColor: colors.border,
     },
-    timerText: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.5)', fontVariant: ['tabular-nums'] as any },
+    timerText: {
+        fontSize: 13, fontWeight: '700', color: colors.textSecondary,
+        fontVariant: ['tabular-nums'] as any,
+    },
 
-    content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.l },
+    // Center
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
 
     // Radar
-    radarWrapper: { width: 260, height: 260, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xl },
+    radarCon: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center', marginBottom: 40 },
     radarRing: {
-        position: 'absolute', width: 100, height: 100, borderRadius: 50,
-        borderWidth: 1.5,
+        position: 'absolute',
+        width: 90, height: 90, borderRadius: 45,
+        borderWidth: 1.5, borderColor: colors.primary,
     },
-    staticRing: { position: 'absolute', width: 220, height: 220, borderRadius: 110, borderWidth: 1 },
-    staticRingMid: { position: 'absolute', width: 160, height: 160, borderRadius: 80, borderWidth: 1 },
     radarCenter: {
-        width: 110, height: 110, borderRadius: 55, overflow: 'hidden',
+        width: 72, height: 72, borderRadius: 36,
+        backgroundColor: colors.primaryMuted,
+        borderWidth: 1.5, borderColor: colors.primaryBorder,
         justifyContent: 'center', alignItems: 'center',
-        backgroundColor: 'rgba(13,14,28,0.7)',
-        borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.15)',
     },
-    radarCenterShimmer: {
-        position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-    },
-    radarGlow: { ...StyleSheet.absoluteFillObject as any },
-    radarSweep: { position: 'absolute', width: 55, height: 1, left: 55, top: 54.5, transformOrigin: 'left center' as any },
-    sweepLine: { flex: 1 },
 
-    // User dots
-    floatingDots: { position: 'absolute', width: 0, height: 0, alignItems: 'center', justifyContent: 'center' },
-    floatDot: {
-        position: 'absolute', width: 28, height: 28, borderRadius: 14, overflow: 'hidden',
-        justifyContent: 'center', alignItems: 'center',
-        borderWidth: 1.5, borderColor: '#FFF',
-        shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.6, shadowRadius: 8,
-    },
-    floatDotGrad: { ...StyleSheet.absoluteFillObject as any },
+    // Text
+    headline: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.4, marginBottom: 8 },
+    subheadline: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginBottom: 32 },
 
-    // Status
-    statusText: { fontSize: 15, color: 'rgba(255,255,255,0.55)', textAlign: 'center', marginBottom: spacing.l, letterSpacing: 0.2 },
-
-    // Info card
-    infoCard: {
-        width: '100%', borderRadius: 24, overflow: 'hidden',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5,
-        marginBottom: spacing.l,
+    // Detail card
+    detailCard: {
+        width: '100%', backgroundColor: colors.surface,
+        borderRadius: 14, borderWidth: 1, borderColor: colors.border,
+        overflow: 'hidden', marginBottom: 24,
     },
-    infoCardInner: {
-        padding: spacing.l, backgroundColor: 'rgba(16,18,38,0.5)',
-        borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 24, overflow: 'hidden',
-    },
-    infoCardShimmer: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
-    infoRow: { flexDirection: 'row', alignItems: 'center' },
-    infoItem: { flex: 1, alignItems: 'center', gap: 6 },
-    infoIcon: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-    infoVal: { fontSize: 13, fontWeight: '800', color: '#FFF', textAlign: 'center' },
-    infoKey: { fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 0.5 },
-    infoDivider: { width: 1, height: 50, backgroundColor: 'rgba(255,255,255,0.07)' },
+    detailRow: { flexDirection: 'row', paddingVertical: 18 },
+    detailItem: { flex: 1, alignItems: 'center', gap: 4 },
+    detailDivider: { width: 1, backgroundColor: colors.border },
+    detailLabel: { fontSize: 11, fontWeight: '500', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 },
+    detailValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
 
     // Tip
-    tipWrap: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: spacing.m },
-    tipText: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.3)', lineHeight: 17, textAlign: 'center' },
+    tipWrap: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: 8 },
+    tipText: { flex: 1, fontSize: 12, color: colors.textDisabled, textAlign: 'center', lineHeight: 17 },
 
-    // Cancel
-    cancelWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },
-    cancelBtn: { borderRadius: 100, overflow: 'hidden' },
-    cancelBlur: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-        paddingVertical: 14, paddingHorizontal: 28,
-        backgroundColor: 'rgba(255,255,255,0.04)',
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    // Footer
+    footer: { paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 },
+    cancelBtn: {
+        borderRadius: 12, paddingVertical: 16,
+        backgroundColor: colors.surface,
+        borderWidth: 1, borderColor: colors.border,
+        alignItems: 'center',
     },
-    cancelShimmer: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
-    cancelText: { fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.6)' },
+    cancelText: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
 });

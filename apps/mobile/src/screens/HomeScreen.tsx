@@ -1,652 +1,451 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image, Platform } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback, useState } from 'react';
+import {
+    View, Text, StyleSheet, SafeAreaView, ScrollView,
+    TouchableOpacity, StatusBar, Image, RefreshControl, Platform
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { colors, typography, spacing } from '../theme';
-import { PremiumButton } from '../components/PremiumButton';
+import { colors, spacing, layout } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MotiView, MotiText } from 'moti';
-import { BlurView } from 'expo-blur';
+import { MotiView } from 'moti';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { loadUserProfile, MatchAPI } from '../services/api';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Design Constants ─────────────────────────────────────────────────────────
+const CARD_RADIUS = 14;
+const SECTION_PADDING = 20;
 
-const DESTINATION_META: Record<string, { label: string; icon: any; color: string }> = {
-    maslak: { label: 'Maslak', icon: 'business', color: '#6366F1' },
-    levent: { label: 'Levent', icon: 'city', color: '#0EA5E9' },
-    atasehir: { label: 'Ataşehir', icon: 'map', color: '#10B981' },
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const DESTINATION_META: Record<string, { label: string; color: string }> = {
+    maslak: { label: 'Maslak', color: '#818CF8' },
+    levent: { label: 'Levent', color: '#38BDF8' },
+    atasehir: { label: 'Ataşehir', color: '#34D399' },
 };
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-    COMPLETED: { label: 'Tamamlandı', color: '#10B981', bg: 'rgba(16,185,129,0.12)', icon: 'checkmark-circle' },
-    ACTIVE: { label: 'Aktif', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', icon: 'radio-button-on' },
-    CANCELLED: { label: 'İptal', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', icon: 'close-circle' },
-    PENDING: { label: 'Bekliyor', color: '#A78BFA', bg: 'rgba(167,139,250,0.12)', icon: 'time' },
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+    COMPLETED: { label: 'Tamamlandı', color: colors.success },
+    ACTIVE: { label: 'Aktif', color: colors.warning },
+    CANCELLED: { label: 'İptal', color: colors.error },
+    PENDING: { label: 'Bekliyor', color: '#A78BFA' },
 };
 
 function formatDate(iso: string) {
     const d = new Date(iso);
-    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Bugün';
+    if (diffDays === 1) return 'Dün';
+    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
 }
 
 function getInitials(name: string) {
     return (name || 'Y').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
 }
 
-function StarRow({ rating }: { rating: number }) {
-    const full = Math.floor(rating);
-    const partial = rating % 1 >= 0.5;
+function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Günaydın';
+    if (h < 18) return 'İyi günler';
+    return 'İyi akşamlar';
+}
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+function Avatar({ name, photoUrl, size = 44, fontSize = 16 }: {
+    name: string; photoUrl?: string; size?: number; fontSize?: number;
+}) {
+    const initials = getInitials(name);
+    // Pick a consistent color from the name
+    const hue = ((name || 'A').charCodeAt(0) * 37) % 360;
+    const bg = `hsl(${hue}, 50%, 30%)`;
     return (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-            {[1, 2, 3, 4, 5].map(i => (
-                <Ionicons
-                    key={i}
-                    name={i <= full ? 'star' : (i === full + 1 && partial ? 'star-half' : 'star-outline')}
-                    size={11}
-                    color="#FBBF24"
-                />
-            ))}
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginLeft: 4 }}>{rating.toFixed(1)}</Text>
+        <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }}>
+            {photoUrl ? (
+                <Image source={{ uri: photoUrl }} style={{ width: size, height: size }} />
+            ) : (
+                <Text style={{ fontSize, fontWeight: '700', color: '#FFF' }}>{initials}</Text>
+            )}
         </View>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MatchCard — premium rich card
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── RatingDots ───────────────────────────────────────────────────────────────
+function RatingDots({ rating }: { rating: number }) {
+    const full = Math.round(rating);
+    return (
+        <View style={{ flexDirection: 'row', gap: 3 }}>
+            {[1, 2, 3, 4, 5].map(i => (
+                <View key={i} style={{
+                    width: 6, height: 6, borderRadius: 3,
+                    backgroundColor: i <= full ? colors.warning : 'rgba(255,255,255,0.15)',
+                }} />
+            ))}
+        </View>
+    );
+}
 
+// ─── Section Header ───────────────────────────────────────────────────────────
+function SectionHeader({ title, count, onSeeAll }: { title: string; count?: number; onSeeAll?: () => void }) {
+    return (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.2 }}>
+                    {title}
+                </Text>
+                {count !== undefined && count > 0 && (
+                    <View style={{ backgroundColor: colors.primaryMuted, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary }}>{count}</Text>
+                    </View>
+                )}
+            </View>
+            {onSeeAll && (
+                <TouchableOpacity onPress={onSeeAll} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>Tümü</Text>
+                </TouchableOpacity>
+            )}
+        </View>
+    );
+}
+
+// ─── Match History Card ───────────────────────────────────────────────────────
 function MatchCard({ match, index }: { match: any; index: number }) {
     const partner = match.otherUser || {};
-    const statusMeta = STATUS_META[match.status] || STATUS_META.COMPLETED;
-    const destMeta = DESTINATION_META[match.destination?.toLowerCase()] || {
-        label: match.destination || '—',
-        icon: 'location',
-        color: '#6366F1',
-    };
+    const statusCfg = STATUS_CONFIG[match.status] || STATUS_CONFIG.COMPLETED;
+    const destCfg = DESTINATION_META[match.destination?.toLowerCase()] || { label: match.destination || '—', color: colors.primary };
 
     return (
         <MotiView
-            from={{ opacity: 0, translateY: 24 }}
+            from={{ opacity: 0, translateY: 10 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: 100 + index * 80, type: 'spring', damping: 18 } as any}
+            transition={{ delay: index * 60, type: 'timing', duration: 250 } as any}
         >
-            <TouchableOpacity activeOpacity={0.92} style={styles.matchCardTouch}>
-                <BlurView intensity={25} tint="dark" style={styles.matchCard}>
-                    {/* Top shimmer line */}
-                    <View style={styles.cardShimmer} />
+            <TouchableOpacity style={styles.matchCard} activeOpacity={0.75}>
+                {/* Left: Avatar */}
+                <Avatar name={partner.fullName || 'Yolcu'} photoUrl={partner.photoUrl} size={46} fontSize={15} />
 
-                    {/* Header row: avatar + name/rating + status pill */}
-                    <View style={styles.cardHeader}>
-                        {/* Avatar */}
-                        <View style={styles.avatarRing}>
-                            <LinearGradient
-                                colors={['#7C3AED', '#06B6D4']}
-                                style={styles.avatarGradientRing}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                            >
-                                {partner.photoUrl ? (
-                                    <Image source={{ uri: partner.photoUrl }} style={styles.avatarImg} />
-                                ) : (
-                                    <LinearGradient
-                                        colors={['#4F46E5', '#7C3AED']}
-                                        style={styles.avatarInitials}
-                                    >
-                                        <Text style={styles.avatarInitialsText}>{getInitials(partner.fullName || 'Yolcu')}</Text>
-                                    </LinearGradient>
-                                )}
-                            </LinearGradient>
-                        </View>
-
-                        {/* Name + rating */}
-                        <View style={styles.cardUserInfo}>
-                            <View style={styles.cardNameRow}>
-                                <Text style={styles.cardPartnerName} numberOfLines={1}>
-                                    {partner.fullName || 'Yolcu'}
-                                </Text>
-                                {partner.emailVerified && (
-                                    <Ionicons name="shield-checkmark" size={14} color="#06B6D4" style={{ marginLeft: 4 }} />
-                                )}
-                            </View>
-                            <StarRow rating={partner.rating ?? 5.0} />
-                            <Text style={styles.cardTrips}>
-                                {partner.tripsCompleted ?? 0} yolculuk
-                            </Text>
-                        </View>
-
-                        {/* Status pill */}
-                        <View style={[styles.statusPill, { backgroundColor: statusMeta.bg }]}>
-                            <Ionicons name={statusMeta.icon} size={10} color={statusMeta.color} />
-                            <Text style={[styles.statusText, { color: statusMeta.color }]}>{statusMeta.label}</Text>
-                        </View>
+                {/* Middle: Info */}
+                <View style={styles.matchCardMid}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                        <Text style={styles.matchPartnerName} numberOfLines={1}>
+                            {partner.fullName || 'Yolcu'}
+                        </Text>
+                        {(partner.emailVerified || partner.phoneVerified) && (
+                            <Ionicons name="checkmark-circle" size={13} color={colors.success} />
+                        )}
                     </View>
-
-                    {/* Divider */}
-                    <View style={styles.cardDivider} />
-
-                    {/* Footer row: destination + date */}
-                    <View style={styles.cardFooter}>
-                        {/* Destination */}
-                        <View style={styles.cardDestRow}>
-                            <View style={[styles.cardDestIcon, { backgroundColor: `${destMeta.color}20` }]}>
-                                <Ionicons name={destMeta.icon} size={14} color={destMeta.color} />
-                            </View>
-                            <View>
-                                <Text style={styles.cardDestLabel}>Varış Noktası</Text>
-                                <Text style={styles.cardDestName}>{destMeta.label}</Text>
-                            </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.destTag, { backgroundColor: `${destCfg.color}18` }]}>
+                            <Ionicons name="location-sharp" size={10} color={destCfg.color} />
+                            <Text style={[styles.destTagText, { color: destCfg.color }]}>{destCfg.label}</Text>
                         </View>
-
-                        {/* Date */}
-                        <View style={styles.cardDateCol}>
-                            <Text style={styles.cardDateLabel}>Tarih</Text>
-                            <Text style={styles.cardDateValue}>
-                                {match.matchedAt ? formatDate(match.matchedAt) : '—'}
-                            </Text>
-                        </View>
+                        {partner.rating && (
+                            <Text style={styles.matchMeta}>★ {Number(partner.rating).toFixed(1)}</Text>
+                        )}
                     </View>
-                </BlurView>
+                </View>
+
+                {/* Right: Date + Status */}
+                <View style={styles.matchCardRight}>
+                    <Text style={styles.matchDate}>{formatDate(match.matchedAt || new Date().toISOString())}</Text>
+                    <View style={[styles.statusPill, { backgroundColor: `${statusCfg.color}18` }]}>
+                        <Text style={[styles.statusText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
+                    </View>
+                </View>
             </TouchableOpacity>
         </MotiView>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EmptyState — beautiful animated card
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ─── Empty History ────────────────────────────────────────────────────────────
 function EmptyHistory({ onPress }: { onPress: () => void }) {
     return (
-        <MotiView
-            from={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', delay: 200 } as any}
-        >
-            <BlurView intensity={20} tint="dark" style={styles.emptyCard}>
-                <View style={styles.emptyCardShimmer} />
-                <MotiView
-                    from={{ translateY: 0 }}
-                    animate={{ translateY: -8 }}
-                    transition={{ type: 'timing', duration: 2000, loop: true, repeatReverse: true } as any}
-                    style={styles.emptyIconWrap}
-                >
-                    <LinearGradient
-                        colors={['#4F46E5', '#7C3AED']}
-                        style={styles.emptyIconGrad}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                    >
-                        <Ionicons name="airplane" size={40} color="#FFF" style={{ transform: [{ rotate: '45deg' }] }} />
-                    </LinearGradient>
-                </MotiView>
-                <Text style={styles.emptyTitle}>Henüz yolculuğun yok</Text>
-                <Text style={styles.emptySubtitle}>
-                    İlk eşleşmeni yap ve birlikte seyahat et.{'\n'}Tüm geçmişin burada görünecek.
-                </Text>
-                <TouchableOpacity style={styles.emptyBtn} onPress={onPress} activeOpacity={0.85}>
-                    <LinearGradient
-                        colors={['#4F46E5', '#7C3AED']}
-                        style={styles.emptyBtnGrad}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                    >
-                        <Ionicons name="add" size={18} color="#FFF" />
-                        <Text style={styles.emptyBtnText}>İlk Eşleşmeni Bul</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </BlurView>
-        </MotiView>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen
-// ─────────────────────────────────────────────────────────────────────────────
-
-export default function HomeScreen() {
-    const { t } = useTranslation();
-    const navigation = useNavigation<any>();
-
-    const [user, setUser] = useState<any>({ fullName: '', photoUrl: null });
-    const [matchHistory, setMatchHistory] = useState<any[]>([]);
-    const [loadingHistory, setLoadingHistory] = useState(false);
-
-    useFocusEffect(
-        React.useCallback(() => {
-            const loadData = async () => {
-                const profile = await loadUserProfile();
-                if (profile) setUser(profile);
-
-                setLoadingHistory(true);
-                try {
-                    const response = await MatchAPI.getHistory();
-                    setMatchHistory(response.data || []);
-                } catch {
-                    // Silently fail — history is not critical
-                } finally {
-                    setLoadingHistory(false);
-                }
-            };
-            loadData();
-        }, [])
-    );
-
-    const displayName = user.fullName || 'Yolcu';
-    const firstName = displayName.split(' ')[0];
-
-    const handleCreateMatch = () => navigation.navigate('CreateMatch');
-
-    const timeGreeting = () => {
-        const h = new Date().getHours();
-        if (h < 6) return 'İyi Geceler';
-        if (h < 12) return 'Günaydın';
-        if (h < 18) return 'İyi Günler';
-        return 'İyi Akşamlar';
-    };
-
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-
-            {/* Background Aurora */}
-            <LinearGradient
-                colors={['#12103A', colors.background]}
-                style={StyleSheet.absoluteFillObject}
-            />
-            <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.55, scale: 1 }}
-                transition={{ type: 'timing', duration: 2200, loop: true, repeatReverse: true } as any}
-                style={[styles.orb, { top: -80, right: -120, backgroundColor: colors.primary }]}
-            />
-            <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 0.35, scale: 1.2 }}
-                transition={{ type: 'timing', duration: 3200, loop: true, repeatReverse: true } as any}
-                style={[styles.orb, { top: 260, left: -160, backgroundColor: colors.secondary }]}
-            />
-
-            <SafeAreaView style={styles.safeArea}>
-                {/* ── HEADER ── */}
-                <View style={styles.header}>
-                    <View style={{ flex: 1, paddingRight: spacing.m }}>
-                        <MotiText
-                            from={{ opacity: 0, translateY: -10 }}
-                            animate={{ opacity: 1, translateY: 0 }}
-                            transition={{ delay: 60 } as any}
-                            style={styles.greeting}
-                        >
-                            {timeGreeting()},{'\n'}{firstName} 👋
-                        </MotiText>
-                        <MotiText
-                            from={{ opacity: 0 }}
-                            animate={{ opacity: 0.6 }}
-                            transition={{ delay: 160 } as any}
-                            style={styles.subGreeting}
-                        >
-                            {t('app.tagline')}
-                        </MotiText>
-                    </View>
-
-                    {/* Profile avatar */}
-                    <TouchableOpacity onPress={() => navigation.navigate('Settings')} activeOpacity={0.85}>
-                        <View style={styles.profileRing}>
-                            {user.photoUrl ? (
-                                <Image source={{ uri: user.photoUrl }} style={styles.profilePhoto} />
-                            ) : (
-                                <LinearGradient colors={['#4F46E5', '#7C3AED']} style={styles.profileGrad}>
-                                    <Text style={styles.profileInitial}>{firstName[0]?.toUpperCase() || '?'}</Text>
-                                </LinearGradient>
-                            )}
-                            {/* Online indicator */}
-                            <View style={styles.onlineDot} />
-                        </View>
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView
-                    contentContainerStyle={styles.content}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* ── SECURITY PILL ── */}
-                    <MotiView
-                        from={{ opacity: 0, translateY: 10 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 80 } as any}
-                        style={styles.pillWrapper}
-                    >
-                        <BlurView intensity={20} tint="dark" style={styles.securityPill}>
-                            <View style={styles.pillDot} />
-                            <Ionicons name="shield-checkmark" size={14} color="#10B981" />
-                            <Text style={styles.pillText}>Yolculuklar 7/24 Güvende</Text>
-                        </BlurView>
-                    </MotiView>
-
-                    {/* ── HERO CARD ── */}
-                    <MotiView
-                        from={{ opacity: 0, scale: 0.95, translateY: 20 }}
-                        animate={{ opacity: 1, scale: 1, translateY: 0 }}
-                        transition={{ delay: 160, type: 'spring' } as any}
-                        style={styles.heroWrapper}
-                    >
-                        <TouchableOpacity activeOpacity={0.92} onPress={handleCreateMatch} style={styles.heroTouch}>
-                            <LinearGradient
-                                colors={['#4F46E5', '#7C3AED', '#06B6D4']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.heroGradient}
-                            >
-                                {/* Ghost icon */}
-                                <Ionicons
-                                    name="airplane"
-                                    size={200}
-                                    color="rgba(255,255,255,0.06)"
-                                    style={styles.heroGhostIcon}
-                                />
-                                {/* Top shimmer */}
-                                <View style={styles.heroShimmer} />
-
-                                <View style={styles.heroContent}>
-                                    <View style={styles.heroIconBox}>
-                                        <Ionicons name="search" size={28} color="#4F46E5" />
-                                    </View>
-                                    <Text style={styles.heroTitle}>{t('home.createMatch')}</Text>
-                                    <Text style={styles.heroSubtitle}>
-                                        Aynı yöne gidenlerle masrafı paylaş
-                                    </Text>
-                                    <View style={styles.heroArrow}>
-                                        <Text style={styles.heroArrowText}>Başla</Text>
-                                        <Ionicons name="arrow-forward" size={16} color="rgba(255,255,255,0.8)" />
-                                    </View>
-                                </View>
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </MotiView>
-
-                    {/* ── STATS ROW ── */}
-                    <MotiView
-                        from={{ opacity: 0, translateY: 16 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 240, type: 'spring' } as any}
-                        style={styles.statsRow}
-                    >
-                        {[
-                            { icon: 'star', color: '#FBBF24', label: 'Puanın', value: (user.rating ?? 5.0).toFixed(1) },
-                            { icon: 'car', color: '#06B6D4', label: 'Yolculuk', value: String(user.tripsCompleted ?? 0) },
-                            { icon: 'shield-checkmark', color: '#10B981', label: 'Güven', value: user.emailVerified ? 'Doğrulandı' : 'Bekliyor' },
-                        ].map((s, i) => (
-                            <BlurView key={i} intensity={20} tint="dark" style={styles.statCard}>
-                                <View style={styles.statShimmer} />
-                                <View style={[styles.statIconBox, { backgroundColor: `${s.color}1A` }]}>
-                                    <Ionicons name={s.icon as any} size={18} color={s.color} />
-                                </View>
-                                <Text style={styles.statValue}>{s.value}</Text>
-                                <Text style={styles.statLabel}>{s.label}</Text>
-                            </BlurView>
-                        ))}
-                    </MotiView>
-
-                    {/* ── MATCH HISTORY ── */}
-                    <MotiView
-                        from={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 320 } as any}
-                    >
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
-                            {matchHistory.length > 0 && (
-                                <View style={styles.countBadge}>
-                                    <Text style={styles.countBadgeText}>{matchHistory.length}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        {matchHistory.length > 0 ? (
-                            <View style={styles.historyList}>
-                                {matchHistory.slice(0, 8).map((match, i) => (
-                                    <MatchCard key={match.id ?? i} match={match} index={i} />
-                                ))}
-                            </View>
-                        ) : (
-                            <EmptyHistory onPress={handleCreateMatch} />
-                        )}
-                    </MotiView>
-
-                </ScrollView>
-            </SafeAreaView>
+        <View style={styles.emptyWrap}>
+            <View style={styles.emptyIconWrap}>
+                <Ionicons name="airplane-outline" size={32} color={colors.textDisabled} />
+            </View>
+            <Text style={styles.emptyTitle}>Henüz yolculuk yok</Text>
+            <Text style={styles.emptySubtitle}>İlk eşleşmeni bul ve yolculuk paylaş</Text>
         </View>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── HomeScreen ───────────────────────────────────────────────────────────────
+export default function HomeScreen() {
+    const navigation = useNavigation<any>();
+    const [user, setUser] = useState<any>(null);
+    const [matchHistory, setMatchHistory] = useState<any[]>([]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
+    const loadData = async () => {
+        try {
+            const [profileRes, historyRes] = await Promise.all([
+                loadUserProfile(),
+                MatchAPI.getHistory().catch(() => ({ data: { matches: [] } })),
+            ]);
+            if (profileRes?.data) setUser(profileRes.data);
+            if (historyRes?.data?.matches) setMatchHistory(historyRes.data.matches);
+        } catch (e) {
+            // Silent — show whatever we have
+        }
+    };
+
+    useFocusEffect(useCallback(() => {
+        loadData();
+        registerForPushNotificationsAsync().catch(() => { });
+    }, []));
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await loadData();
+        setIsRefreshing(false);
+    };
+
+    const displayName = user?.fullName || user?.email?.split('@')[0] || 'Hoş geldin';
+    const firstName = displayName.split(' ')[0];
+    const userRating = user?.rating ?? 5.0;
+    const tripCount = user?.tripCount ?? matchHistory.length;
+    const isVerified = user?.emailVerified || user?.phoneVerified;
+
+    return (
+        <View style={styles.screen}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+
+            {/* ── FIXED HEADER ── */}
+            <SafeAreaView style={styles.headerSafeArea}>
+                <View style={styles.header}>
+                    <View>
+                        <Text style={styles.greeting}>{getGreeting()}</Text>
+                        <Text style={styles.userName}>{firstName}</Text>
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Settings')}
+                        style={styles.profileBtn}
+                        activeOpacity={0.8}
+                    >
+                        <Avatar name={displayName} photoUrl={user?.photoUrl} size={40} fontSize={14} />
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+
+            {/* ── SCROLLABLE CONTENT ── */}
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={colors.primary}
+                    />
+                }
+            >
+                {/* ── STATS ROW ── */}
+                <MotiView
+                    from={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 50, duration: 300 } as any}
+                    style={styles.statsRow}
+                >
+                    <View style={styles.statItem}>
+                        <Text style={styles.statValue}>★ {userRating.toFixed(1)}</Text>
+                        <Text style={styles.statLabel}>Puanım</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                        <Text style={styles.statValue}>{tripCount}</Text>
+                        <Text style={styles.statLabel}>Yolculuk</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                        {isVerified ? (
+                            <>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <Ionicons name="shield-checkmark" size={14} color={colors.success} />
+                                    <Text style={[styles.statValue, { color: colors.success }]}>Doğrulandı</Text>
+                                </View>
+                                <Text style={styles.statLabel}>Hesap</Text>
+                            </>
+                        ) : (
+                            <>
+                                <Text style={[styles.statValue, { color: colors.warning }]}>Doğrula</Text>
+                                <Text style={styles.statLabel}>Hesap</Text>
+                            </>
+                        )}
+                    </View>
+                </MotiView>
+
+                {/* ── PRIMARY ACTION: CREATE MATCH ── */}
+                <MotiView
+                    from={{ opacity: 0, translateY: 12 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 80, type: 'spring', damping: 20 } as any}
+                    style={{ marginHorizontal: SECTION_PADDING, marginBottom: 12 }}
+                >
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('CreateMatch')}
+                        activeOpacity={0.9}
+                        style={styles.createMatchBtn}
+                    >
+                        <LinearGradient
+                            colors={['#5B5EF4', '#4338CA']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.createMatchGrad}
+                        >
+                            <View style={styles.createMatchLeft}>
+                                <View style={styles.createMatchIconBox}>
+                                    <Ionicons name="airplane" size={20} color="#FFF" />
+                                </View>
+                                <View>
+                                    <Text style={styles.createMatchTitle}>Eşleşme Bul</Text>
+                                    <Text style={styles.createMatchSub}>Varış noktası seç, yolcu bul</Text>
+                                </View>
+                            </View>
+                            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.7)" />
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </MotiView>
+
+                {/* ── QUICK STATS: LIVE DESTINATIONS ── */}
+                <MotiView
+                    from={{ opacity: 0, translateY: 8 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 120, type: 'timing', duration: 250 } as any}
+                    style={{ marginHorizontal: SECTION_PADDING, marginBottom: 28 }}
+                >
+                    <View style={styles.destGrid}>
+                        {Object.entries(DESTINATION_META).map(([key, meta]) => (
+                            <TouchableOpacity
+                                key={key}
+                                onPress={() => navigation.navigate('CreateMatch', { preselectedDest: key })}
+                                activeOpacity={0.75}
+                                style={styles.destCard}
+                            >
+                                <View style={[styles.destIconBox, { backgroundColor: `${meta.color}18` }]}>
+                                    <Ionicons name="location-sharp" size={16} color={meta.color} />
+                                </View>
+                                <Text style={styles.destCardLabel}>{meta.label}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </MotiView>
+
+                {/* ── MATCH HISTORY ── */}
+                <View style={{ paddingHorizontal: SECTION_PADDING }}>
+                    <SectionHeader
+                        title="Geçmiş Yolculuklar"
+                        count={matchHistory.length}
+                    />
+                    {matchHistory.length > 0 ? (
+                        <View style={styles.matchList}>
+                            {matchHistory.slice(0, 8).map((match, i) => (
+                                <MatchCard key={match.id || i} match={match} index={i} />
+                            ))}
+                        </View>
+                    ) : (
+                        <EmptyHistory onPress={() => navigation.navigate('CreateMatch')} />
+                    )}
+                </View>
+
+                <View style={{ height: 100 }} />
+            </ScrollView>
+        </View>
+    );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    orb: {
-        position: 'absolute', width: 340, height: 340, borderRadius: 170,
-        opacity: 0.4, transform: [{ scale: 2 }],
-        ...(Platform.OS === 'web' ? { filter: 'blur(80px)' } as any : {}),
-    },
-    safeArea: { flex: 1 },
+    screen: { flex: 1, backgroundColor: colors.background },
 
     // Header
+    headerSafeArea: { backgroundColor: colors.background },
     header: {
-        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
-        paddingHorizontal: spacing.l, paddingTop: spacing.m, paddingBottom: spacing.l, zIndex: 10,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingHorizontal: SECTION_PADDING, paddingTop: 8, paddingBottom: 16,
     },
-    greeting: {
-        fontSize: 30, fontWeight: '800', color: '#FFF',
-        lineHeight: 38, letterSpacing: -0.5,
-    },
-    subGreeting: {
-        fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 6, lineHeight: 18,
-    },
-    profileRing: {
-        width: 54, height: 54, borderRadius: 27,
-        borderWidth: 2, borderColor: 'rgba(99,102,241,0.6)',
-        overflow: 'visible',
-        shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
-    },
-    profilePhoto: { width: 50, height: 50, borderRadius: 25 },
-    profileGrad: {
-        width: 50, height: 50, borderRadius: 25,
-        justifyContent: 'center', alignItems: 'center',
-    },
-    profileInitial: { color: '#FFF', fontSize: 20, fontWeight: '700' },
-    onlineDot: {
-        position: 'absolute', bottom: 1, right: 1,
-        width: 12, height: 12, borderRadius: 6,
-        backgroundColor: '#10B981', borderWidth: 2, borderColor: '#0D0F1E',
-    },
+    greeting: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginBottom: 2 },
+    userName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.5 },
+    profileBtn: { borderRadius: 20, overflow: 'hidden' },
 
-    content: { paddingHorizontal: spacing.l, paddingBottom: 120 },
-
-    // Security pill
-    pillWrapper: { marginBottom: spacing.l, borderRadius: 100, overflow: 'hidden', alignSelf: 'flex-start' },
-    securityPill: {
-        flexDirection: 'row', alignItems: 'center', gap: 6,
-        paddingVertical: 8, paddingHorizontal: 14,
-        backgroundColor: 'rgba(16,185,129,0.06)',
-        borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(16,185,129,0.25)',
-    },
-    pillDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
-    pillText: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: '500' },
-
-    // Hero card
-    heroWrapper: {
-        height: 230, marginBottom: spacing.l,
-        borderRadius: 32, overflow: 'hidden',
-        shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 14 },
-        shadowOpacity: 0.5, shadowRadius: 24, elevation: 12,
-    },
-    heroTouch: { flex: 1 },
-    heroGradient: { flex: 1, padding: spacing.xl, justifyContent: 'flex-end' },
-    heroGhostIcon: { position: 'absolute', top: -30, right: -40, transform: [{ rotate: '-15deg' }] },
-    heroShimmer: {
-        position: 'absolute', top: 0, left: 0, right: 0, height: 1.5,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-    },
-    heroContent: {},
-    heroIconBox: {
-        width: 56, height: 56, borderRadius: 28,
-        backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center',
-        marginBottom: spacing.m,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8,
-    },
-    heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF', letterSpacing: -0.5, lineHeight: 32 },
-    heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
-    heroArrow: {
-        flexDirection: 'row', alignItems: 'center', gap: 4,
-        marginTop: spacing.m,
-    },
-    heroArrowText: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: '600' },
+    // Scroll
+    scrollContent: { paddingTop: 4 },
 
     // Stats row
     statsRow: {
-        flexDirection: 'row', gap: spacing.m, marginBottom: spacing.xl,
+        flexDirection: 'row', alignItems: 'center',
+        marginHorizontal: SECTION_PADDING, marginBottom: 16,
+        backgroundColor: colors.surface,
+        borderRadius: CARD_RADIUS, paddingVertical: 14,
+        borderWidth: 1, borderColor: colors.border,
     },
-    statCard: {
-        flex: 1, borderRadius: 20, overflow: 'hidden',
-        padding: spacing.m, alignItems: 'center',
-        backgroundColor: 'rgba(20,22,42,0.5)',
-        borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)',
-        minHeight: 100, justifyContent: 'center',
-    },
-    statShimmer: {
-        position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-    },
-    statIconBox: {
-        width: 36, height: 36, borderRadius: 18,
-        justifyContent: 'center', alignItems: 'center', marginBottom: 6,
-    },
-    statValue: { fontSize: 15, fontWeight: '800', color: '#FFF', letterSpacing: -0.3 },
-    statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2, textAlign: 'center' },
+    statItem: { flex: 1, alignItems: 'center', gap: 3 },
+    statValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+    statLabel: { fontSize: 11, fontWeight: '500', color: colors.textTertiary },
+    statDivider: { width: 1, height: 28, backgroundColor: colors.border },
 
-    // Section header
-    sectionHeader: {
-        flexDirection: 'row', alignItems: 'center', gap: spacing.s,
-        marginBottom: spacing.m,
+    // Create match
+    createMatchBtn: {
+        borderRadius: CARD_RADIUS, overflow: 'hidden',
+        shadowColor: '#5B5EF4', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
     },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#FFF', letterSpacing: -0.3 },
-    countBadge: {
-        backgroundColor: 'rgba(99,102,241,0.25)',
-        borderRadius: 10, paddingVertical: 2, paddingHorizontal: 8,
-        borderWidth: 1, borderColor: 'rgba(99,102,241,0.4)',
+    createMatchGrad: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        paddingVertical: 16, paddingHorizontal: 18,
     },
-    countBadgeText: { fontSize: 12, fontWeight: '700', color: '#A5B4FC' },
-
-    // History list
-    historyList: { gap: spacing.m },
-
-    // Match card
-    matchCardTouch: {
-        borderRadius: 28, overflow: 'hidden',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.22, shadowRadius: 14, elevation: 6,
-    },
-    matchCard: {
-        padding: spacing.l,
-        backgroundColor: 'rgba(16,18,38,0.6)',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.09)',
-        borderRadius: 28,
-        overflow: 'hidden',
-    },
-    cardShimmer: {
-        position: 'absolute', top: 0, left: 0, right: 0, height: 1.5,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-    },
-    cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-
-    // Avatar
-    avatarRing: {
-        width: 56, height: 56, borderRadius: 28, overflow: 'hidden',
-    },
-    avatarGradientRing: {
-        width: 56, height: 56, borderRadius: 28,
-        justifyContent: 'center', alignItems: 'center', padding: 2,
-    },
-    avatarImg: { width: 52, height: 52, borderRadius: 26 },
-    avatarInitials: {
-        width: 52, height: 52, borderRadius: 26,
+    createMatchLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    createMatchIconBox: {
+        width: 40, height: 40, borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center', alignItems: 'center',
     },
-    avatarInitialsText: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+    createMatchTitle: { fontSize: 16, fontWeight: '700', color: '#FFF', letterSpacing: -0.2 },
+    createMatchSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 1 },
 
-    // User info
-    cardUserInfo: { flex: 1 },
-    cardNameRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
-    cardPartnerName: { fontSize: 15, fontWeight: '700', color: '#FFF', flexShrink: 1 },
-    cardTrips: { fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 4 },
+    // Destination grid
+    destGrid: { flexDirection: 'row', gap: 10 },
+    destCard: {
+        flex: 1, backgroundColor: colors.surface,
+        borderRadius: 12, paddingVertical: 14, paddingHorizontal: 12,
+        alignItems: 'center', gap: 8,
+        borderWidth: 1, borderColor: colors.border,
+    },
+    destIconBox: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+    destCardLabel: { fontSize: 12, fontWeight: '600', color: colors.textPrimary },
 
-    // Status
+    // Match list
+    matchList: { gap: 2 },
+    matchCard: {
+        flexDirection: 'row', alignItems: 'center', gap: 14,
+        paddingVertical: 13, paddingHorizontal: 0,
+        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    },
+    matchCardMid: { flex: 1 },
+    matchPartnerName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, letterSpacing: -0.1, flex: 1 },
+    matchMeta: { fontSize: 12, color: colors.textTertiary },
+    destTag: {
+        flexDirection: 'row', alignItems: 'center', gap: 3,
+        paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+    },
+    destTagText: { fontSize: 11, fontWeight: '600' },
+    matchCardRight: { alignItems: 'flex-end', gap: 5 },
+    matchDate: { fontSize: 12, color: colors.textTertiary },
     statusPill: {
-        flexDirection: 'row', alignItems: 'center', gap: 4,
-        paddingVertical: 4, paddingHorizontal: 8,
-        borderRadius: 100, alignSelf: 'flex-start',
+        paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6,
     },
     statusText: { fontSize: 11, fontWeight: '600' },
 
-    // Divider
-    cardDivider: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: 'rgba(255,255,255,0.07)',
-        marginVertical: spacing.m,
-    },
-
-    // Footer
-    cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-    cardDestRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-    cardDestIcon: {
-        width: 34, height: 34, borderRadius: 17,
-        justifyContent: 'center', alignItems: 'center',
-    },
-    cardDestLabel: { fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 2 },
-    cardDestName: { fontSize: 14, fontWeight: '700', color: '#FFF' },
-    cardDateCol: { alignItems: 'flex-end' },
-    cardDateLabel: { fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 2 },
-    cardDateValue: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.6)' },
-
     // Empty state
-    emptyCard: {
-        borderRadius: 32, overflow: 'hidden', padding: spacing.xxl,
-        alignItems: 'center',
-        backgroundColor: 'rgba(16,18,38,0.55)',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.08)',
+    emptyWrap: {
+        alignItems: 'center', paddingVertical: 36, gap: 8,
+        backgroundColor: colors.surface, borderRadius: CARD_RADIUS,
+        borderWidth: 1, borderColor: colors.border,
     },
-    emptyCardShimmer: {
-        position: 'absolute', top: 0, left: 0, right: 0, height: 1.5,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+    emptyIconWrap: {
+        width: 56, height: 56, borderRadius: 28,
+        backgroundColor: colors.surfaceElevated,
+        justifyContent: 'center', alignItems: 'center', marginBottom: 4,
     },
-    emptyIconWrap: { marginBottom: spacing.xl },
-    emptyIconGrad: {
-        width: 80, height: 80, borderRadius: 40,
-        justifyContent: 'center', alignItems: 'center',
-        shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.6, shadowRadius: 20, elevation: 10,
-    },
-    emptyTitle: { fontSize: 20, fontWeight: '800', color: '#FFF', letterSpacing: -0.4, marginBottom: spacing.s },
-    emptySubtitle: {
-        fontSize: 14, color: 'rgba(255,255,255,0.45)', textAlign: 'center',
-        lineHeight: 20, marginBottom: spacing.xl,
-    },
-    emptyBtn: {
-        borderRadius: 100, overflow: 'hidden',
-        shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
-    },
-    emptyBtnGrad: {
-        flexDirection: 'row', alignItems: 'center', gap: 6,
-        paddingVertical: 14, paddingHorizontal: 28,
-    },
-    emptyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
+    emptyTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+    emptySubtitle: { fontSize: 13, color: colors.textTertiary, textAlign: 'center', paddingHorizontal: 24 },
 });
