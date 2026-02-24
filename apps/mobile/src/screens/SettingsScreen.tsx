@@ -38,7 +38,7 @@ export default function SettingsScreen() {
     const handleLogout = () => {
         showConfirm(
             t('settings.logout'),
-            'Are you sure?',
+            'Çıkış yapmak istediğinizden emin misiniz?',
             async () => {
                 await setAuthToken('');
                 await clearUserProfile();
@@ -47,8 +47,8 @@ export default function SettingsScreen() {
                     routes: [{ name: 'Welcome' }],
                 });
             },
-            'Log Out',
-            'Cancel',
+            t('settings.logout'),
+            'Vazgeç',
             true
         );
     };
@@ -56,7 +56,7 @@ export default function SettingsScreen() {
     const handleDeleteAccount = () => {
         showConfirm(
             t('settings.deleteAccount'),
-            'This action cannot be undone.',
+            'Bu işlem geri alınamaz. Hesabınız ve tüm verileriniz silinecek.',
             async () => {
                 await setAuthToken('');
                 await clearUserProfile();
@@ -65,8 +65,8 @@ export default function SettingsScreen() {
                     routes: [{ name: 'Welcome' }],
                 });
             },
-            'Delete',
-            'Cancel',
+            'Hesabı Sil',
+            'Vazgeç',
             true
         );
     };

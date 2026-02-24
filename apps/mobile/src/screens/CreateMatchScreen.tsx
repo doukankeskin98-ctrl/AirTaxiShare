@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+
 import { useTranslation } from 'react-i18next';
 import { showAlert } from '../utils/alert';
 import { useNavigation } from '@react-navigation/native';
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
         borderRadius: 200,
         opacity: 0.3,
         transform: [{ scale: 1.5 }],
-        filter: 'blur(90px)',
+        ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
     },
     header: {
         flexDirection: 'row',

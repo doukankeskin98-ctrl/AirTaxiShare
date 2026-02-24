@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { colors } from '../theme';
 
 import SplashScreen from '../screens/SplashScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
@@ -43,7 +44,7 @@ export default function AppNavigator() {
                 initialRouteName="Splash"
                 screenOptions={{
                     headerShown: false,
-                    cardStyle: { backgroundColor: '#F6F8FB' },
+                    cardStyle: { backgroundColor: colors.background },
                 }}
             >
                 <Stack.Screen name="Splash" component={SplashScreen} />

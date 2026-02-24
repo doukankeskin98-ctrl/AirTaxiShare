@@ -8,6 +8,9 @@ import * as Localization from 'expo-localization';
 import i18n from '../i18n';
 import { initAuthToken, UserService, saveUserProfile, setAuthToken, clearUserProfile } from '../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ACTIVE_MATCH_KEY = '@active_match';
 
 export default function SplashScreen() {
     const navigation = useNavigation<any>();
@@ -28,6 +31,23 @@ export default function SplashScreen() {
                 try {
                     const response = await UserService.getProfile();
                     await saveUserProfile(response.data);
+
+                    // Check if there was an active match before app was killed
+                    const activeMatchRaw = await AsyncStorage.getItem(ACTIVE_MATCH_KEY);
+                    if (activeMatchRaw) {
+                        try {
+                            const activeMatch = JSON.parse(activeMatchRaw);
+                            setTimeout(() => {
+                                navigation.replace('MatchFound', {
+                                    matchId: activeMatch.matchId,
+                                    otherUser: activeMatch.otherUser,
+                                    luggage: activeMatch.luggage,
+                                });
+                            }, 1000);
+                            return; // Skip default Home navigation
+                        } catch { /* Invalid JSON, ignore and go Home */ }
+                    }
+
                     setTimeout(() => {
                         navigation.replace('Home');
                     }, 1500);
@@ -88,7 +108,7 @@ export default function SplashScreen() {
                         <Text style={styles.logoText}>Air</Text>
                         <Text style={styles.logoTextBold}>Taxi</Text>
                     </View>
-                    <Text style={styles.subtitle}>{i18n.t('app.tagline', 'Share the journey, split the cost')}</Text>
+                    <Text style={styles.subtitle}>{i18n.t('app.tagline')}</Text>
                 </MotiView>
 
                 <MotiView
