@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import helmet from 'helmet';
-import compression from 'compression';
+// Use require for CJS middlewares to ensure runtime compatibility on Render/Linux
+const helmet = require('helmet');
+const compression = require('compression');
 
 async function bootstrap() {
     const logger = new Logger('Bootstrap');
