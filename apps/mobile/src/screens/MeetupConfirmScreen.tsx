@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
-import { PremiumCard } from '../components/PremiumCard';
-import { ATSLoadingState } from '../components/ATS/ATSLoadingState'; // Keep for now or replace if PremiumLoading exists? Use ATS for now or build inline
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import SocketService from '../services/socket';
 
 export default function MeetupConfirmScreen() {
     const { t } = useTranslation();
@@ -17,29 +18,61 @@ export default function MeetupConfirmScreen() {
     const route = useRoute<any>();
     const { matchId, otherUser } = route.params || {};
 
-    // State: 'pending', 'confirmed_by_me', 'success'
-    const [status, setStatus] = useState('pending');
+    // 'pending' | 'waiting_partner' | 'success'
+    const [status, setStatus] = useState<'pending' | 'waiting_partner' | 'success'>('pending');
 
-    const handleConfirm = () => {
-        setStatus('confirmed_by_me');
-
-        // Mock waiting for other user
-        setTimeout(() => {
+    useEffect(() => {
+        // Listen for the server to confirm both sides have confirmed
+        SocketService.onMeetupConfirmed(() => {
             setStatus('success');
-            // Navigate to Rating after short delay
             setTimeout(() => {
                 navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
             }, 1500);
-        }, 2000);
+        });
+
+        return () => {
+            SocketService.offMeetupConfirmed();
+        };
+    }, [matchId, navigation, otherUser]);
+
+    const handleConfirm = () => {
+        setStatus('waiting_partner');
+        // Emit real socket event — gateway tracks confirmations per matchId
+        if (matchId && matchId !== 'mock-id') {
+            SocketService.confirmMeetup(matchId);
+        } else {
+            // Demo mode: auto-complete after 2 seconds
+            setTimeout(() => {
+                setStatus('success');
+                setTimeout(() => navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser }), 1500);
+            }, 2000);
+        }
     };
 
     const handleDispute = () => {
-        alert('Sorun bildirildi');
+        showConfirm(
+            'Sorun Bildir',
+            'Bu eşleşmeyle ilgili bir sorun mu yaşıyorsunuz?',
+            () => {
+                if (matchId && matchId !== 'mock-id') {
+                    SocketService.endMatch(matchId);
+                }
+                navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+            },
+            'Evet, Sorun Var',
+            'İptal',
+            true,
+        );
     };
 
     return (
         <View style={styles.container}>
-            {/* Header with Cancel Button */}
+            <LinearGradient
+                colors={['#0B0D17', colors.background]}
+                style={StyleSheet.absoluteFillObject}
+            />
+
+            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -50,7 +83,7 @@ export default function MeetupConfirmScreen() {
                             () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
                             'Evet, İptal Et',
                             'Hayır',
-                            true
+                            true,
                         );
                     }}
                 >
@@ -69,69 +102,85 @@ export default function MeetupConfirmScreen() {
             </View>
 
             <View style={styles.content}>
+
+                {/* Central icon animation */}
                 <MotiView
-                    from={{ opacity: 0, scale: 0.9 }}
+                    from={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring' } as any}
+                    transition={{ type: 'spring', damping: 14 } as any}
+                    style={styles.iconWrapper}
                 >
-                    <PremiumCard style={styles.card}>
-                        <View style={styles.center}>
-                            <MotiView
-                                from={{ scale: 0.5, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 200 } as any}
-                            >
-                                <Ionicons name="people-circle" size={100} color={colors.primary} />
-                            </MotiView>
-                            <Text style={styles.subtitle}>{t('meetup.subtitle')}</Text>
+                    {status === 'success' ? (
+                        <View style={[styles.iconCircle, { backgroundColor: colors.success }]}>
+                            <Ionicons name="checkmark" size={64} color="#FFF" />
                         </View>
-                    </PremiumCard>
+                    ) : (
+                        <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20', borderWidth: 2, borderColor: colors.primary + '40' }]}>
+                            <Ionicons name="people-circle" size={72} color={colors.primary} />
+                        </View>
+                    )}
                 </MotiView>
 
-                {status === 'pending' && (
-                    <MotiView
-                        from={{ opacity: 0, translateY: 20 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        delay={300}
-                        style={styles.actionContainer}
-                    >
-                        <PremiumButton
-                            title={t('meetup.cta.met')}
-                            onPress={handleConfirm}
-                            icon={<Ionicons name="checkmark-circle-outline" size={20} color="#FFF" />}
-                            style={styles.confirmButton}
-                        />
-                    </MotiView>
-                )}
+                <MotiView
+                    from={{ opacity: 0, translateY: 10 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 200 } as any}
+                    style={styles.textBlock}
+                >
+                    <Text style={styles.title}>
+                        {status === 'success'
+                            ? 'Buluşma Onaylandı! 🎉'
+                            : status === 'waiting_partner'
+                                ? 'Diğer yolcu bekleniyor...'
+                                : t('meetup.subtitle')}
+                    </Text>
+                    <Text style={styles.subtitle}>
+                        {status === 'success'
+                            ? 'Harika bir yolculuk dileriz!'
+                            : status === 'waiting_partner'
+                                ? `${otherUser?.name || 'Yolcu'} buluşmayı onaylaması bekleniyor.`
+                                : 'Buluşma noktasında karşılaştığınızda her iki taraf da onaylamalıdır.'}
+                    </Text>
+                </MotiView>
 
-                {status === 'confirmed_by_me' && (
+                {status === 'waiting_partner' && (
                     <MotiView
                         from={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        style={styles.statusContainer}
+                        style={styles.waitingRow}
                     >
-                        <ATSLoadingState message={t('meetup.waitingOther')} />
-                    </MotiView>
-                )}
-
-                {status === 'success' && (
-                    <MotiView
-                        from={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        style={styles.successContainer}
-                    >
-                        <View style={styles.successCircle}>
-                            <Ionicons name="checkmark" size={60} color="#FFF" />
-                        </View>
-                        <Text style={styles.successText}>Buluşma Onaylandı!</Text>
+                        {[0, 1, 2].map(i => (
+                            <MotiView
+                                key={i}
+                                from={{ opacity: 0.2, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: 'timing', duration: 700, delay: i * 200, loop: true, repeatReverse: true } as any}
+                                style={styles.waitingDot}
+                            />
+                        ))}
                     </MotiView>
                 )}
 
                 <View style={styles.spacer} />
 
+                {status === 'pending' && (
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 400 } as any}
+                    >
+                        <PremiumButton
+                            title={t('meetup.cta.met')}
+                            onPress={handleConfirm}
+                            icon={<Ionicons name="checkmark-circle-outline" size={22} color="#FFF" />}
+                            style={styles.confirmButton}
+                        />
+                    </MotiView>
+                )}
+
                 <MotiView
                     from={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    animate={{ opacity: status === 'success' ? 0 : 1 }}
                     delay={600}
                 >
                     <PremiumButton
@@ -158,6 +207,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: spacing.m,
         paddingTop: 60,
+        paddingBottom: spacing.m,
     },
     backButton: {
         width: 44,
@@ -178,63 +228,67 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: colors.textPrimary,
         fontSize: 20,
+        fontWeight: '700',
     },
     content: {
-        padding: spacing.l,
         flex: 1,
+        padding: spacing.xl,
+        paddingBottom: spacing.xxl,
+        alignItems: 'center',
         justifyContent: 'center',
     },
-    card: {
+    iconWrapper: {
         marginBottom: spacing.xl,
-        padding: spacing.xl,
-        borderRadius: 24,
     },
-    center: {
+    iconCircle: {
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    textBlock: {
+        alignItems: 'center',
+        marginBottom: spacing.xl,
+    },
+    title: {
+        ...typography.h2,
+        color: colors.textPrimary,
+        textAlign: 'center',
+        marginBottom: spacing.s,
     },
     subtitle: {
         ...typography.body,
-        textAlign: 'center',
-        marginTop: spacing.m,
         color: colors.textSecondary,
+        textAlign: 'center',
+        lineHeight: 22,
+        paddingHorizontal: spacing.m,
     },
-    actionContainer: {
-        width: '100%',
-        alignItems: 'center',
+    waitingRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: spacing.xl,
     },
-    confirmButton: {
-        width: '100%',
-    },
-    statusContainer: {
-        alignItems: 'center',
-        marginBottom: spacing.l,
-    },
-    successContainer: {
-        alignItems: 'center',
-        marginBottom: spacing.l,
-    },
-    successCircle: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: colors.success,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: spacing.m,
-        shadowColor: colors.success,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 10,
-    },
-    successText: {
-        ...typography.h3,
-        color: colors.success,
+    waitingDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: colors.primary,
     },
     spacer: {
         flex: 1,
     },
+    confirmButton: {
+        width: '100%',
+        marginBottom: spacing.m,
+    },
     disputeButton: {
         backgroundColor: 'transparent',
+        width: '100%',
     },
 });

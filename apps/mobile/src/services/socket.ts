@@ -128,6 +128,34 @@ class SocketService {
     }
 
     // --- CHAT ---
+
+    // Key prefix for AsyncStorage chat persistence
+    private static chatKey(matchId: string) { return `@chat_${matchId}`; }
+
+    /** Save a single message to AsyncStorage under its matchId */
+    public async persistMessage(matchId: string, msg: { id: string; text: string; sender: 'me' | 'them'; time: string }) {
+        try {
+            const raw = await AsyncStorage.getItem(SocketService.chatKey(matchId));
+            const existing: any[] = raw ? JSON.parse(raw) : [];
+            existing.push(msg);
+            // Keep last 200 messages max
+            const trimmed = existing.slice(-200);
+            await AsyncStorage.setItem(SocketService.chatKey(matchId), JSON.stringify(trimmed));
+        } catch (e) {
+            console.warn('[Socket] Failed to persist message:', e);
+        }
+    }
+
+    /** Load all saved messages for a matchId */
+    public async loadMessages(matchId: string): Promise<any[]> {
+        try {
+            const raw = await AsyncStorage.getItem(SocketService.chatKey(matchId));
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    }
+
     public sendMessage(matchId: string, text: string) {
         if (!this.socket?.connected) {
             console.warn('[Socket] Cannot send message — not connected');
@@ -138,8 +166,18 @@ class SocketService {
         return true;
     }
 
-    public onReceiveMessage(callback: (message: any) => void) {
-        this.socket?.on('receive_message', callback);
+    /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
+    public onReceiveMessage(matchId: string, callback: (message: any) => void) {
+        this.socket?.on('receive_message', (message: any) => {
+            // Always persist — even if ChatScreen re-mounts later
+            this.persistMessage(matchId, {
+                id: message.id,
+                text: message.text,
+                sender: 'them',
+                time: message.time,
+            });
+            callback(message);
+        });
     }
 
     public offReceiveMessage() {
@@ -148,6 +186,32 @@ class SocketService {
 
     public endMatch(matchId: string) {
         this.socket?.emit('end_match', { matchId });
+    }
+
+    // --- MEETUP CONFIRMATION ---
+
+    public confirmMeetup(matchId: string) {
+        this.socket?.emit('confirm_meetup', { matchId });
+    }
+
+    public onMeetupConfirmed(callback: () => void) {
+        this.socket?.on('meetup_confirmed', callback);
+    }
+
+    public offMeetupConfirmed() {
+        this.socket?.off('meetup_confirmed');
+    }
+
+    // --- PARTNER PRESENCE ---
+
+    public onPartnerOnlineStatus(callback: (online: boolean) => void) {
+        this.socket?.on('partner_online', () => callback(true));
+        this.socket?.on('partner_offline', () => callback(false));
+    }
+
+    public offPartnerOnlineStatus() {
+        this.socket?.off('partner_online');
+        this.socket?.off('partner_offline');
     }
 }
 

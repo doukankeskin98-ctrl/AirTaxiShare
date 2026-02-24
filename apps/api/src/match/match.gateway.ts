@@ -59,6 +59,9 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private userMatchMap: Map<string, string> = new Map();
     private socketUserMap: Map<string, string> = new Map();
 
+    // Meetup confirmation tracking: matchId → Set of socket IDs that confirmed
+    private meetupConfirmations: Map<string, Set<string>> = new Map();
+
     // Short-lived user data cache (5 min TTL) — reduces DB calls per queue join
     private userCache: Map<string, UserCacheEntry> = new Map();
     private readonly CACHE_TTL_MS = 5 * 60 * 1000;
@@ -73,6 +76,18 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 if (payload?.sub) {
                     this.socketUserMap.set(client.id, payload.sub);
                     this.logger.debug(`[Auth] Socket ${client.id} → user ${payload.sub}`);
+
+                    // Notify partner (if in active match) that this user is online
+                    const matchId = this.userMatchMap.get(client.id);
+                    if (matchId) {
+                        const participants = this.activeMatches.get(matchId);
+                        if (participants) {
+                            const partnerId = participants.find(id => id !== client.id);
+                            if (partnerId) {
+                                this.server.to(partnerId).emit('partner_online');
+                            }
+                        }
+                    }
                 }
             } catch (err) {
                 this.logger.warn(`[Auth] Socket ${client.id} has invalid token`);
@@ -271,6 +286,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (participants) {
             participants.forEach(p => this.userMatchMap.delete(p));
             this.activeMatches.delete(payload.matchId);
+            this.meetupConfirmations.delete(payload.matchId);
             const partnerId = participants.find(id => id !== client.id);
             if (partnerId) {
                 this.server.to(partnerId).emit('match_ended', { reason: 'partner_left' });
@@ -280,6 +296,47 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             } catch (e) {
                 this.logger.error('[Match] Failed to complete in DB:', e.message);
             }
+        }
+    }
+
+    @SubscribeMessage('confirm_meetup')
+    async handleConfirmMeetup(client: Socket, payload: { matchId: string }) {
+        try {
+            const { matchId } = payload;
+            if (!matchId) return;
+
+            const participants = this.activeMatches.get(matchId);
+            if (!participants) {
+                this.logger.warn(`[Meetup] confirm_meetup for unknown matchId=${matchId}`);
+                return;
+            }
+
+            if (!this.meetupConfirmations.has(matchId)) {
+                this.meetupConfirmations.set(matchId, new Set());
+            }
+            const confirmSet = this.meetupConfirmations.get(matchId)!;
+            confirmSet.add(client.id);
+
+            const userId = this.socketUserMap.get(client.id) || 'anon';
+            this.logger.log(`[Meetup] user=${userId} confirmed meetup for match=${matchId} (${confirmSet.size}/2)`);
+
+            if (confirmSet.size >= 2) {
+                // Both confirmed — notify both sides
+                participants.forEach(socketId => {
+                    this.server.to(socketId).emit('meetup_confirmed');
+                });
+                this.meetupConfirmations.delete(matchId);
+                this.logger.log(`[Meetup] Both confirmed for match=${matchId} ✓`);
+
+                // Complete match in DB
+                try {
+                    await this.matchService.completeMatch(matchId);
+                } catch (e) {
+                    this.logger.error('[Meetup] Failed to complete match in DB:', e.message);
+                }
+            }
+        } catch (err: any) {
+            this.logger.error(`[Meetup] Error: ${err.message}`, err.stack);
         }
     }
 
@@ -300,8 +357,9 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (participants) {
                 const partnerId = participants.find(id => id !== socketId);
                 if (partnerId) {
-                    this.logger.log(`[Disconnect] Notifying partner ${partnerId}`);
+                    this.logger.log(`[Disconnect] Notifying partner ${partnerId} of offline status`);
                     this.server.to(partnerId).emit('partner_disconnected');
+                    this.server.to(partnerId).emit('partner_offline');
                 }
             }
             this.userMatchMap.delete(socketId);
