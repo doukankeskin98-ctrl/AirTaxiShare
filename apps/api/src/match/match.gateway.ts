@@ -226,11 +226,18 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             } else {
                 this.logger.log(`[Queue] No partner found yet for ${client.id}, queuing...`);
                 queue.push(newUser);
+                this.broadcastQueueCount(destination, queue);
             }
         } catch (err: any) {
             this.logger.error(`[Queue] Unhandled error for ${client.id}: ${err.message}`, err.stack);
             client.emit('error', { message: 'Server error in queue handler' });
         }
+    }
+
+    private broadcastQueueCount(destination: string, queue: any[]) {
+        queue.forEach(u => {
+            this.server.to(u.socketId).emit('queue_count', { count: queue.length });
+        });
     }
 
     @SubscribeMessage('leave_queue')

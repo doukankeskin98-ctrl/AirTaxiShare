@@ -191,11 +191,11 @@ export default function HomeScreen() {
                             transition={{ delay: 600, type: 'spring' } as any}
                             style={styles.secondaryCardWrapper}
                         >
-                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('Settings')}>
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={handleCreateMatch}>
                                 <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
                                     <View style={styles.secondaryHighlight} />
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-                                        <Ionicons name="pricetag" size={24} color={colors.success} />
+                                        <Ionicons name="time" size={24} color={colors.success} />
                                     </View>
                                     <Text style={styles.secondaryTitle}>{t('home.myMatches')}</Text>
                                     <Text style={styles.secondarySubtitle}>

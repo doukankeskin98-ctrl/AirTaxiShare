@@ -140,6 +140,14 @@ class SocketService {
         this.socket?.off('match_found');
     }
 
+    public onQueueCount(callback: (count: number) => void) {
+        this.on('queue_count', (payload: { count: number }) => callback(payload.count));
+    }
+
+    public offQueueCount() {
+        this.off('queue_count');
+    }
+
     public onPartnerDisconnected(callback: () => void) {
         this.socket?.on('partner_disconnected', callback);
     }

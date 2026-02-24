@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
-import { showConfirm } from '../utils/alert';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { showConfirm, showAlert } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout, shadows } from '../theme';
@@ -18,7 +18,7 @@ export default function QueueScreen() {
     const route = useRoute<any>();
     const { destination, time, luggage } = route.params || {};
 
-    const [liveCount, setLiveCount] = useState(3);
+    const [liveCount, setLiveCount] = useState<number | null>(null);
     const [isFinding, setIsFinding] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -41,15 +41,20 @@ export default function QueueScreen() {
                         luggage: luggage,
                     });
                 });
+
+                // Listen for real queue count updates
+                SocketService.onQueueCount((count: number) => {
+                    setLiveCount(count);
+                });
             } catch (err: any) {
                 console.error('[Queue] Search start failed:', err);
                 setIsFinding(false);
                 setError(err.message || 'Sunucuya bağlanılamadı.');
-                Alert.alert(
+                showAlert(
                     'Bağlantı Hatası',
                     err.message || 'Sunucuya bağlanılamadı. Lütfen internetinizi kontrol edin.',
-                    [{ text: 'Tamam', onPress: () => navigation.goBack() }]
                 );
+                navigation.goBack();
             }
         };
 
@@ -59,7 +64,8 @@ export default function QueueScreen() {
         return () => {
             SocketService.leaveQueue();
             SocketService.offMatchFound();
-            setIsFinding(false); // Ensure finding state is reset
+            SocketService.offQueueCount();
+            setIsFinding(false);
         };
     }, [navigation, destination, time, luggage]);
 
@@ -162,7 +168,7 @@ export default function QueueScreen() {
                                     <View style={styles.iconCircle}>
                                         <Ionicons name="people" size={20} color={colors.secondaryLight} />
                                     </View>
-                                    <Text style={styles.infoLabel}>{liveCount} YAKINDA</Text>
+                                    <Text style={styles.infoLabel}>{liveCount !== null ? `${liveCount} YAKINDA` : 'YÜKLENIYOR'}</Text>
                                 </View>
                             </View>
                         </BlurView>
