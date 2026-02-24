@@ -9,7 +9,12 @@ async function bootstrap() {
     const logger = new Logger('Bootstrap');
     const app = await NestFactory.create(AppModule, {
         logger: ['error', 'warn', 'log', 'debug'],
+        bodyParser: true,
     });
+
+    // Increase body size limit to 10mb (default is 100kb — too small for profile photos)
+    app.use(require('express').json({ limit: '10mb' }));
+    app.use(require('express').urlencoded({ limit: '10mb', extended: true }));
 
     // Security headers
     app.use(helmet());
