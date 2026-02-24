@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,30 +19,47 @@ export default function QueueScreen() {
     const { destination, time, luggage } = route.params || {};
 
     const [liveCount, setLiveCount] = useState(3);
+    const [isFinding, setIsFinding] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const startQueue = async () => {
-            // Connect with auth token first, then join queue
-            const token = getAuthToken();
-            await SocketService.connect(token || undefined);
-            await SocketService.joinQueue({ destination, time, luggage });
+        const startSearch = async () => {
+            try {
+                setIsFinding(true);
+                setError(null);
 
-            // Listen for match events (after socket is connected)
-            SocketService.onMatchFound((payload: MatchFoundPayload) => {
-                navigation.replace('MatchFound', {
-                    matchId: payload.matchId,
-                    otherUser: payload.userData,
-                    luggage: luggage,
+                // Connect with auth token first, then join queue
+                const token = getAuthToken();
+                await SocketService.connect(token || undefined);
+                await SocketService.joinQueue({ destination, time, luggage });
+
+                // Listen for match events (after socket is connected)
+                SocketService.onMatchFound((payload: MatchFoundPayload) => {
+                    navigation.replace('MatchFound', {
+                        matchId: payload.matchId,
+                        otherUser: payload.userData,
+                        luggage: luggage,
+                    });
                 });
-            });
+            } catch (err: any) {
+                console.error('[Queue] Search start failed:', err);
+                setIsFinding(false);
+                setError(err.message || 'Sunucuya bağlanılamadı.');
+                Alert.alert(
+                    'Bağlantı Hatası',
+                    err.message || 'Sunucuya bağlanılamadı. Lütfen internetinizi kontrol edin.',
+                    [{ text: 'Tamam', onPress: () => navigation.goBack() }]
+                );
+            }
         };
 
-        startQueue();
+        startSearch();
 
         // Cleanup on unmount
         return () => {
             SocketService.leaveQueue();
             SocketService.offMatchFound();
+            setIsFinding(false); // Ensure finding state is reset
         };
     }, [navigation, destination, time, luggage]);
 
@@ -183,7 +200,6 @@ const styles = StyleSheet.create({
         borderRadius: 200,
         opacity: 0.3,
         transform: [{ scale: 1.5 }],
-        filter: 'blur(90px)',
     },
     safeArea: {
         flex: 1,

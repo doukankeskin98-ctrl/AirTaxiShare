@@ -5,68 +5,106 @@ import {
     OnGatewayConnection,
     OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { MatchService } from './match.service';
+import { NotificationsService } from '../notifications/notifications.service';
+
+interface UserCacheEntry {
+    id: string;
+    name: string;
+    rating: number;
+    trips: number;
+    photoUrl?: string;
+    pushToken?: string;
+    trustBadge?: boolean;
+    phoneVerified?: boolean;
+    emailVerified?: boolean;
+    fetchedAt: number; // timestamp for cache expiry
+}
 
 interface QueuedUser {
     socketId: string;
-    userId: string; // Real user ID from JWT
+    userId: string;
     destination: string;
     time: string;
     luggage: string;
-    userData: {
-        id: string;
-        name: string;
-        rating: number;
-        trips: number;
-        photoUrl?: string;
-    };
+    userData: UserCacheEntry;
 }
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({
+    cors: true,
+    pingInterval: 25000,
+    pingTimeout: 60000,
+})
 export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() server: Server;
+    private readonly logger = new Logger(MatchGateway.name);
 
     constructor(
         private jwtService: JwtService,
         private userService: UserService,
         private matchService: MatchService,
+        private notificationsService: NotificationsService,
     ) { }
 
-    // destination -> array of users
+    // In-memory state (for production scale, move to Redis pub/sub)
     private activeQueues: Map<string, QueuedUser[]> = new Map();
-    // matchId -> [socketId1, socketId2]
     private activeMatches: Map<string, string[]> = new Map();
-    // socketId -> matchId
     private userMatchMap: Map<string, string> = new Map();
-    // socketId -> userId (for resolving real user IDs)
     private socketUserMap: Map<string, string> = new Map();
 
-    async handleConnection(client: Socket) {
-        console.log(`Client connected: ${client.id}`);
+    // Short-lived user data cache (5 min TTL) — reduces DB calls per queue join
+    private userCache: Map<string, UserCacheEntry> = new Map();
+    private readonly CACHE_TTL_MS = 5 * 60 * 1000;
 
-        // Try to authenticate via token
+    async handleConnection(client: Socket) {
+        this.logger.log(`Client connected: ${client.id}`);
+
         const token = client.handshake?.auth?.token;
         if (token) {
             try {
                 const payload = this.jwtService.verify(token);
                 if (payload?.sub) {
                     this.socketUserMap.set(client.id, payload.sub);
-                    console.log(`[Auth] Socket ${client.id} authenticated as user ${payload.sub}`);
+                    this.logger.debug(`[Auth] Socket ${client.id} → user ${payload.sub}`);
                 }
             } catch (err) {
-                console.log(`[Auth] Socket ${client.id} has invalid token, continuing without auth`);
+                this.logger.warn(`[Auth] Socket ${client.id} has invalid token`);
             }
         }
     }
 
     handleDisconnect(client: Socket) {
-        console.log(`Client disconnected: ${client.id}`);
+        this.logger.log(`Client disconnected: ${client.id}`);
         this.removeFromQueues(client.id);
         this.notifyPartnerOnDisconnect(client.id);
         this.socketUserMap.delete(client.id);
+    }
+
+    private async getOrFetchUser(userId: string): Promise<UserCacheEntry> {
+        const cached = this.userCache.get(userId);
+        if (cached && Date.now() - cached.fetchedAt < this.CACHE_TTL_MS) {
+            return cached;
+        }
+
+        const user = userId ? await this.userService.findById(userId) : null;
+        const entry: UserCacheEntry = {
+            id: userId,
+            name: user?.fullName || 'Yolcu',
+            rating: user?.rating || 4.5,
+            trips: user?.tripsCompleted || 0,
+            photoUrl: user?.photoUrl || '',
+            pushToken: user?.pushToken || '',
+            trustBadge: user?.trustBadge || false,
+            phoneVerified: user?.phoneVerified || false,
+            emailVerified: user?.emailVerified || false,
+            fetchedAt: Date.now(),
+        };
+        if (userId) this.userCache.set(userId, entry);
+        return entry;
     }
 
     private getLuggageScore(size: string): number {
@@ -81,42 +119,26 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage('join_queue')
     async handleJoinQueue(client: Socket, payload: { destination: string; time: string; luggage: string }) {
         const { destination, time, luggage } = payload;
-        console.log(`[Queue] ${client.id} joining for ${destination} with ${luggage} luggage.`);
+        this.logger.log(`[Queue] ${client.id} joining for ${destination}`);
 
-        // Get real user data from JWT auth
-        const userId = this.socketUserMap.get(client.id);
-        let userData = { id: '', name: 'Anonim', rating: 4.5, trips: 0, photoUrl: '' };
-
-        if (userId) {
-            const user = await this.userService.findById(userId);
-            if (user) {
-                userData = {
-                    id: user.id,
-                    name: user.fullName,
-                    rating: user.rating,
-                    trips: user.tripsCompleted,
-                    photoUrl: user.photoUrl || '',
-                };
-            }
-        }
+        const userId = this.socketUserMap.get(client.id) || '';
+        const userData = await this.getOrFetchUser(userId);
 
         if (!this.activeQueues.has(destination)) {
             this.activeQueues.set(destination, []);
         }
 
-        const queue = this.activeQueues.get(destination);
-        if (!queue) return;
+        const queue = this.activeQueues.get(destination)!;
 
         if (queue.some(u => u.socketId === client.id)) return;
-
         if (this.userMatchMap.has(client.id)) {
-            console.log(`[Queue] ${client.id} is already in an active match! Ignoring.`);
+            this.logger.warn(`[Queue] ${client.id} already in active match`);
             return;
         }
 
         const newUser: QueuedUser = {
             socketId: client.id,
-            userId: userId || '',
+            userId,
             destination,
             time,
             luggage: luggage || 'medium',
@@ -125,13 +147,11 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         // --- MATCHING ENGINE ---
         let partnerFoundIndex = -1;
-
         for (let i = 0; i < queue.length; i++) {
-            const potentialPartner = queue[i];
-            const totalLuggageScore = this.getLuggageScore(newUser.luggage) + this.getLuggageScore(potentialPartner.luggage);
-            const isTimeCompatible = !newUser.time || !potentialPartner.time || newUser.time === potentialPartner.time;
-
-            if (totalLuggageScore <= 4 && isTimeCompatible) {
+            const p = queue[i];
+            const totalLuggage = this.getLuggageScore(newUser.luggage) + this.getLuggageScore(p.luggage);
+            const timeOk = !newUser.time || !p.time || newUser.time === p.time;
+            if (totalLuggage <= 4 && timeOk) {
                 partnerFoundIndex = i;
                 break;
             }
@@ -145,9 +165,9 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.userMatchMap.set(client.id, matchId);
             this.userMatchMap.set(partner.socketId, matchId);
 
-            console.log(`[Match] SUCCESS: ${client.id} (${newUser.luggage}) + ${partner.socketId} (${partner.luggage}) = ${matchId}`);
+            this.logger.log(`[Match] ${client.id} + ${partner.socketId} → ${matchId}`);
 
-            // Save match history to DB
+            // Save to DB
             if (newUser.userId && partner.userId) {
                 try {
                     await this.matchService.saveMatchHistory({
@@ -157,48 +177,76 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                         destination,
                     });
                 } catch (e) {
-                    console.error('[Match] Failed to save match history:', e);
+                    this.logger.error('[Match] Failed to save history:', e.message);
                 }
             }
 
-            // Notify both clients with real user data
-            this.server.to(client.id).emit('match_found', { matchId, partnerId: partner.socketId, userData: partner.userData });
-            this.server.to(partner.socketId).emit('match_found', { matchId, partnerId: client.id, userData: newUser.userData });
+            // Emit match events with full user data (including trust fields)
+            const newUserPayload = { matchId, partnerId: partner.socketId, userData: { ...partner.userData } };
+            const partnerPayload = { matchId, partnerId: client.id, userData: { ...newUser.userData } };
+
+            this.server.to(client.id).emit('match_found', newUserPayload);
+            this.server.to(partner.socketId).emit('match_found', partnerPayload);
+
+            // Push notifications (non-blocking)
+            if (partner.userData.pushToken) {
+                this.notificationsService
+                    .sendMatchFoundNotification(partner.userData.pushToken, newUser.userData.name)
+                    .catch(e => this.logger.error('[Push] match notification error:', e.message));
+            }
+            if (newUser.userData.pushToken) {
+                this.notificationsService
+                    .sendMatchFoundNotification(newUser.userData.pushToken, partner.userData.name)
+                    .catch(e => this.logger.error('[Push] match notification error:', e.message));
+            }
         } else {
-            console.log(`[Queue] Added ${client.id}, no valid partner found yet.`);
+            this.logger.log(`[Queue] No partner found yet for ${client.id}, queuing...`);
             queue.push(newUser);
         }
     }
 
     @SubscribeMessage('leave_queue')
     handleLeaveQueue(client: Socket) {
-        console.log(`[Queue] ${client.id} voluntarily left the queue.`);
+        this.logger.log(`[Queue] ${client.id} voluntarily left`);
         this.removeFromQueues(client.id);
     }
 
-    // --- REAL-TIME CHAT ---
     @SubscribeMessage('send_message')
-    handleChatMessage(client: Socket, payload: { matchId: string; text: string; time: string }) {
+    async handleChatMessage(client: Socket, payload: { matchId: string; text: string; time: string }) {
         const { matchId, text, time } = payload;
 
         const participants = this.activeMatches.get(matchId);
-        if (participants) {
-            const partnerId = participants.find(id => id !== client.id);
-            if (partnerId) {
-                console.log(`[Chat] ${client.id} -> ${partnerId}: ${text.substring(0, 10)}...`);
-                this.server.to(partnerId).emit('receive_message', {
-                    id: Date.now().toString(),
-                    text: text,
-                    senderId: client.id,
-                    time: time
-                });
+        if (!participants) return;
+
+        const partnerId = participants.find(id => id !== client.id);
+        if (!partnerId) return;
+
+        this.logger.debug(`[Chat] ${client.id} → ${partnerId}`);
+
+        // Send real-time message
+        this.server.to(partnerId).emit('receive_message', {
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            text,
+            senderId: client.id,
+            time,
+        });
+
+        // Push notification if partner is offline (best-effort)
+        const partnerUserId = this.socketUserMap.get(partnerId);
+        if (partnerUserId) {
+            const partnerData = await this.getOrFetchUser(partnerUserId);
+            const senderData = await this.getOrFetchUser(this.socketUserMap.get(client.id) || '');
+            if (partnerData.pushToken) {
+                this.notificationsService
+                    .sendMessageNotification(partnerData.pushToken, senderData.name, text, matchId)
+                    .catch(e => this.logger.error('[Push] message notification error:', e.message));
             }
         }
     }
 
     @SubscribeMessage('end_match')
     async handleEndMatch(client: Socket, payload: { matchId: string }) {
-        console.log(`[Match] Ended by ${client.id}: ${payload.matchId}`);
+        this.logger.log(`[Match] Ended by ${client.id}: ${payload.matchId}`);
         const participants = this.activeMatches.get(payload.matchId);
         if (participants) {
             participants.forEach(p => this.userMatchMap.delete(p));
@@ -207,12 +255,10 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (partnerId) {
                 this.server.to(partnerId).emit('match_ended', { reason: 'partner_left' });
             }
-
-            // Mark match as completed in DB
             try {
                 await this.matchService.completeMatch(payload.matchId);
             } catch (e) {
-                console.error('[Match] Failed to complete match in DB:', e);
+                this.logger.error('[Match] Failed to complete in DB:', e.message);
             }
         }
     }
@@ -222,7 +268,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const index = queue.findIndex(u => u.socketId === socketId);
             if (index !== -1) {
                 queue.splice(index, 1);
-                console.log(`[Queue] Removed ${socketId} from ${destination}`);
+                this.logger.debug(`[Queue] Removed ${socketId} from ${destination}`);
             }
         });
     }
@@ -234,7 +280,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (participants) {
                 const partnerId = participants.find(id => id !== socketId);
                 if (partnerId) {
-                    console.log(`[Disconnect] Notifying ${partnerId} that their partner disconnected.`);
+                    this.logger.log(`[Disconnect] Notifying partner ${partnerId}`);
                     this.server.to(partnerId).emit('partner_disconnected');
                 }
             }

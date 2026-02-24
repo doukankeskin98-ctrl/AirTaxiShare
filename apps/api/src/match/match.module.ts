@@ -9,11 +9,13 @@ import { MatchService } from './match.service';
 import { MatchController } from './match.controller';
 import { MatchGateway } from './match.gateway';
 import { UserModule } from '../user/user.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([TripRequest, Rating, MatchHistory]),
         UserModule,
+        NotificationsModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: (configService: ConfigService) => ({

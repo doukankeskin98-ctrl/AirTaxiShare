@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity, Image, Linking, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout, shadows } from '../theme';
@@ -36,6 +36,18 @@ export default function ChatScreen() {
         };
     }, []);
 
+    const handleCall = () => {
+        if (safeOtherUser?.phoneNumber) {
+            Linking.openURL(`tel:${safeOtherUser.phoneNumber}`);
+        } else {
+            Alert.alert(
+                'Numara Bulunamadı',
+                'Bu kullanıcının telefon numarası doğrulanmamış veya erişilemiyor.',
+                [{ text: 'Tamam' }]
+            );
+        }
+    };
+
     const handleSend = () => {
         if (!inputText.trim() || !matchId) return;
 
@@ -67,7 +79,14 @@ export default function ChatScreen() {
             >
                 {!isMe && (
                     <View style={styles.avatarContainer}>
-                        <Ionicons name="person-circle" size={32} color={colors.textSecondary} />
+                        {otherUser?.photoUrl ? (
+                            <Image
+                                source={{ uri: otherUser.photoUrl }}
+                                style={styles.avatarPhoto}
+                            />
+                        ) : (
+                            <Ionicons name="person-circle" size={32} color={colors.textSecondary} />
+                        )}
                     </View>
                 )}
 
@@ -110,7 +129,7 @@ export default function ChatScreen() {
                         <Text style={styles.statusText}>Online</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={() => alert('Call')} style={styles.callButton}>
+                <TouchableOpacity onPress={handleCall} style={styles.callButton}>
                     <Ionicons name="call" size={20} color={colors.primary} />
                 </TouchableOpacity>
             </View>
@@ -227,6 +246,13 @@ const styles = StyleSheet.create({
     avatarContainer: {
         marginRight: spacing.s,
         marginBottom: 4,
+    },
+    avatarPhoto: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
     },
     messageBubble: {
         maxWidth: '75%',

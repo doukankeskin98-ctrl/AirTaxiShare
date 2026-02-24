@@ -1,13 +1,15 @@
 import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Define the shape of matched user data
 export interface MatchedUserData {
     id?: string;
     name: string;
     rating: number;
     trips?: number;
     photoUrl?: string;
+    trustBadge?: boolean;
+    phoneVerified?: boolean;
+    emailVerified?: boolean;
 }
 
 export interface MatchFoundPayload {
@@ -20,28 +22,22 @@ class SocketService {
     private socket: Socket | null = null;
     private connectPromise: Promise<void> | null = null;
 
-    // Use EXPO_PUBLIC_API_URL from environment variables for production readiness
     private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
     public async connect(token?: string): Promise<void> {
-        // If already connected, skip
         if (this.socket?.connected) return;
-
-        // If connection is in progress, wait for it
         if (this.connectPromise) return this.connectPromise;
 
-        this.connectPromise = new Promise<void>(async (resolve) => {
-            // If no token passed, try to get it from storage
+        this.connectPromise = new Promise<void>(async (resolve, reject) => {
             let authToken = token;
             if (!authToken) {
                 try {
                     authToken = (await AsyncStorage.getItem('@auth_token')) || undefined;
                 } catch (e) {
-                    console.log('Could not get auth token for socket');
+                    console.warn('[Socket] Could not read auth token');
                 }
             }
 
-            // Disconnect existing socket if any
             if (this.socket) {
                 this.socket.disconnect();
                 this.socket = null;
@@ -51,31 +47,32 @@ class SocketService {
                 auth: { token: authToken },
                 transports: ['websocket'],
                 reconnection: true,
-                reconnectionAttempts: 5,
+                reconnectionAttempts: 8,
                 reconnectionDelay: 1000,
+                reconnectionDelayMax: 8000,
+                timeout: 10000,
             });
 
-            this.socket.on('connect', () => {
-                console.log('Socket connected:', this.socket?.id);
+            const cleanup = () => {
                 this.connectPromise = null;
+            };
+
+            this.socket.on('connect', () => {
+                console.log('[Socket] Connected:', this.socket?.id);
+                cleanup();
                 resolve();
             });
 
             this.socket.on('disconnect', (reason) => {
-                console.log('Socket disconnected:', reason);
+                console.warn('[Socket] Disconnected:', reason);
             });
 
             this.socket.on('connect_error', (err) => {
-                console.log('Socket connection error:', err.message);
-                this.connectPromise = null;
-                resolve(); // Resolve anyway to not block, even on error
+                console.error('[Socket] Connection error:', err.message);
+                cleanup();
+                // Reject with meaningful error — callers can display it to user
+                reject(new Error(`Sunucuya bağlanılamadı: ${err.message}`));
             });
-
-            // Safety timeout - resolve after 5 seconds even if no connect event
-            setTimeout(() => {
-                this.connectPromise = null;
-                resolve();
-            }, 5000);
         });
 
         return this.connectPromise;
@@ -89,12 +86,12 @@ class SocketService {
         }
     }
 
-    public async joinQueue(payload: { destination: string; time?: string; luggage: string }) {
-        // Ensure socket is connected before emitting
-        await this.connect();
+    public isConnected(): boolean {
+        return this.socket?.connected ?? false;
+    }
 
-        // No longer sending fake userData from client
-        // Backend will resolve user data from JWT token
+    public async joinQueue(payload: { destination: string; time?: string; luggage: string }) {
+        await this.connect();
         this.socket?.emit('join_queue', {
             destination: payload.destination,
             time: payload.time || '',
@@ -114,11 +111,31 @@ class SocketService {
         this.socket?.off('match_found');
     }
 
-    // --- CHAT METHODS ---
+    public onPartnerDisconnected(callback: () => void) {
+        this.socket?.on('partner_disconnected', callback);
+    }
+
+    public offPartnerDisconnected() {
+        this.socket?.off('partner_disconnected');
+    }
+
+    public onMatchEnded(callback: (payload: { reason: string }) => void) {
+        this.socket?.on('match_ended', callback);
+    }
+
+    public offMatchEnded() {
+        this.socket?.off('match_ended');
+    }
+
+    // --- CHAT ---
     public sendMessage(matchId: string, text: string) {
-        if (!this.socket) return;
+        if (!this.socket?.connected) {
+            console.warn('[Socket] Cannot send message — not connected');
+            return false;
+        }
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         this.socket.emit('send_message', { matchId, text, time });
+        return true;
     }
 
     public onReceiveMessage(callback: (message: any) => void) {

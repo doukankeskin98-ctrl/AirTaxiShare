@@ -1,12 +1,13 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Use environment variable for API URL (configured in .env or .env.production)
-// Fallback to localhost behavior if not set
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 const FALLBACK_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 const BASE_URL = ENV_URL || FALLBACK_URL;
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+const TIMEOUT_MS = 10000;        // 10 second request timeout
+const MAX_RETRIES = 3;           // Retry up to 3 times on network failures
+const RETRY_DELAY_BASE_MS = 800; // Exponential backoff: 0.8s, 1.6s, 3.2s
 
 let authToken = '';
 
@@ -51,45 +52,63 @@ export const loadUserProfile = async (): Promise<any | null> => {
 
 export const clearUserProfile = async () => {
     try {
-        await AsyncStorage.removeItem('@user_profile');
+        await AsyncStorage.multiRemove(['@user_profile', '@auth_token']);
     } catch (e) {
-        console.error('Failed to clear user profile:', e);
+        console.error('Failed to clear profile:', e);
     }
 };
 
-const request = async (endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE', body?: any) => {
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-    };
-    if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-    }
+const fetchWithTimeout = (url: string, options: RequestInit, timeoutMs: number): Promise<Response> => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+};
 
-    console.log(`API Request: ${method} ${BASE_URL}${endpoint}`);
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const request = async (
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    body?: any,
+    attempt = 1,
+): Promise<{ data: any }> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : undefined,
-        });
+        const response = await fetchWithTimeout(
+            `${BASE_URL}${endpoint}`,
+            { method, headers, body: body ? JSON.stringify(body) : undefined },
+            TIMEOUT_MS,
+        );
 
         const text = await response.text();
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            data = text;
-        }
+        let data: any;
+        try { data = JSON.parse(text); } catch { data = text; }
 
         if (!response.ok) {
-            console.error('API Error:', data);
-            throw new Error(data.message || 'Request failed');
+            // Don't retry 4xx client errors — only 5xx server errors and network timeouts
+            const isClientError = response.status >= 400 && response.status < 500;
+            if (isClientError) {
+                throw new Error(data?.message || `HTTP ${response.status}`);
+            }
+            throw new Error(data?.message || `Server error ${response.status}`);
+        }
+        return { data };
+    } catch (error: any) {
+        const isAborted = error.name === 'AbortError';
+        const isServerError = !isAborted && error.message?.includes('Server error');
+        const canRetry = (isAborted || !isServerError) && attempt < MAX_RETRIES;
+
+        if (canRetry) {
+            const delay = RETRY_DELAY_BASE_MS * Math.pow(2, attempt - 1);
+            console.warn(`[API] Retry ${attempt} for ${endpoint} in ${delay}ms (${error.message})`);
+            await sleep(delay);
+            return request(endpoint, method, body, attempt + 1);
         }
 
-        return { data };
-    } catch (error) {
-        console.error('Network Error:', error);
+        // Readable error for UI
+        if (isAborted) throw new Error('Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.');
         throw error;
     }
 };
@@ -114,6 +133,7 @@ export const UserService = {
     getProfile: () => api.get('/user/me'),
     updateProfile: (data: { fullName?: string; photoUrl?: string; phoneNumber?: string }) =>
         api.put('/user/profile', data),
+    updatePushToken: (pushToken: string) => api.post('/user/push-token', { pushToken }),
 };
 
 export const MatchAPI = {

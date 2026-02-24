@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from '../user/user.entity';
 
 export enum TripStatus {
@@ -10,10 +10,12 @@ export enum TripStatus {
 }
 
 @Entity('trip_requests')
+@Index(['cluster', 'status']) // Composite index for matching engine queries
 export class TripRequest {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Index()
     @Column()
     userId: string;
 

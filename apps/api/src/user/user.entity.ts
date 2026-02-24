@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 export enum UserStatus {
     ACTIVE = 'ACTIVE',
@@ -11,15 +11,19 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ unique: true })
+    @Index()
+    @Column({ nullable: true })
     phoneNumber: string;
 
+    @Index()
     @Column({ unique: true, nullable: true })
     email: string;
 
+    @Index()
     @Column({ unique: true, nullable: true })
     googleId: string;
 
+    @Index()
     @Column({ unique: true, nullable: true })
     appleId: string;
 
@@ -32,6 +36,9 @@ export class User {
     @Column({ nullable: true })
     photoUrl: string;
 
+    @Column({ nullable: true })
+    pushToken: string;
+
     @Column('float', { default: 5.0 })
     rating: number;
 
@@ -40,6 +47,12 @@ export class User {
 
     @Column({ default: false })
     trustBadge: boolean;
+
+    @Column({ default: false })
+    emailVerified: boolean;
+
+    @Column({ default: false })
+    phoneVerified: boolean;
 
     @Column({
         type: 'enum',

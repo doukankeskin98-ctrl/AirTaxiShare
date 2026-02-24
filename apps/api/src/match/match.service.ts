@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { TripRequest, TripStatus } from './trip-request.entity';
 import { Rating } from './rating.entity';
 import { MatchHistory, MatchStatus } from './match-history.entity';
@@ -43,7 +43,6 @@ export class MatchService {
         });
 
         if (potentialMatch && potentialMatch.id !== currentRequest.id) {
-            console.log(`Match found between ${currentRequest.id} and ${potentialMatch.id}`);
             return potentialMatch;
         }
         return null;
@@ -60,10 +59,7 @@ export class MatchService {
             note: data.note,
         });
         const saved = await this.ratingRepository.save(rating);
-
-        // Update the target user's average rating
         await this.userService.updateRating(data.toUserId, data.score);
-
         return saved;
     }
 
@@ -101,10 +97,17 @@ export class MatchService {
             take: 20,
         });
 
-        // Enrich with user info
-        const enriched = await Promise.all(matches.map(async (match) => {
+        if (!matches.length) return [];
+
+        // FIX: Batch load all partner users in a single query (was N+1)
+        const partnerIds = matches.map(m => m.user1Id === userId ? m.user2Id : m.user1Id);
+        const uniquePartnerIds = [...new Set(partnerIds)];
+        const partners = await this.userService.findByIds(uniquePartnerIds);
+        const partnerMap = new Map(partners.map(u => [u.id, u]));
+
+        return matches.map(match => {
             const otherUserId = match.user1Id === userId ? match.user2Id : match.user1Id;
-            const otherUser = await this.userService.findById(otherUserId);
+            const otherUser = partnerMap.get(otherUserId);
             return {
                 id: match.id,
                 matchSocketId: match.matchSocketId,
@@ -117,10 +120,11 @@ export class MatchService {
                     fullName: otherUser.fullName,
                     photoUrl: otherUser.photoUrl,
                     rating: otherUser.rating,
+                    trustBadge: otherUser.trustBadge,
+                    phoneVerified: otherUser.phoneVerified,
+                    emailVerified: otherUser.emailVerified,
                 } : null,
             };
-        }));
-
-        return enriched;
+        });
     }
 }

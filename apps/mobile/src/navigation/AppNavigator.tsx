@@ -34,9 +34,11 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+import { navigationRef } from './RootNavigation';
+
 export default function AppNavigator() {
     return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             <Stack.Navigator
                 initialRouteName="Splash"
                 screenOptions={{

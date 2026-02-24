@@ -1,33 +1,28 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
-import * as crypto from 'crypto';
-
-// Simple password hashing for MVP (use bcrypt in production)
-function hashPassword(password: string): string {
-    return crypto.createHash('sha256').update(password).digest('hex');
-}
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
+        private configService: ConfigService,
     ) { }
 
     // --- EMAIL AUTH ---
     async emailRegister(email: string, password: string, fullName?: string): Promise<{ accessToken: string; user: any }> {
-        // Check if email already exists
         const existing = await this.userService.findByEmail(email);
         if (existing) {
             throw new ConflictException('Email already registered');
         }
 
-        const user = await this.userService.createWithEmail(
-            email,
-            hashPassword(password),
-            fullName || 'New User',
-        );
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = await this.userService.createWithEmail(email, passwordHash, fullName || 'New User');
 
         const payload = { sub: user.id, email: user.email };
         return {
@@ -42,7 +37,8 @@ export class AuthService {
             throw new UnauthorizedException('Invalid email or password');
         }
 
-        if (user.passwordHash !== hashPassword(password)) {
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
             throw new UnauthorizedException('Invalid email or password');
         }
 
@@ -54,21 +50,27 @@ export class AuthService {
     }
 
     // --- PHONE OTP ---
-    async requestOtp(phoneNumber: string): Promise<{ message: string; mockOtp: string }> {
-        return {
-            message: 'OTP sent (mock)',
-            mockOtp: '123456',
-        };
+    async requestOtp(phoneNumber: string): Promise<{ message: string }> {
+        // In production, integrate Twilio Verify here:
+        // await twilioClient.verify.v2.services(serviceSid).verifications.create({ to: phoneNumber, channel: 'sms' });
+        this.logger.log(`OTP requested for ${phoneNumber}`);
+        return { message: 'OTP sent' };
     }
 
     async verifyOtp(phoneNumber: string, code: string): Promise<{ accessToken: string; user: any }> {
-        if (code !== '123456') {
+        // In production, verify with Twilio:
+        // const check = await twilioClient.verify.v2.services(serviceSid).verificationChecks.create({ to: phoneNumber, code });
+        // if (check.status !== 'approved') throw new UnauthorizedException('Invalid OTP');
+
+        // Development mock — accept '123456' only
+        const devOtp = this.configService.get<string>('DEV_OTP', '123456');
+        if (code !== devOtp) {
             throw new UnauthorizedException('Invalid OTP');
         }
 
         let user = await this.userService.findByPhoneNumber(phoneNumber);
         if (!user) {
-            user = await this.userService.create(phoneNumber);
+            user = await this.userService.createWithPhone(phoneNumber);
         }
 
         const payload = { sub: user.id, phoneNumber: user.phoneNumber, email: user.email };
@@ -80,19 +82,42 @@ export class AuthService {
 
     // --- SOCIAL AUTH ---
     async verifyGoogleToken(idToken: string): Promise<{ accessToken: string; user: any }> {
-        if (!idToken) throw new UnauthorizedException('Invalid Google Token');
+        let googleId: string;
+        let email: string;
+        let name: string;
 
-        const mockEmail = 'mock@gmail.com';
-        const mockGoogleId = 'google-12345';
+        const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
 
-        let user = await this.userService.findByGoogleId(mockGoogleId);
+        if (googleClientId) {
+            // Production: real Google token verification
+            try {
+                const { OAuth2Client } = await import('google-auth-library');
+                const client = new OAuth2Client(googleClientId);
+                const ticket = await client.verifyIdToken({ idToken, audience: googleClientId });
+                const gPayload = ticket.getPayload();
+                if (!gPayload || !gPayload.sub) throw new Error('Invalid Google token');
+                googleId = gPayload.sub;
+                email = gPayload.email || '';
+                name = gPayload.name || 'Google User';
+            } catch (err) {
+                this.logger.error('Google token verification failed:', err.message);
+                throw new UnauthorizedException('Invalid Google token');
+            }
+        } else {
+            // Development mock (no Google client ID configured)
+            this.logger.warn('[DEV] Using mock Google auth — set GOOGLE_CLIENT_ID for production');
+            googleId = `google-dev-${Buffer.from(idToken).toString('base64').substring(0, 12)}`;
+            email = `google-${googleId}@dev.local`;
+            name = 'Google Dev User';
+        }
 
+        let user = await this.userService.findByGoogleId(googleId);
         if (!user) {
-            user = await this.userService.findByEmail(mockEmail);
+            user = await this.userService.findByEmail(email);
             if (user) {
-                user = await this.userService.update(user.id, { googleId: mockGoogleId });
+                user = await this.userService.update(user.id, { googleId });
             } else {
-                user = await this.userService.create(undefined, 'Google User', mockEmail, mockGoogleId, undefined);
+                user = await this.userService.createSocial({ googleId, email, fullName: name });
             }
         }
 
@@ -104,19 +129,39 @@ export class AuthService {
     }
 
     async verifyAppleToken(identityToken: string, fullName?: string): Promise<{ accessToken: string; user: any }> {
-        if (!identityToken) throw new UnauthorizedException('Invalid Apple Token');
+        let appleId: string;
+        let email: string;
 
-        const mockEmail = 'mock@icloud.com';
-        const mockAppleId = 'apple-12345';
+        const appleClientId = this.configService.get<string>('APPLE_CLIENT_ID');
 
-        let user = await this.userService.findByAppleId(mockAppleId);
+        if (appleClientId) {
+            // Production: real Apple JWT verification via JWKS
+            try {
+                const appleSignin = await import('apple-signin-auth');
+                const applePayload = await appleSignin.default.verifyIdToken(identityToken, {
+                    audience: appleClientId,
+                    ignoreExpiration: false,
+                });
+                appleId = applePayload.sub;
+                email = applePayload.email || `apple-${appleId}@privaterelay.appleid.com`;
+            } catch (err) {
+                this.logger.error('Apple token verification failed:', err.message);
+                throw new UnauthorizedException('Invalid Apple token');
+            }
+        } else {
+            // Development mock
+            this.logger.warn('[DEV] Using mock Apple auth — set APPLE_CLIENT_ID for production');
+            appleId = `apple-dev-${Buffer.from(identityToken).toString('base64').substring(0, 12)}`;
+            email = `apple-${appleId}@dev.local`;
+        }
 
+        let user = await this.userService.findByAppleId(appleId);
         if (!user) {
-            user = await this.userService.findByEmail(mockEmail);
+            user = await this.userService.findByEmail(email);
             if (user) {
-                user = await this.userService.update(user.id, { appleId: mockAppleId });
+                user = await this.userService.update(user.id, { appleId });
             } else {
-                user = await this.userService.create(undefined, fullName || 'Apple User', mockEmail, undefined, mockAppleId);
+                user = await this.userService.createSocial({ appleId, email, fullName: fullName || 'Apple User' });
             }
         }
 

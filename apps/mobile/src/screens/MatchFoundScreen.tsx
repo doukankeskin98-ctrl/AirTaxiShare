@@ -16,7 +16,7 @@ export default function MatchFoundScreen() {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { otherUser, luggage, matchId } = route.params || {};
-    const safeOtherUser = otherUser || { name: 'Yolcu', rating: 5.0, trips: 10 };
+    const safeOtherUser = otherUser || { name: 'Yolcu', rating: 5.0, trips: 10, trustBadge: false, phoneVerified: false, emailVerified: false };
 
     const [meetingPoint, setMeetingPoint] = React.useState('exitA');
 
@@ -119,9 +119,16 @@ export default function MatchFoundScreen() {
                         <View style={styles.cardHighlight} />
                         <View style={styles.userRow}>
                             <View style={styles.avatarContainer}>
-                                <View style={styles.avatar}>
-                                    <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
-                                </View>
+                                {safeOtherUser.photoUrl ? (
+                                    <Image
+                                        source={{ uri: safeOtherUser.photoUrl }}
+                                        style={styles.avatarPhoto}
+                                    />
+                                ) : (
+                                    <View style={styles.avatar}>
+                                        <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
+                                    </View>
+                                )}
                                 <View style={styles.badge}>
                                     <Ionicons name="shield-checkmark" size={14} color="#FFF" />
                                 </View>
@@ -139,6 +146,28 @@ export default function MatchFoundScreen() {
                                         <Text style={styles.ratingText}>{luggage === 'small' ? 'KÜÇÜK' : luggage === 'large' ? 'BÜYÜK' : 'ORTA'}</Text>
                                     </View>
                                     <Text style={styles.tripsText}>{safeOtherUser.trips} yolculuk</Text>
+                                </View>
+
+                                {/* Trust badges row */}
+                                <View style={styles.trustRow}>
+                                    {safeOtherUser.phoneVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="call" size={10} color={colors.success} />
+                                            <Text style={styles.trustBadgeText}>Telefon</Text>
+                                        </View>
+                                    )}
+                                    {safeOtherUser.emailVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="mail" size={10} color={colors.secondary} />
+                                            <Text style={styles.trustBadgeText}>E-posta</Text>
+                                        </View>
+                                    )}
+                                    {safeOtherUser.trustBadge && (
+                                        <View style={[styles.trustBadge, styles.trustBadgeGold]}>
+                                            <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
+                                            <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>ATS Güven</Text>
+                                        </View>
+                                    )}
                                 </View>
                             </View>
 
@@ -332,11 +361,18 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: 'rgba(79, 70, 229, 0.8)', // Primary transparent
+        backgroundColor: 'rgba(79, 70, 229, 0.8)',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
         borderColor: 'rgba(255,255,255,0.2)',
+    },
+    avatarPhoto: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
     avatarText: {
         ...typography.h1,
@@ -411,6 +447,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(79, 70, 229, 0.5)',
+    },
+    trustRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
+        marginTop: 8,
+    },
+    trustBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+        borderWidth: 1,
+        borderColor: 'rgba(16, 185, 129, 0.4)',
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderRadius: 10,
+    },
+    trustBadgeGold: {
+        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+        borderColor: 'rgba(245, 158, 11, 0.4)',
+    },
+    trustBadgeText: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: colors.success,
     },
     sectionTitle: {
         ...typography.h3,

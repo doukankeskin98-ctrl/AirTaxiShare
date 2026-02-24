@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
+import { registerForPushNotificationsAsync } from '../services/notifications';
 
 import { loadUserProfile, MatchAPI } from '../services/api';
 
@@ -94,12 +95,19 @@ export default function HomeScreen() {
                         </MotiText>
                     </View>
                     <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Settings')}>
-                        <LinearGradient
-                            colors={colors.primaryGradient}
-                            style={styles.profileGradient}
-                        >
-                            <Ionicons name="person" size={20} color={colors.textInverse} />
-                        </LinearGradient>
+                        {user.photoUrl ? (
+                            <Image
+                                source={{ uri: user.photoUrl }}
+                                style={styles.profilePhoto}
+                            />
+                        ) : (
+                            <LinearGradient
+                                colors={colors.primaryGradient}
+                                style={styles.profileGradient}
+                            >
+                                <Ionicons name="person" size={20} color={colors.textInverse} />
+                            </LinearGradient>
+                        )}
                     </TouchableOpacity>
                 </View>
 
@@ -109,7 +117,7 @@ export default function HomeScreen() {
                     <MotiView
                         from={{ opacity: 0, translateY: 10 }}
                         animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 300 } as any}
+                        transition={{ delay: 100 } as any}
                         style={styles.securityPillWrapper}
                     >
                         <BlurView intensity={20} tint="dark" style={styles.securityPill}>
@@ -127,7 +135,7 @@ export default function HomeScreen() {
                     <MotiView
                         from={{ opacity: 0, scale: 0.95, translateY: 20 }}
                         animate={{ opacity: 1, scale: 1, translateY: 0 }}
-                        transition={{ delay: 400, type: 'spring' } as any}
+                        transition={{ delay: 180, type: 'spring' } as any}
                         style={styles.mainCardWrapper}
                     >
                         <TouchableOpacity
@@ -314,6 +322,13 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+    profilePhoto: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.3)',
     },

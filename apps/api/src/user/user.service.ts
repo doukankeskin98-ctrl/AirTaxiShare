@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User, UserStatus } from './user.entity';
 
 @Injectable()
 export class UserService {
+    private readonly logger = new Logger(UserService.name);
+
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
@@ -30,21 +32,16 @@ export class UserService {
         return this.userRepository.findOne({ where: { id } });
     }
 
-    async create(
-        phoneNumber?: string,
-        fullName: string = 'New User',
-        email?: string,
-        googleId?: string,
-        appleId?: string,
-    ): Promise<User> {
-        const tempPhone = phoneNumber || `temp_${Math.random().toString(36).substring(7)}`;
+    async findByIds(ids: string[]): Promise<User[]> {
+        if (!ids.length) return [];
+        return this.userRepository.find({ where: { id: In(ids) } });
+    }
 
+    async createWithPhone(phoneNumber: string): Promise<User> {
         const user = this.userRepository.create({
-            phoneNumber: tempPhone,
-            fullName,
-            email,
-            googleId,
-            appleId,
+            phoneNumber,
+            fullName: 'New User',
+            phoneVerified: true,
             status: UserStatus.ACTIVE,
         });
         return this.userRepository.save(user);
@@ -55,7 +52,24 @@ export class UserService {
             email,
             passwordHash,
             fullName,
-            phoneNumber: `temp_${Math.random().toString(36).substring(7)}`,
+            emailVerified: false, // requires email verification flow
+            status: UserStatus.ACTIVE,
+        });
+        return this.userRepository.save(user);
+    }
+
+    async createSocial(data: {
+        googleId?: string;
+        appleId?: string;
+        email?: string;
+        fullName: string;
+    }): Promise<User> {
+        const user = this.userRepository.create({
+            googleId: data.googleId,
+            appleId: data.appleId,
+            email: data.email,
+            fullName: data.fullName,
+            emailVerified: !!data.email, // Social logins have verified emails
             status: UserStatus.ACTIVE,
         });
         return this.userRepository.save(user);
@@ -66,11 +80,15 @@ export class UserService {
         return this.userRepository.findOne({ where: { id } }) as Promise<User>;
     }
 
+    async updatePushToken(userId: string, pushToken: string): Promise<void> {
+        await this.userRepository.update(userId, { pushToken });
+        this.logger.log(`Push token updated for user ${userId}`);
+    }
+
     async updateRating(userId: string, newRating: number): Promise<void> {
         const user = await this.findById(userId);
         if (!user) return;
 
-        // Calculate running average
         const totalTrips = user.tripsCompleted || 0;
         const currentRating = user.rating || 5.0;
         const updatedRating = totalTrips === 0

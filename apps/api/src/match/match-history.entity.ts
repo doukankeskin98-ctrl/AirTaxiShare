@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from '../user/user.entity';
 
 export enum MatchStatus {
@@ -8,13 +8,16 @@ export enum MatchStatus {
 }
 
 @Entity('match_history')
+@Index(['user1Id', 'matchedAt'])
+@Index(['user2Id', 'matchedAt'])
 export class MatchHistory {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
-    matchSocketId: string; // The socket-level match ID for reference
+    matchSocketId: string;
 
+    @Index()
     @Column()
     user1Id: string;
 
@@ -22,6 +25,7 @@ export class MatchHistory {
     @JoinColumn({ name: 'user1Id' })
     user1: User;
 
+    @Index()
     @Column()
     user2Id: string;
 
