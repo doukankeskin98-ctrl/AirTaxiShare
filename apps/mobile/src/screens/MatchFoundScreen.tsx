@@ -171,127 +171,74 @@ export default function MatchFoundScreen() {
                     </Text>
                 </MotiView>
 
-                {/* ── PARTNER HERO CARD ── */}
+                {/* User Card */}
                 <MotiView
-                    from={{ opacity: 0, translateY: 24, scale: 0.96 }}
-                    animate={{ opacity: 1, translateY: 0, scale: 1 }}
-                    transition={{ delay: 280, type: 'spring', damping: 16 } as any}
+                    from={{ opacity: 0, translateY: 20 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: 300 } as any}
                 >
                     <BlurView intensity={40} tint="dark" style={styles.glassCard}>
                         <View style={styles.cardHighlight} />
-
-                        {/* Header row: avatar + name + chat button */}
                         <View style={styles.userRow}>
-                            {/* Large avatar with gradient ring */}
                             <View style={styles.avatarContainer}>
-                                <View style={styles.avatarRingOuter}>
-                                    <LinearGradient
-                                        colors={['#7C3AED', '#06B6D4', '#10B981']}
-                                        style={styles.avatarRingGrad}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                    >
-                                        {safeOtherUser.photoUrl ? (
-                                            <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
-                                        ) : (
-                                            <LinearGradient colors={['#4F46E5', '#7C3AED']} style={styles.avatarFallback}>
-                                                <Text style={styles.avatarText}>
-                                                    {(safeOtherUser.name || 'Y').split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
-                                                </Text>
-                                            </LinearGradient>
-                                        )}
-                                    </LinearGradient>
-                                </View>
-                                {/* Verified badge */}
-                                {(safeOtherUser.emailVerified || safeOtherUser.phoneVerified) && (
-                                    <View style={styles.verifiedBadge}>
-                                        <Ionicons name="shield-checkmark" size={12} color="#FFF" />
+                                {safeOtherUser.photoUrl ? (
+                                    <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
+                                ) : (
+                                    <View style={styles.avatar}>
+                                        <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
                                     </View>
                                 )}
+                                <View style={styles.badge}>
+                                    <Ionicons name="shield-checkmark" size={14} color="#FFF" />
+                                </View>
                             </View>
 
-                            {/* Name and quick info */}
                             <View style={styles.userInfo}>
                                 <Text style={styles.userName}>{safeOtherUser.name}</Text>
-
-                                {/* Star row */}
-                                <View style={styles.starsRow}>
-                                    {[1, 2, 3, 4, 5].map(i => (
-                                        <Ionicons
-                                            key={i}
-                                            name={i <= Math.floor(safeOtherUser.rating ?? 5) ? 'star' : 'star-outline'}
-                                            size={13}
-                                            color="#FBBF24"
-                                        />
-                                    ))}
-                                    <Text style={styles.starsLabel}>{(safeOtherUser.rating ?? 5.0).toFixed(1)}</Text>
+                                <View style={styles.ratingRow}>
+                                    <View style={styles.starPill}>
+                                        <Ionicons name="star" size={12} color="#FFF" />
+                                        <Text style={styles.ratingText}>{safeOtherUser.rating}</Text>
+                                    </View>
+                                    <View style={styles.luggagePill}>
+                                        <Ionicons name="briefcase" size={12} color="#FFF" />
+                                        <Text style={styles.ratingText}>{luggage === 'small' ? 'KÜÇÜK' : luggage === 'large' ? 'BÜYÜK' : 'ORTA'}</Text>
+                                    </View>
+                                    <Text style={styles.tripsText}>{safeOtherUser.trips} yolculuk</Text>
                                 </View>
 
-                                {/* Luggage pill */}
-                                <View style={styles.luggagePill}>
-                                    <Ionicons name="briefcase" size={11} color={colors.primary} />
-                                    <Text style={styles.luggageText}>
-                                        {luggage === 'small' ? 'Küçük Bagaj' : luggage === 'large' ? 'Büyük Bagaj' : 'Orta Bagaj'}
-                                    </Text>
+                                {/* Trust badges row */}
+                                <View style={styles.trustRow}>
+                                    {safeOtherUser.phoneVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="call" size={10} color={colors.success} />
+                                            <Text style={styles.trustBadgeText}>Telefon</Text>
+                                        </View>
+                                    )}
+                                    {safeOtherUser.emailVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="mail" size={10} color={colors.secondary} />
+                                            <Text style={styles.trustBadgeText}>E-posta</Text>
+                                        </View>
+                                    )}
+                                    {safeOtherUser.trustBadge && (
+                                        <View style={[styles.trustBadge, styles.trustBadgeGold]}>
+                                            <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
+                                            <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>ATS Güven</Text>
+                                        </View>
+                                    )}
                                 </View>
                             </View>
 
-                            {/* Chat button */}
+                            {/* Chat button with unread badge */}
                             <TouchableOpacity style={styles.chatBtn} onPress={handleOpenChat} activeOpacity={0.8}>
-                                <LinearGradient colors={['#4F46E5', '#7C3AED']} style={styles.chatBtnGrad}>
-                                    <Ionicons name="chatbubble-ellipses" size={22} color="#FFF" />
-                                </LinearGradient>
+                                <Ionicons name="chatbubble-ellipses" size={24} color="#FFF" />
                                 {unreadCount > 0 && (
                                     <View style={styles.unreadBadge}>
                                         <Text style={styles.unreadText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
-                        </View>
-
-                        {/* Stats row */}
-                        <View style={styles.statsGrid}>
-                            {[
-                                { label: 'Puan', value: (safeOtherUser.rating ?? 5.0).toFixed(1), icon: 'star', color: '#FBBF24' },
-                                { label: 'Yolculuk', value: String(safeOtherUser.trips ?? 0), icon: 'car', color: '#06B6D4' },
-                                { label: 'Durum', value: 'Aktif', icon: 'radio-button-on', color: '#10B981' },
-                            ].map((s, i) => (
-                                <View key={i} style={styles.statItem}>
-                                    <View style={[styles.statIconBox, { backgroundColor: `${s.color}18` }]}>
-                                        <Ionicons name={s.icon as any} size={14} color={s.color} />
-                                    </View>
-                                    <Text style={styles.statValue}>{s.value}</Text>
-                                    <Text style={styles.statLabel}>{s.label}</Text>
-                                </View>
-                            ))}
-                        </View>
-
-                        {/* Trust badges */}
-                        <View style={styles.trustRow}>
-                            {safeOtherUser.emailVerified && (
-                                <View style={styles.trustBadge}>
-                                    <Ionicons name="mail" size={10} color="#06B6D4" />
-                                    <Text style={[styles.trustBadgeText, { color: '#06B6D4' }]}>E-posta</Text>
-                                </View>
-                            )}
-                            {safeOtherUser.phoneVerified && (
-                                <View style={styles.trustBadge}>
-                                    <Ionicons name="call" size={10} color={colors.success} />
-                                    <Text style={styles.trustBadgeText}>Telefon</Text>
-                                </View>
-                            )}
-                            {safeOtherUser.trustBadge && (
-                                <View style={[styles.trustBadge, styles.trustBadgeGold]}>
-                                    <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
-                                    <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>ATS Güven</Text>
-                                </View>
-                            )}
-                            {!safeOtherUser.emailVerified && !safeOtherUser.phoneVerified && !safeOtherUser.trustBadge && (
-                                <View style={[styles.trustBadge, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
-                                    <Ionicons name="person" size={10} color="rgba(255,255,255,0.4)" />
-                                    <Text style={[styles.trustBadgeText, { color: 'rgba(255,255,255,0.4)' }]}>Standart Üye</Text>
-                                </View>
-                            )}
                         </View>
                     </BlurView>
                 </MotiView>
@@ -434,42 +381,24 @@ const styles = StyleSheet.create({
     successIcon: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center', shadowColor: colors.success, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.6, shadowRadius: 20, elevation: 15, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.4)' },
     successTitle: { ...typography.h1, color: colors.textPrimary, marginBottom: spacing.s, fontWeight: '800', fontSize: 34 },
     successSubtitle: { ...typography.body, color: colors.textSecondary, fontSize: 16 },
-    glassCard: { marginBottom: spacing.xl, padding: spacing.l, borderRadius: 28, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(25, 28, 43, 0.3)' },
+    glassCard: { marginBottom: spacing.xl, padding: spacing.l, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(25, 28, 43, 0.3)' },
     cardHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.15)' },
-    userRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-    avatarContainer: { position: 'relative' },
-
-    // New premium avatar styles
-    avatarRingOuter: { width: 80, height: 80, borderRadius: 40, overflow: 'hidden' },
-    avatarRingGrad: { width: 80, height: 80, borderRadius: 40, padding: 2.5, justifyContent: 'center', alignItems: 'center' },
-    avatarPhoto: { width: 75, height: 75, borderRadius: 37.5 },
-    avatarFallback: { width: 75, height: 75, borderRadius: 37.5, justifyContent: 'center', alignItems: 'center' },
-    avatarText: { fontSize: 26, fontWeight: '800', color: '#FFF' },
-    verifiedBadge: { position: 'absolute', bottom: -2, right: -2, backgroundColor: colors.success, width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#15142E' },
-
-    // Stars
-    starsRow: { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 6 },
-    starsLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginLeft: 4 },
-
-    // Luggage
-    luggagePill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(79,70,229,0.15)', borderWidth: 1, borderColor: 'rgba(79,70,229,0.35)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, alignSelf: 'flex-start' },
-    luggageText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
-
-    // Chat button
-    chatBtn: { width: 52, height: 52, borderRadius: 26, overflow: 'hidden', position: 'relative', marginLeft: 'auto' },
-    chatBtnGrad: { width: 52, height: 52, justifyContent: 'center', alignItems: 'center' },
+    userRow: { flexDirection: 'row', alignItems: 'center' },
+    avatarContainer: { position: 'relative', marginRight: spacing.l },
+    avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(79, 70, 229, 0.8)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
+    avatarPhoto: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
+    avatarText: { ...typography.h1, color: '#FFF' },
+    badge: { position: 'absolute', bottom: -4, right: -4, backgroundColor: colors.success, width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#15142E' },
+    userInfo: { flex: 1 },
+    userName: { ...typography.h3, color: colors.textPrimary, marginBottom: 8, fontWeight: '700' },
+    ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
+    starPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(245, 158, 11, 0.2)', borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16, gap: 4 },
+    luggagePill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(79, 70, 229, 0.2)', borderWidth: 1, borderColor: 'rgba(79, 70, 229, 0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16, gap: 4 },
+    ratingText: { ...typography.caption, color: '#FFF', fontWeight: '700', fontSize: 12 },
+    tripsText: { ...typography.caption, color: colors.textSecondary, fontWeight: '600' },
+    chatBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(79, 70, 229, 0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(79, 70, 229, 0.5)', position: 'relative' },
     unreadBadge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#15142E', paddingHorizontal: 3 },
     unreadText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
-
-    // Stats grid
-    statsGrid: { flexDirection: 'row', gap: spacing.s, marginTop: spacing.l, marginBottom: spacing.m },
-    statItem: { flex: 1, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, paddingVertical: spacing.m, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.06)' },
-    statIconBox: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
-    statValue: { fontSize: 14, fontWeight: '800', color: '#FFF' },
-    statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 },
-
-    userInfo: { flex: 1 },
-    userName: { ...typography.h3, color: colors.textPrimary, marginBottom: 6, fontWeight: '700', fontSize: 17 },
     trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
     trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.4)', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 10 },
     trustBadgeGold: { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.4)' },

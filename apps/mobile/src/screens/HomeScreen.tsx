@@ -1,451 +1,524 @@
-import React, { useCallback, useState } from 'react';
-import {
-    View, Text, StyleSheet, SafeAreaView, ScrollView,
-    TouchableOpacity, StatusBar, Image, RefreshControl, Platform
-} from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { colors, spacing, layout } from '../theme';
+import { colors, typography, spacing, layout } from '../theme';
+import { PremiumButton } from '../components/PremiumButton';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MotiView } from 'moti';
+import { MotiView, MotiText } from 'moti';
+import { BlurView } from 'expo-blur';
 import { registerForPushNotificationsAsync } from '../services/notifications';
+
 import { loadUserProfile, MatchAPI } from '../services/api';
 
-// ─── Design Constants ─────────────────────────────────────────────────────────
-const CARD_RADIUS = 14;
-const SECTION_PADDING = 20;
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const DESTINATION_META: Record<string, { label: string; color: string }> = {
-    maslak: { label: 'Maslak', color: '#818CF8' },
-    levent: { label: 'Levent', color: '#38BDF8' },
-    atasehir: { label: 'Ataşehir', color: '#34D399' },
-};
-
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-    COMPLETED: { label: 'Tamamlandı', color: colors.success },
-    ACTIVE: { label: 'Aktif', color: colors.warning },
-    CANCELLED: { label: 'İptal', color: colors.error },
-    PENDING: { label: 'Bekliyor', color: '#A78BFA' },
-};
-
-function formatDate(iso: string) {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Bugün';
-    if (diffDays === 1) return 'Dün';
-    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
-}
-
-function getInitials(name: string) {
-    return (name || 'Y').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
-}
-
-function getGreeting() {
-    const h = new Date().getHours();
-    if (h < 12) return 'Günaydın';
-    if (h < 18) return 'İyi günler';
-    return 'İyi akşamlar';
-}
-
-// ─── Avatar ───────────────────────────────────────────────────────────────────
-function Avatar({ name, photoUrl, size = 44, fontSize = 16 }: {
-    name: string; photoUrl?: string; size?: number; fontSize?: number;
-}) {
-    const initials = getInitials(name);
-    // Pick a consistent color from the name
-    const hue = ((name || 'A').charCodeAt(0) * 37) % 360;
-    const bg = `hsl(${hue}, 50%, 30%)`;
-    return (
-        <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }}>
-            {photoUrl ? (
-                <Image source={{ uri: photoUrl }} style={{ width: size, height: size }} />
-            ) : (
-                <Text style={{ fontSize, fontWeight: '700', color: '#FFF' }}>{initials}</Text>
-            )}
-        </View>
-    );
-}
-
-// ─── RatingDots ───────────────────────────────────────────────────────────────
-function RatingDots({ rating }: { rating: number }) {
-    const full = Math.round(rating);
-    return (
-        <View style={{ flexDirection: 'row', gap: 3 }}>
-            {[1, 2, 3, 4, 5].map(i => (
-                <View key={i} style={{
-                    width: 6, height: 6, borderRadius: 3,
-                    backgroundColor: i <= full ? colors.warning : 'rgba(255,255,255,0.15)',
-                }} />
-            ))}
-        </View>
-    );
-}
-
-// ─── Section Header ───────────────────────────────────────────────────────────
-function SectionHeader({ title, count, onSeeAll }: { title: string; count?: number; onSeeAll?: () => void }) {
-    return (
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.2 }}>
-                    {title}
-                </Text>
-                {count !== undefined && count > 0 && (
-                    <View style={{ backgroundColor: colors.primaryMuted, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 }}>
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary }}>{count}</Text>
-                    </View>
-                )}
-            </View>
-            {onSeeAll && (
-                <TouchableOpacity onPress={onSeeAll} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>Tümü</Text>
-                </TouchableOpacity>
-            )}
-        </View>
-    );
-}
-
-// ─── Match History Card ───────────────────────────────────────────────────────
-function MatchCard({ match, index }: { match: any; index: number }) {
-    const partner = match.otherUser || {};
-    const statusCfg = STATUS_CONFIG[match.status] || STATUS_CONFIG.COMPLETED;
-    const destCfg = DESTINATION_META[match.destination?.toLowerCase()] || { label: match.destination || '—', color: colors.primary };
-
-    return (
-        <MotiView
-            from={{ opacity: 0, translateY: 10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: index * 60, type: 'timing', duration: 250 } as any}
-        >
-            <TouchableOpacity style={styles.matchCard} activeOpacity={0.75}>
-                {/* Left: Avatar */}
-                <Avatar name={partner.fullName || 'Yolcu'} photoUrl={partner.photoUrl} size={46} fontSize={15} />
-
-                {/* Middle: Info */}
-                <View style={styles.matchCardMid}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                        <Text style={styles.matchPartnerName} numberOfLines={1}>
-                            {partner.fullName || 'Yolcu'}
-                        </Text>
-                        {(partner.emailVerified || partner.phoneVerified) && (
-                            <Ionicons name="checkmark-circle" size={13} color={colors.success} />
-                        )}
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <View style={[styles.destTag, { backgroundColor: `${destCfg.color}18` }]}>
-                            <Ionicons name="location-sharp" size={10} color={destCfg.color} />
-                            <Text style={[styles.destTagText, { color: destCfg.color }]}>{destCfg.label}</Text>
-                        </View>
-                        {partner.rating && (
-                            <Text style={styles.matchMeta}>★ {Number(partner.rating).toFixed(1)}</Text>
-                        )}
-                    </View>
-                </View>
-
-                {/* Right: Date + Status */}
-                <View style={styles.matchCardRight}>
-                    <Text style={styles.matchDate}>{formatDate(match.matchedAt || new Date().toISOString())}</Text>
-                    <View style={[styles.statusPill, { backgroundColor: `${statusCfg.color}18` }]}>
-                        <Text style={[styles.statusText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
-                    </View>
-                </View>
-            </TouchableOpacity>
-        </MotiView>
-    );
-}
-
-// ─── Empty History ────────────────────────────────────────────────────────────
-function EmptyHistory({ onPress }: { onPress: () => void }) {
-    return (
-        <View style={styles.emptyWrap}>
-            <View style={styles.emptyIconWrap}>
-                <Ionicons name="airplane-outline" size={32} color={colors.textDisabled} />
-            </View>
-            <Text style={styles.emptyTitle}>Henüz yolculuk yok</Text>
-            <Text style={styles.emptySubtitle}>İlk eşleşmeni bul ve yolculuk paylaş</Text>
-        </View>
-    );
-}
-
-// ─── HomeScreen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
-    const [user, setUser] = useState<any>(null);
+
+    const [user, setUser] = useState<any>({ fullName: '', photoUrl: null });
     const [matchHistory, setMatchHistory] = useState<any[]>([]);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
-    const loadData = async () => {
-        try {
-            const [profileRes, historyRes] = await Promise.all([
-                loadUserProfile(),
-                MatchAPI.getHistory().catch(() => ({ data: { matches: [] } })),
-            ]);
-            if (profileRes?.data) setUser(profileRes.data);
-            if (historyRes?.data?.matches) setMatchHistory(historyRes.data.matches);
-        } catch (e) {
-            // Silent — show whatever we have
-        }
+    // Load user profile from cache on mount & focus
+    useFocusEffect(
+        React.useCallback(() => {
+            const loadData = async () => {
+                const profile = await loadUserProfile();
+                if (profile) {
+                    setUser(profile);
+                }
+
+                // Load match history
+                setLoadingHistory(true);
+                try {
+                    const response = await MatchAPI.getHistory();
+                    setMatchHistory(response.data || []);
+                } catch (e) {
+                    // Silently fail - history is not critical
+                } finally {
+                    setLoadingHistory(false);
+                }
+            };
+            loadData();
+        }, [])
+    );
+
+    const displayName = user.fullName || 'Yolcu';
+
+    const handleCreateMatch = () => {
+        navigation.navigate('CreateMatch');
     };
-
-    useFocusEffect(useCallback(() => {
-        loadData();
-        registerForPushNotificationsAsync().catch(() => { });
-    }, []));
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        await loadData();
-        setIsRefreshing(false);
-    };
-
-    const displayName = user?.fullName || user?.email?.split('@')[0] || 'Hoş geldin';
-    const firstName = displayName.split(' ')[0];
-    const userRating = user?.rating ?? 5.0;
-    const tripCount = user?.tripCount ?? matchHistory.length;
-    const isVerified = user?.emailVerified || user?.phoneVerified;
 
     return (
-        <View style={styles.screen}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" />
 
-            {/* ── FIXED HEADER ── */}
-            <SafeAreaView style={styles.headerSafeArea}>
+            {/* Background Aurora Orbs */}
+            <LinearGradient
+                colors={['#1a1040', colors.background]}
+                style={StyleSheet.absoluteFillObject}
+            />
+            <MotiView
+                from={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.6, scale: 1 }}
+                transition={{ type: 'timing', duration: 2000, loop: true, repeatReverse: true } as any}
+                style={[styles.orb, { top: -100, right: -100, backgroundColor: colors.primary }]}
+            />
+            <MotiView
+                from={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.4, scale: 1.2 }}
+                transition={{ type: 'timing', duration: 3000, loop: true, repeatReverse: true } as any}
+                style={[styles.orb, { top: 200, left: -150, backgroundColor: colors.secondary }]}
+            />
+
+            <SafeAreaView style={styles.safeArea}>
+                {/* Header */}
                 <View style={styles.header}>
-                    <View>
-                        <Text style={styles.greeting}>{getGreeting()}</Text>
-                        <Text style={styles.userName}>{firstName}</Text>
-                    </View>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('Settings')}
-                        style={styles.profileBtn}
-                        activeOpacity={0.8}
-                    >
-                        <Avatar name={displayName} photoUrl={user?.photoUrl} size={40} fontSize={14} />
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-
-            {/* ── SCROLLABLE CONTENT ── */}
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={isRefreshing}
-                        onRefresh={handleRefresh}
-                        tintColor={colors.primary}
-                    />
-                }
-            >
-                {/* ── STATS ROW ── */}
-                <MotiView
-                    from={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 50, duration: 300 } as any}
-                    style={styles.statsRow}
-                >
-                    <View style={styles.statItem}>
-                        <Text style={styles.statValue}>★ {userRating.toFixed(1)}</Text>
-                        <Text style={styles.statLabel}>Puanım</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statValue}>{tripCount}</Text>
-                        <Text style={styles.statLabel}>Yolculuk</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        {isVerified ? (
-                            <>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                    <Ionicons name="shield-checkmark" size={14} color={colors.success} />
-                                    <Text style={[styles.statValue, { color: colors.success }]}>Doğrulandı</Text>
-                                </View>
-                                <Text style={styles.statLabel}>Hesap</Text>
-                            </>
-                        ) : (
-                            <>
-                                <Text style={[styles.statValue, { color: colors.warning }]}>Doğrula</Text>
-                                <Text style={styles.statLabel}>Hesap</Text>
-                            </>
-                        )}
-                    </View>
-                </MotiView>
-
-                {/* ── PRIMARY ACTION: CREATE MATCH ── */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 12 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 80, type: 'spring', damping: 20 } as any}
-                    style={{ marginHorizontal: SECTION_PADDING, marginBottom: 12 }}
-                >
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('CreateMatch')}
-                        activeOpacity={0.9}
-                        style={styles.createMatchBtn}
-                    >
-                        <LinearGradient
-                            colors={['#5B5EF4', '#4338CA']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.createMatchGrad}
+                    <View style={styles.headerTextContainer}>
+                        <MotiText
+                            from={{ opacity: 0, translateY: -10 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 100 } as any}
+                            style={styles.greeting}
                         >
-                            <View style={styles.createMatchLeft}>
-                                <View style={styles.createMatchIconBox}>
-                                    <Ionicons name="airplane" size={20} color="#FFF" />
-                                </View>
-                                <View>
-                                    <Text style={styles.createMatchTitle}>Eşleşme Bul</Text>
-                                    <Text style={styles.createMatchSub}>Varış noktası seç, yolcu bul</Text>
-                                </View>
-                            </View>
-                            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.7)" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </MotiView>
-
-                {/* ── QUICK STATS: LIVE DESTINATIONS ── */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 8 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 120, type: 'timing', duration: 250 } as any}
-                    style={{ marginHorizontal: SECTION_PADDING, marginBottom: 28 }}
-                >
-                    <View style={styles.destGrid}>
-                        {Object.entries(DESTINATION_META).map(([key, meta]) => (
-                            <TouchableOpacity
-                                key={key}
-                                onPress={() => navigation.navigate('CreateMatch', { preselectedDest: key })}
-                                activeOpacity={0.75}
-                                style={styles.destCard}
-                            >
-                                <View style={[styles.destIconBox, { backgroundColor: `${meta.color}18` }]}>
-                                    <Ionicons name="location-sharp" size={16} color={meta.color} />
-                                </View>
-                                <Text style={styles.destCardLabel}>{meta.label}</Text>
-                            </TouchableOpacity>
-                        ))}
+                            Merhaba, {displayName.split(' ')[0]}
+                        </MotiText>
+                        <MotiText
+                            from={{ opacity: 0 }}
+                            animate={{ opacity: 0.7 }}
+                            transition={{ delay: 200 } as any}
+                            style={styles.subGreeting}
+                        >
+                            {t('app.tagline')}
+                        </MotiText>
                     </View>
-                </MotiView>
-
-                {/* ── MATCH HISTORY ── */}
-                <View style={{ paddingHorizontal: SECTION_PADDING }}>
-                    <SectionHeader
-                        title="Geçmiş Yolculuklar"
-                        count={matchHistory.length}
-                    />
-                    {matchHistory.length > 0 ? (
-                        <View style={styles.matchList}>
-                            {matchHistory.slice(0, 8).map((match, i) => (
-                                <MatchCard key={match.id || i} match={match} index={i} />
-                            ))}
-                        </View>
-                    ) : (
-                        <EmptyHistory onPress={() => navigation.navigate('CreateMatch')} />
-                    )}
+                    <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Settings')}>
+                        {user.photoUrl ? (
+                            <Image
+                                source={{ uri: user.photoUrl }}
+                                style={styles.profilePhoto}
+                            />
+                        ) : (
+                            <LinearGradient
+                                colors={colors.primaryGradient}
+                                style={styles.profileGradient}
+                            >
+                                <Ionicons name="person" size={20} color={colors.textInverse} />
+                            </LinearGradient>
+                        )}
+                    </TouchableOpacity>
                 </View>
 
-                <View style={{ height: 100 }} />
-            </ScrollView>
+                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+
+                    {/* Security Notification Pill */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 10 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 100 } as any}
+                        style={styles.securityPillWrapper}
+                    >
+                        <BlurView intensity={20} tint="dark" style={styles.securityPill}>
+                            <View style={styles.securityPillHighlight} />
+                            <View style={styles.securityIconBox}>
+                                <Ionicons name="shield-checkmark" size={16} color={colors.success} />
+                            </View>
+                            <Text style={styles.securityPillText}>
+                                Yolculuklar 7/24 Uygulama İçi Takip Edilir
+                            </Text>
+                        </BlurView>
+                    </MotiView>
+
+                    {/* Main Action: Create Match Card */}
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.95, translateY: 20 }}
+                        animate={{ opacity: 1, scale: 1, translateY: 0 }}
+                        transition={{ delay: 180, type: 'spring' } as any}
+                        style={styles.mainCardWrapper}
+                    >
+                        <TouchableOpacity
+                            activeOpacity={0.9}
+                            onPress={handleCreateMatch}
+                            style={styles.mainCardTouch}
+                        >
+                            <LinearGradient
+                                colors={[colors.primary, '#8B5CF6']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={styles.mainCardGradient}
+                            >
+                                <Ionicons name="airplane" size={180} color="rgba(255,255,255,0.1)" style={styles.mainCardGhostIcon} />
+
+                                <View style={styles.mainCardContent}>
+                                    <View style={styles.iconCircle}>
+                                        <Ionicons name="add" size={32} color={colors.primary} />
+                                    </View>
+                                    <View>
+                                        <Text style={styles.mainCardTitle}>{t('home.createMatch')}</Text>
+                                        <Text style={styles.mainCardSubtitle}>Aynı yöne gidenlerle masrafı paylaş</Text>
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </MotiView>
+
+                    {/* Secondary Actions Grid */}
+                    <View style={styles.secondaryGrid}>
+                        {/* Search Matches */}
+                        <MotiView
+                            from={{ opacity: 0, translateY: 20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 500, type: 'spring' } as any}
+                            style={styles.secondaryCardWrapper}
+                        >
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('CreateMatch')}>
+                                <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
+                                    <View style={styles.secondaryHighlight} />
+                                    <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(14, 165, 233, 0.2)' }]}>
+                                        <Ionicons name="search" size={24} color={colors.secondary} />
+                                    </View>
+                                    <Text style={styles.secondaryTitle}>Eşleşme Ara</Text>
+                                    <Text style={styles.secondarySubtitle}>Mevcutlara katıl</Text>
+                                </BlurView>
+                            </TouchableOpacity>
+                        </MotiView>
+
+                        {/* My Matches */}
+                        <MotiView
+                            from={{ opacity: 0, translateY: 20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 600, type: 'spring' } as any}
+                            style={styles.secondaryCardWrapper}
+                        >
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={handleCreateMatch}>
+                                <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
+                                    <View style={styles.secondaryHighlight} />
+                                    <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
+                                        <Ionicons name="time" size={24} color={colors.success} />
+                                    </View>
+                                    <Text style={styles.secondaryTitle}>{t('home.myMatches')}</Text>
+                                    <Text style={styles.secondarySubtitle}>
+                                        {matchHistory.length > 0 ? `${matchHistory.length} yolculuk` : 'Geçmiş binişler'}
+                                    </Text>
+                                </BlurView>
+                            </TouchableOpacity>
+                        </MotiView>
+                    </View>
+
+                    {/* Recent Activity */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 700 } as any}
+                        style={styles.recentSection}
+                    >
+                        <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
+
+                        {matchHistory.length > 0 ? (
+                            <View style={styles.historyList}>
+                                {matchHistory.slice(0, 5).map((match, index) => (
+                                    <MotiView
+                                        key={match.id}
+                                        from={{ opacity: 0, translateX: -20 }}
+                                        animate={{ opacity: 1, translateX: 0 }}
+                                        transition={{ delay: 800 + index * 100 } as any}
+                                    >
+                                        <BlurView intensity={15} tint="dark" style={styles.historyItem}>
+                                            <View style={styles.historyIcon}>
+                                                <Ionicons
+                                                    name={match.status === 'COMPLETED' ? 'checkmark-circle' : 'time'}
+                                                    size={24}
+                                                    color={match.status === 'COMPLETED' ? colors.success : colors.warning}
+                                                />
+                                            </View>
+                                            <View style={styles.historyInfo}>
+                                                <Text style={styles.historyDest}>{match.destination}</Text>
+                                                <Text style={styles.historyPartner}>
+                                                    {match.otherUser?.fullName || 'Yolcu'} ile
+                                                </Text>
+                                            </View>
+                                            <Text style={styles.historyDate}>
+                                                {new Date(match.matchedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                                            </Text>
+                                        </BlurView>
+                                    </MotiView>
+                                ))}
+                            </View>
+                        ) : (
+                            <View style={styles.emptyStateBox}>
+                                <BlurView intensity={15} tint="dark" style={styles.emptyStateBlur}>
+                                    <Ionicons name="time-outline" size={40} color={colors.textSecondary} />
+                                    <Text style={styles.emptyStateText}>Henüz aktif bir yolculuğun yok.</Text>
+                                    <PremiumButton
+                                        title="Şimdi Başla"
+                                        variant="glass"
+                                        style={{ marginTop: spacing.l, width: 160 }}
+                                        onPress={handleCreateMatch}
+                                    />
+                                </BlurView>
+                            </View>
+                        )}
+                    </MotiView>
+
+                </ScrollView>
+            </SafeAreaView>
         </View>
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
-
-    // Header
-    headerSafeArea: { backgroundColor: colors.background },
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    orb: {
+        position: 'absolute',
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        opacity: 0.4,
+        transform: [{ scale: 2 }],
+        // filter: 'blur(80px)' is web-only CSS — do not use in RN
+        ...(Platform.OS === 'web' ? { filter: 'blur(80px)' } as any : {}),
+    },
+    safeArea: {
+        flex: 1,
+    },
     header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: SECTION_PADDING, paddingTop: 8, paddingBottom: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: spacing.l,
+        paddingTop: spacing.m,
+        paddingBottom: spacing.m,
+        zIndex: 10,
     },
-    greeting: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginBottom: 2 },
-    userName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.5 },
-    profileBtn: { borderRadius: 20, overflow: 'hidden' },
-
-    // Scroll
-    scrollContent: { paddingTop: 4 },
-
-    // Stats row
-    statsRow: {
-        flexDirection: 'row', alignItems: 'center',
-        marginHorizontal: SECTION_PADDING, marginBottom: 16,
-        backgroundColor: colors.surface,
-        borderRadius: CARD_RADIUS, paddingVertical: 14,
-        borderWidth: 1, borderColor: colors.border,
+    headerTextContainer: {
+        flex: 1,
+        paddingRight: spacing.m,
     },
-    statItem: { flex: 1, alignItems: 'center', gap: 3 },
-    statValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-    statLabel: { fontSize: 11, fontWeight: '500', color: colors.textTertiary },
-    statDivider: { width: 1, height: 28, backgroundColor: colors.border },
-
-    // Create match
-    createMatchBtn: {
-        borderRadius: CARD_RADIUS, overflow: 'hidden',
-        shadowColor: '#5B5EF4', shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
+    greeting: {
+        ...typography.h1,
+        color: colors.textPrimary,
+        fontSize: 32,
+        lineHeight: 38,
     },
-    createMatchGrad: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingVertical: 16, paddingHorizontal: 18,
+    subGreeting: {
+        ...typography.body,
+        color: colors.textSecondary,
+        marginTop: 4,
     },
-    createMatchLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    createMatchIconBox: {
-        width: 40, height: 40, borderRadius: 10,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        justifyContent: 'center', alignItems: 'center',
+    profileBtn: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 5,
     },
-    createMatchTitle: { fontSize: 16, fontWeight: '700', color: '#FFF', letterSpacing: -0.2 },
-    createMatchSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 1 },
-
-    // Destination grid
-    destGrid: { flexDirection: 'row', gap: 10 },
-    destCard: {
-        flex: 1, backgroundColor: colors.surface,
-        borderRadius: 12, paddingVertical: 14, paddingHorizontal: 12,
-        alignItems: 'center', gap: 8,
-        borderWidth: 1, borderColor: colors.border,
+    profileGradient: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
-    destIconBox: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-    destCardLabel: { fontSize: 12, fontWeight: '600', color: colors.textPrimary },
-
-    // Match list
-    matchList: { gap: 2 },
-    matchCard: {
-        flexDirection: 'row', alignItems: 'center', gap: 14,
-        paddingVertical: 13, paddingHorizontal: 0,
-        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    profilePhoto: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
-    matchCardMid: { flex: 1 },
-    matchPartnerName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, letterSpacing: -0.1, flex: 1 },
-    matchMeta: { fontSize: 12, color: colors.textTertiary },
-    destTag: {
-        flexDirection: 'row', alignItems: 'center', gap: 3,
-        paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+    content: {
+        paddingHorizontal: spacing.l,
+        paddingBottom: 100,
     },
-    destTagText: { fontSize: 11, fontWeight: '600' },
-    matchCardRight: { alignItems: 'flex-end', gap: 5 },
-    matchDate: { fontSize: 12, color: colors.textTertiary },
-    statusPill: {
-        paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6,
+    securityPillWrapper: {
+        marginBottom: spacing.l,
+        borderRadius: 100,
+        overflow: 'hidden',
     },
-    statusText: { fontSize: 11, fontWeight: '600' },
-
-    // Empty state
-    emptyWrap: {
-        alignItems: 'center', paddingVertical: 36, gap: 8,
-        backgroundColor: colors.surface, borderRadius: CARD_RADIUS,
-        borderWidth: 1, borderColor: colors.border,
+    securityPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: spacing.m,
+        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(16, 185, 129, 0.3)',
     },
-    emptyIconWrap: {
-        width: 56, height: 56, borderRadius: 28,
-        backgroundColor: colors.surfaceElevated,
-        justifyContent: 'center', alignItems: 'center', marginBottom: 4,
+    securityPillHighlight: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, height: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
-    emptyTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-    emptySubtitle: { fontSize: 13, color: colors.textTertiary, textAlign: 'center', paddingHorizontal: 24 },
+    securityIconBox: {
+        marginRight: spacing.s,
+    },
+    securityPillText: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        fontWeight: '500',
+    },
+    mainCardWrapper: {
+        height: 220,
+        marginBottom: spacing.l,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    mainCardTouch: {
+        flex: 1,
+        borderRadius: 32,
+        overflow: 'hidden',
+    },
+    mainCardGradient: {
+        flex: 1,
+        padding: spacing.xl,
+        justifyContent: 'flex-end',
+    },
+    mainCardGhostIcon: {
+        position: 'absolute',
+        top: -20,
+        right: -30,
+        transform: [{ rotate: '-15deg' }],
+    },
+    mainCardContent: {
+        flexDirection: 'column',
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: colors.textPrimary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: spacing.m,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    mainCardTitle: {
+        ...typography.h1,
+        color: colors.textPrimary,
+        fontSize: 28,
+        lineHeight: 34,
+    },
+    mainCardSubtitle: {
+        ...typography.body,
+        color: 'rgba(255, 255, 255, 0.8)',
+        marginTop: 4,
+    },
+    secondaryGrid: {
+        flexDirection: 'row',
+        gap: spacing.m,
+        marginBottom: spacing.xl,
+    },
+    secondaryCardWrapper: {
+        flex: 1,
+        height: 160,
+        borderRadius: 24,
+        overflow: 'hidden',
+    },
+    secondaryCard: {
+        flex: 1,
+    },
+    secondaryBlur: {
+        flex: 1,
+        padding: spacing.m,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(20, 22, 38, 0.5)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        borderRadius: 24,
+    },
+    secondaryHighlight: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, height: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    secondaryIconBox: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: spacing.m,
+    },
+    secondaryTitle: {
+        ...typography.h3,
+        color: colors.textPrimary,
+        fontSize: 16,
+    },
+    secondarySubtitle: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        marginTop: 2,
+    },
+    recentSection: {
+        marginTop: spacing.m,
+    },
+    sectionTitle: {
+        ...typography.h3,
+        color: colors.textPrimary,
+        marginBottom: spacing.m,
+    },
+    historyList: {
+        gap: spacing.s,
+    },
+    historyItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.m,
+        borderRadius: 16,
+        backgroundColor: 'rgba(30, 33, 54, 0.3)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        overflow: 'hidden',
+        marginBottom: spacing.xs,
+    },
+    historyIcon: {
+        marginRight: spacing.m,
+    },
+    historyInfo: {
+        flex: 1,
+    },
+    historyDest: {
+        ...typography.body,
+        color: colors.textPrimary,
+        fontWeight: '600',
+    },
+    historyPartner: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        marginTop: 2,
+    },
+    historyDate: {
+        ...typography.caption,
+        color: colors.textSecondary,
+    },
+    emptyStateBox: {
+        borderRadius: 24,
+        overflow: 'hidden',
+    },
+    emptyStateBlur: {
+        padding: spacing.xxl,
+        alignItems: 'center',
+        backgroundColor: 'rgba(30, 33, 54, 0.3)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        borderRadius: 24,
+    },
+    emptyStateText: {
+        ...typography.body,
+        color: colors.textSecondary,
+        marginTop: spacing.m,
+        textAlign: 'center',
+    },
 });
