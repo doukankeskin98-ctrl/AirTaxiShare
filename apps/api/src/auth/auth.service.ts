@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, Logger } from '@n
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -32,21 +32,35 @@ export class AuthService {
     }
 
     async emailLogin(email: string, password: string): Promise<{ accessToken: string; user: any }> {
-        const user = await this.userService.findByEmail(email);
-        if (!user || !user.passwordHash) {
-            throw new UnauthorizedException('Invalid email or password');
-        }
+        try {
+            this.logger.log(`Attempting email login for: ${email}`);
+            const user = await this.userService.findByEmail(email);
 
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) {
-            throw new UnauthorizedException('Invalid email or password');
-        }
+            if (!user) {
+                this.logger.warn(`Login failed: User not found for ${email}`);
+                throw new UnauthorizedException('Invalid email or password');
+            }
 
-        const payload = { sub: user.id, email: user.email };
-        return {
-            accessToken: this.jwtService.sign(payload),
-            user: this.sanitizeUser(user),
-        };
+            if (!user.passwordHash) {
+                this.logger.warn(`Login failed: User ${email} has no password hash (social login user?)`);
+                throw new UnauthorizedException('Invalid email or password');
+            }
+
+            const isValid = await bcrypt.compare(password, user.passwordHash);
+            if (!isValid) {
+                this.logger.warn(`Login failed: Invalid password for ${email}`);
+                throw new UnauthorizedException('Invalid email or password');
+            }
+
+            const payload = { sub: user.id, email: user.email };
+            return {
+                accessToken: this.jwtService.sign(payload),
+                user: this.sanitizeUser(user),
+            };
+        } catch (error) {
+            this.logger.error(`Email login fatal error for ${email}: ${error.message}`, error.stack);
+            throw error;
+        }
     }
 
     // --- PHONE OTP ---
