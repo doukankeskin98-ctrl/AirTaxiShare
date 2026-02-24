@@ -1,5 +1,5 @@
 {
   "/page": "/",
-  "/users/page": "/users",
-  "/logs/page": "/logs"
+  "/logs/page": "/logs",
+  "/users/page": "/users"
 }
