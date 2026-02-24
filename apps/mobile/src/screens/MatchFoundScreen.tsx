@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -66,22 +67,18 @@ export default function MatchFoundScreen() {
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => {
-                        Alert.alert(
+                        showConfirm(
                             'Eşleşmeyi İptal Et',
                             'Eşleşmeyi iptal etmek istediğinize emin misiniz? Diğer yolcuya bildirilecek.',
-                            [
-                                { text: 'Vazgeç', style: 'cancel' },
-                                {
-                                    text: 'İptal Et',
-                                    style: 'destructive',
-                                    onPress: () => {
-                                        if (matchId && matchId !== 'mock-id') {
-                                            SocketService.endMatch(matchId);
-                                        }
-                                        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-                                    }
+                            () => {
+                                if (matchId && matchId !== 'mock-id') {
+                                    SocketService.endMatch(matchId);
                                 }
-                            ]
+                                navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                            },
+                            'İptal Et',
+                            'Vazgeç',
+                            true
                         );
                     }}
                 >

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout, shadows } from '../theme';
@@ -46,20 +47,16 @@ export default function QueueScreen() {
     }, [navigation, destination, time, luggage]);
 
     const handleCancel = () => {
-        Alert.alert(
+        showConfirm(
             'Aramayı İptal Et',
             'Eşleşme aramasını iptal etmek istediğinize emin misiniz?',
-            [
-                { text: 'Hayır', style: 'cancel' },
-                {
-                    text: 'Evet, İptal Et',
-                    style: 'destructive',
-                    onPress: () => {
-                        SocketService.leaveQueue();
-                        navigation.goBack();
-                    }
-                }
-            ]
+            () => {
+                SocketService.leaveQueue();
+                navigation.goBack();
+            },
+            'Evet, İptal Et',
+            'Hayır',
+            true
         );
     };
 

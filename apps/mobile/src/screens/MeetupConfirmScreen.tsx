@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -43,17 +44,13 @@ export default function MeetupConfirmScreen() {
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => {
-                        Alert.alert(
+                        showConfirm(
                             'İptal Et',
                             'Buluşmayı iptal etmek istiyor musunuz?',
-                            [
-                                { text: 'Hayır', style: 'cancel' },
-                                {
-                                    text: 'Evet, İptal Et',
-                                    style: 'destructive',
-                                    onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
-                                }
-                            ]
+                            () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
+                            'Evet, İptal Et',
+                            'Hayır',
+                            true
                         );
                     }}
                 >

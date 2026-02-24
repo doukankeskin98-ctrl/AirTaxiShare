@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 
 import { AuthService, setAuthToken, saveUserProfile } from '../services/api';
+import { showAlert } from '../utils/alert';
 
 export default function EmailAuthScreen() {
     const { t } = useTranslation();
@@ -20,14 +21,7 @@ export default function EmailAuthScreen() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Cross-platform alert
-    const showAlert = (title: string, message: string) => {
-        if (Platform.OS === 'web') {
-            window.alert(`${title}: ${message}`);
-        } else {
-            Alert.alert(title, message);
-        }
-    };
+
 
     const handleAuth = async () => {
         if (!email || !password) {

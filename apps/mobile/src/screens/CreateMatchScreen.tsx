@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { showAlert } from '../utils/alert';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
@@ -38,7 +39,7 @@ export default function CreateMatchScreen() {
 
     const handleSearch = () => {
         if (!destination || !time) {
-            Alert.alert('Eksik Bilgi', 'Lütfen varış noktası ve zaman seçin.');
+            showAlert('Eksik Bilgi', 'Lütfen varış noktası ve zaman seçin.');
             return;
         }
 

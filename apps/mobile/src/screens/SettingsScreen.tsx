@@ -10,6 +10,7 @@ import { ATSCard } from '../components/ATS/ATSCard';
 import { Ionicons } from '@expo/vector-icons';
 import i18n from '../i18n';
 import { setAuthToken, clearUserProfile, loadUserProfile } from '../services/api';
+import { showConfirm } from '../utils/alert';
 
 export default function SettingsScreen() {
     const { t } = useTranslation();
@@ -35,42 +36,38 @@ export default function SettingsScreen() {
     };
 
     const handleLogout = () => {
-        Alert.alert(
+        showConfirm(
             t('settings.logout'),
             'Are you sure?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Log Out', style: 'destructive', onPress: async () => {
-                        await setAuthToken('');
-                        await clearUserProfile();
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: 'Welcome' }],
-                        });
-                    }
-                }
-            ]
+            async () => {
+                await setAuthToken('');
+                await clearUserProfile();
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Welcome' }],
+                });
+            },
+            'Log Out',
+            'Cancel',
+            true
         );
     };
 
     const handleDeleteAccount = () => {
-        Alert.alert(
+        showConfirm(
             t('settings.deleteAccount'),
             'This action cannot be undone.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete', style: 'destructive', onPress: async () => {
-                        await setAuthToken('');
-                        await clearUserProfile();
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: 'Welcome' }],
-                        });
-                    }
-                }
-            ]
+            async () => {
+                await setAuthToken('');
+                await clearUserProfile();
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Welcome' }],
+                });
+            },
+            'Delete',
+            'Cancel',
+            true
         );
     };
 

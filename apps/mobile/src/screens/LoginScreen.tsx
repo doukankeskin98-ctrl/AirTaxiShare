@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AuthService, setAuthToken } from '../services/api';
+import { showAlert } from '../utils/alert';
 import { colors, typography, spacing } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
 import { PremiumInput } from '../components/PremiumInput';
@@ -23,7 +24,7 @@ export default function LoginScreen({ navigation }: any) {
 
     const handleLogin = async () => {
         if (phoneNumber.length < 10) {
-            Alert.alert(t('common.error'), 'Please enter a valid phone number');
+            showAlert(t('common.error'), 'Please enter a valid phone number');
             return;
         }
         setIsLoading(true);
@@ -31,7 +32,7 @@ export default function LoginScreen({ navigation }: any) {
             await AuthService.login(phoneNumber);
             navigation.navigate('Verify', { phoneNumber });
         } catch (error) {
-            Alert.alert(t('common.error'), 'Failed to send OTP');
+            showAlert(t('common.error'), 'Failed to send OTP');
         } finally {
             setIsLoading(false);
         }
@@ -55,7 +56,7 @@ export default function LoginScreen({ navigation }: any) {
                         navigation.replace('Home');
                     })
                     .catch(error => {
-                        Alert.alert('Google Login Failed', error.message || 'Unknown error');
+                        showAlert('Google Login Failed', error.message || 'Unknown error');
                     });
             }
         }
@@ -81,7 +82,7 @@ export default function LoginScreen({ navigation }: any) {
             navigation.replace('Home');
         } catch (error: any) {
             if (error.code !== 'ERR_REQUEST_CANCELED') {
-                Alert.alert('Apple Login Failed', error.message || 'Unknown error');
+                showAlert('Apple Login Failed', error.message || 'Unknown error');
             }
         } finally {
             setIsSocialLoading(false);
@@ -93,7 +94,7 @@ export default function LoginScreen({ navigation }: any) {
         try {
             await promptAsync();
         } catch (error: any) {
-            Alert.alert('Google Login Failed', error.message || 'Unknown error');
+            showAlert('Google Login Failed', error.message || 'Unknown error');
         } finally {
             setIsSocialLoading(false);
         }

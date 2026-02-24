@@ -12,6 +12,7 @@ import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { UserService, saveUserProfile } from '../services/api';
+import { showAlert } from '../utils/alert';
 
 export default function ProfileSetupScreen() {
     const { t } = useTranslation();
@@ -49,14 +50,7 @@ export default function ProfileSetupScreen() {
         }
     };
 
-    // Cross-platform alert that works on both web and native
-    const showAlert = (title: string, message: string) => {
-        if (Platform.OS === 'web') {
-            window.alert(`${title}: ${message}`);
-        } else {
-            Alert.alert(title, message);
-        }
-    };
+
 
     const handleContinue = async () => {
         if (!name) {

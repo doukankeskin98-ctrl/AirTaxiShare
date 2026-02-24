@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Dimensions, Alert, useWindowDimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, useWindowDimensions, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { AuthService, setAuthToken } from '../services/api';
+import { showAlert } from '../utils/alert';
 import { PremiumButton } from '../components/PremiumButton';
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView, AnimatePresence } from 'moti';
@@ -88,7 +89,7 @@ export default function WelcomeScreen() {
                         navigation.replace('Home');
                     })
                     .catch(error => {
-                        Alert.alert('Login Failed', error.message || 'Google Auth Error');
+                        showAlert('Login Failed', error.message || 'Google Auth Error');
                     });
             }
         }
@@ -114,7 +115,7 @@ export default function WelcomeScreen() {
             navigation.replace('Home');
         } catch (error: any) {
             if (error.code !== 'ERR_REQUEST_CANCELED') {
-                Alert.alert('Apple Login Failed', error.message);
+                showAlert('Apple Login Failed', error.message);
             }
         } finally {
             setIsSocialLoading(false);
@@ -126,7 +127,7 @@ export default function WelcomeScreen() {
         try {
             await promptAsync();
         } catch (error: any) {
-            Alert.alert('Login Failed', error.message);
+            showAlert('Login Failed', error.message);
         } finally {
             setIsSocialLoading(false);
         }

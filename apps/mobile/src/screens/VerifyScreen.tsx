@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { AuthService, setAuthToken } from '../services/api';
+import { showAlert } from '../utils/alert';
 import { colors, typography, spacing } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
 import { PremiumInput } from '../components/PremiumInput';
@@ -16,7 +17,7 @@ export default function VerifyScreen({ route, navigation }: any) {
 
     const handleVerify = async () => {
         if (code.length < 6) {
-            Alert.alert('Error', 'Please enter a valid 6-digit code');
+            showAlert('Error', 'Please enter a valid 6-digit code');
             return;
         }
         setIsLoading(true);
@@ -32,7 +33,7 @@ export default function VerifyScreen({ route, navigation }: any) {
             }, 1000);
 
         } catch (error) {
-            Alert.alert('Error', 'Invalid Code');
+            showAlert('Error', 'Invalid Code');
         } finally {
             setIsLoading(false);
         }
