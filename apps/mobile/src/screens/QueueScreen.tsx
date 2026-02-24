@@ -20,19 +20,23 @@ export default function QueueScreen() {
     const [liveCount, setLiveCount] = useState(3);
 
     useEffect(() => {
-        // Connect with auth token and join the queue
-        const token = getAuthToken();
-        SocketService.connect(token || undefined);
-        SocketService.joinQueue({ destination, time, luggage });
+        const startQueue = async () => {
+            // Connect with auth token first, then join queue
+            const token = getAuthToken();
+            await SocketService.connect(token || undefined);
+            await SocketService.joinQueue({ destination, time, luggage });
 
-        // Listen for match events
-        SocketService.onMatchFound((payload: MatchFoundPayload) => {
-            navigation.replace('MatchFound', {
-                matchId: payload.matchId,
-                otherUser: payload.userData,
-                luggage: luggage,
+            // Listen for match events (after socket is connected)
+            SocketService.onMatchFound((payload: MatchFoundPayload) => {
+                navigation.replace('MatchFound', {
+                    matchId: payload.matchId,
+                    otherUser: payload.userData,
+                    luggage: luggage,
+                });
             });
-        });
+        };
+
+        startQueue();
 
         // Cleanup on unmount
         return () => {

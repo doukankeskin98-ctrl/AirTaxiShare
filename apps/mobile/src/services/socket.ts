@@ -18,12 +18,19 @@ export interface MatchFoundPayload {
 
 class SocketService {
     private socket: Socket | null = null;
+    private connectPromise: Promise<void> | null = null;
 
     // Use EXPO_PUBLIC_API_URL from environment variables for production readiness
     private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
-    public async connect(token?: string) {
-        if (!this.socket) {
+    public async connect(token?: string): Promise<void> {
+        // If already connected, skip
+        if (this.socket?.connected) return;
+
+        // If connection is in progress, wait for it
+        if (this.connectPromise) return this.connectPromise;
+
+        this.connectPromise = new Promise<void>(async (resolve) => {
             // If no token passed, try to get it from storage
             let authToken = token;
             if (!authToken) {
@@ -32,6 +39,12 @@ class SocketService {
                 } catch (e) {
                     console.log('Could not get auth token for socket');
                 }
+            }
+
+            // Disconnect existing socket if any
+            if (this.socket) {
+                this.socket.disconnect();
+                this.socket = null;
             }
 
             this.socket = io(this.SERVER_URL, {
@@ -44,6 +57,8 @@ class SocketService {
 
             this.socket.on('connect', () => {
                 console.log('Socket connected:', this.socket?.id);
+                this.connectPromise = null;
+                resolve();
             });
 
             this.socket.on('disconnect', (reason) => {
@@ -52,21 +67,31 @@ class SocketService {
 
             this.socket.on('connect_error', (err) => {
                 console.log('Socket connection error:', err.message);
+                this.connectPromise = null;
+                resolve(); // Resolve anyway to not block, even on error
             });
-        }
+
+            // Safety timeout - resolve after 5 seconds even if no connect event
+            setTimeout(() => {
+                this.connectPromise = null;
+                resolve();
+            }, 5000);
+        });
+
+        return this.connectPromise;
     }
 
     public disconnect() {
         if (this.socket) {
             this.socket.disconnect();
             this.socket = null;
+            this.connectPromise = null;
         }
     }
 
-    public joinQueue(payload: { destination: string; time?: string; luggage: string }) {
-        if (!this.socket) {
-            this.connect();
-        }
+    public async joinQueue(payload: { destination: string; time?: string; luggage: string }) {
+        // Ensure socket is connected before emitting
+        await this.connect();
 
         // No longer sending fake userData from client
         // Backend will resolve user data from JWT token
