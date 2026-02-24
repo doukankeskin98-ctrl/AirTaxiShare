@@ -5,6 +5,27 @@ import { AuthService } from './auth.service';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    // --- EMAIL AUTH ---
+    @Post('email-register')
+    @HttpCode(HttpStatus.CREATED)
+    async emailRegister(
+        @Body('email') email: string,
+        @Body('password') password: string,
+        @Body('fullName') fullName?: string,
+    ) {
+        return this.authService.emailRegister(email, password, fullName);
+    }
+
+    @Post('email-login')
+    @HttpCode(HttpStatus.OK)
+    async emailLogin(
+        @Body('email') email: string,
+        @Body('password') password: string,
+    ) {
+        return this.authService.emailLogin(email, password);
+    }
+
+    // --- PHONE OTP ---
     @Post('login')
     @HttpCode(HttpStatus.OK)
     async login(@Body('phoneNumber') phoneNumber: string) {
@@ -20,6 +41,7 @@ export class AuthController {
         return this.authService.verifyOtp(phoneNumber, code);
     }
 
+    // --- SOCIAL AUTH ---
     @Post('google')
     @HttpCode(HttpStatus.OK)
     async googleLogin(@Body('idToken') idToken: string) {

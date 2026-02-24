@@ -8,14 +8,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
+import SocketService from '../services/socket';
 
 export default function MatchFoundScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { otherUser, luggage } = route.params || { otherUser: { name: 'Mehmet Y.', rating: 4.9, trips: 142 }, luggage: 'medium' };
+    const { otherUser, luggage, matchId } = route.params || {};
+    const safeOtherUser = otherUser || { name: 'Yolcu', rating: 5.0, trips: 10 };
 
     const [meetingPoint, setMeetingPoint] = React.useState('exitA');
+
+    const meetupCode = React.useMemo(() => {
+        if (!matchId || matchId === 'mock-id') return '8492';
+        let hash = 0;
+        for (let i = 0; i < matchId.length; i++) hash = (hash << 5) - hash + matchId.charCodeAt(i);
+        return Math.abs(hash).toString().substring(0, 4).padEnd(4, '0');
+    }, [matchId]);
 
     const meetingPoints = [
         { label: 'Çıkış A (Metro)', value: 'exitA', icon: 'subway' },
@@ -24,11 +33,11 @@ export default function MatchFoundScreen() {
     ];
 
     const handleOpenChat = () => {
-        navigation.navigate('Chat', { otherUser });
+        navigation.navigate('Chat', { otherUser, matchId });
     };
 
     const handleMet = () => {
-        navigation.replace('MeetupConfirm');
+        navigation.replace('MeetupConfirm', { matchId, otherUser: safeOtherUser });
     };
 
     return (
@@ -65,7 +74,12 @@ export default function MatchFoundScreen() {
                                 {
                                     text: 'İptal Et',
                                     style: 'destructive',
-                                    onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })
+                                    onPress: () => {
+                                        if (matchId && matchId !== 'mock-id') {
+                                            SocketService.endMatch(matchId);
+                                        }
+                                        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                                    }
                                 }
                             ]
                         );
@@ -95,7 +109,7 @@ export default function MatchFoundScreen() {
                         </LinearGradient>
                     </View>
                     <Text style={styles.successTitle}>Eşleşme Bulundu!</Text>
-                    <Text style={styles.successSubtitle}>Yolculuğunuzu {otherUser.name.split(' ')[0]} ile paylaşıyorsunuz.</Text>
+                    <Text style={styles.successSubtitle}>Yolculuğunuzu {safeOtherUser.name.split(' ')[0] || 'birisi'} ile paylaşıyorsunuz.</Text>
                 </MotiView>
 
                 {/* User Card */}
@@ -109,7 +123,7 @@ export default function MatchFoundScreen() {
                         <View style={styles.userRow}>
                             <View style={styles.avatarContainer}>
                                 <View style={styles.avatar}>
-                                    <Text style={styles.avatarText}>{otherUser.name[0]}</Text>
+                                    <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
                                 </View>
                                 <View style={styles.badge}>
                                     <Ionicons name="shield-checkmark" size={14} color="#FFF" />
@@ -117,17 +131,17 @@ export default function MatchFoundScreen() {
                             </View>
 
                             <View style={styles.userInfo}>
-                                <Text style={styles.userName}>{otherUser.name}</Text>
+                                <Text style={styles.userName}>{safeOtherUser.name}</Text>
                                 <View style={styles.ratingRow}>
                                     <View style={styles.starPill}>
                                         <Ionicons name="star" size={12} color="#FFF" />
-                                        <Text style={styles.ratingText}>{otherUser.rating}</Text>
+                                        <Text style={styles.ratingText}>{safeOtherUser.rating}</Text>
                                     </View>
                                     <View style={styles.luggagePill}>
                                         <Ionicons name="briefcase" size={12} color="#FFF" />
                                         <Text style={styles.ratingText}>{luggage === 'small' ? 'KÜÇÜK' : luggage === 'large' ? 'BÜYÜK' : 'ORTA'}</Text>
                                     </View>
-                                    <Text style={styles.tripsText}>{otherUser.trips} yolculuk</Text>
+                                    <Text style={styles.tripsText}>{safeOtherUser.trips} yolculuk</Text>
                                 </View>
                             </View>
 
@@ -191,7 +205,7 @@ export default function MatchFoundScreen() {
                         <View style={styles.cardHighlight} />
                         <Text style={styles.codeLabel}>ONAY KODU</Text>
                         <View style={styles.codeBox}>
-                            <Text style={styles.codeText}>8492</Text>
+                            <Text style={styles.codeText}>{meetupCode}</Text>
                         </View>
                         <Text style={styles.codeHint}>Bu kodu yol arkadaşınıza gösterin</Text>
                     </BlurView>

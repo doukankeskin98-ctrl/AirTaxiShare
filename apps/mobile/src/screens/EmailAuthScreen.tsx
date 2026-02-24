@@ -10,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView } from 'moti';
 
+import { AuthService, setAuthToken, saveUserProfile } from '../services/api';
+
 export default function EmailAuthScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
@@ -25,18 +27,39 @@ export default function EmailAuthScreen() {
         }
 
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            let response;
             if (mode === 'signup') {
+                response = await AuthService.emailRegister(email, password);
+            } else {
+                response = await AuthService.emailLogin(email, password);
+            }
+
+            const { accessToken, user } = response.data;
+
+            // Save token for session persistence
+            await setAuthToken(accessToken);
+            // Save user profile for offline access
+            await saveUserProfile(user);
+
+            if (mode === 'signup') {
+                // New user → profile setup
                 navigation.navigate('ProfileSetup');
             } else {
+                // Existing user → home
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'Home' }],
                 });
             }
-        }, 1500);
+        } catch (error: any) {
+            Alert.alert(
+                'Error',
+                error.message || (mode === 'signin' ? 'Invalid email or password' : 'Registration failed')
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -177,7 +200,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#F1F5F9',
         margin: spacing.s,
-        borderRadius: 12, // Inner radius
+        borderRadius: 12,
         padding: 4,
     },
     tab: {

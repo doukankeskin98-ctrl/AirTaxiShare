@@ -1,63 +1,114 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { MotiView, MotiText } from 'moti';
 import { colors, typography, spacing } from '../theme';
 import * as Localization from 'expo-localization';
 import i18n from '../i18n';
+import { initAuthToken, UserService, saveUserProfile, setAuthToken, clearUserProfile } from '../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SplashScreen() {
     const navigation = useNavigation<any>();
 
     useEffect(() => {
-        const initText = async () => {
+        const initApp = async () => {
+            // Set language
             const locale = Localization.getLocales()[0].languageCode;
             if (locale === 'tr' || locale === 'en') {
                 await i18n.changeLanguage(locale);
             }
 
-            setTimeout(() => {
-                navigation.replace('Welcome');
-            }, 2500);
+            // Check for saved token
+            const token = await initAuthToken();
+
+            if (token) {
+                // Token exists → Validate it by fetching profile
+                try {
+                    const response = await UserService.getProfile();
+                    await saveUserProfile(response.data);
+                    setTimeout(() => {
+                        navigation.replace('Home');
+                    }, 1500);
+                } catch (error) {
+                    // Token is invalid/expired → Clear and go to Welcome
+                    console.log('Token invalid, redirecting to Welcome');
+                    await setAuthToken('');
+                    await clearUserProfile();
+                    setTimeout(() => {
+                        navigation.replace('Welcome');
+                    }, 1500);
+                }
+            } else {
+                // No token → Go to Welcome
+                setTimeout(() => {
+                    navigation.replace('Welcome');
+                }, 2500);
+            }
         };
 
-        initText();
+        initApp();
     }, []);
 
     return (
         <View style={styles.container}>
             <LinearGradient
-                colors={[colors.backgroundLight, '#000830']}
+                colors={[colors.background, '#0A0A0A']}
                 style={styles.background}
             />
+
             <View style={styles.content}>
                 <MotiView
-                    from={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', damping: 15 } as any}
+                    from={{ opacity: 0, scale: 0.8, translateY: 30 }}
+                    animate={{
+                        opacity: 1,
+                        scale: [
+                            { value: 1, type: 'spring' },
+                            { value: 1.05, type: 'timing', duration: 1500, loop: true },
+                            { value: 1, type: 'timing', duration: 1500 }
+                        ] as any,
+                        translateY: 0
+                    }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 100 } as any}
+                    style={styles.logoContainer}
                 >
-                    <Text style={styles.logo}>AirTaxiShare</Text>
+                    <View style={styles.iconWrapper}>
+                        <LinearGradient
+                            colors={[colors.primary, colors.secondary]}
+                            style={styles.iconGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        >
+                            <Ionicons name="airplane" size={48} color="#FFF" style={styles.planeIcon} />
+                        </LinearGradient>
+                    </View>
+
+                    <View style={styles.textWrapper}>
+                        <Text style={styles.logoText}>Air</Text>
+                        <Text style={styles.logoTextBold}>Taxi</Text>
+                    </View>
+                    <Text style={styles.subtitle}>{i18n.t('app.tagline', 'Share the journey, split the cost')}</Text>
                 </MotiView>
 
-                <MotiText
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ type: 'timing', duration: 1000, delay: 500 } as any}
-                    style={styles.tagline}
+                <MotiView
+                    from={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ type: 'timing', duration: 1000, delay: 600 } as any}
+                    style={styles.loaderContainer}
                 >
-                    {i18n.t('app.tagline')}
-                </MotiText>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </MotiView>
             </View>
 
             <View style={styles.footer}>
                 <MotiView
-                    from={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    transition={{ type: 'timing', duration: 2000 } as any}
+                    from={{ opacity: 0, translateY: 50 }}
+                    animate={{ opacity: 0.3, translateY: 0 }}
+                    transition={{ type: 'timing', duration: 1500, delay: 200 } as any}
                 >
                     <LinearGradient
-                        colors={['transparent', colors.primary + '40']}
+                        colors={['transparent', colors.primary]}
                         style={styles.wave}
                     />
                 </MotiView>
@@ -69,45 +120,81 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: colors.backgroundLight,
+        backgroundColor: '#050505',
     },
     background: {
         ...StyleSheet.absoluteFillObject,
     },
     content: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
         zIndex: 2,
     },
-    logo: {
-        fontSize: 48, // Larger
-        fontWeight: '800',
-        color: colors.textInverse,
-        marginBottom: spacing.m,
-        letterSpacing: 2,
-        textShadowColor: colors.primary,
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 20,
+    logoContainer: {
+        alignItems: 'center',
     },
-    tagline: {
+    iconWrapper: {
+        width: 100,
+        height: 100,
+        borderRadius: 32,
+        backgroundColor: colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 10,
+        marginBottom: spacing.l,
+        overflow: 'hidden',
+    },
+    iconGradient: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    planeIcon: {
+        transform: [{ rotate: '-45deg' }, { translateY: -2 }],
+    },
+    textWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    logoText: {
+        fontSize: 42,
+        fontWeight: '300',
+        color: '#FFF',
+        letterSpacing: 1,
+    },
+    logoTextBold: {
+        fontSize: 42,
+        fontWeight: '800',
+        color: '#FFF',
+        letterSpacing: 1,
+    },
+    subtitle: {
         ...typography.body,
-        fontSize: 18,
-        color: 'rgba(255,255,255,0.8)',
-        textAlign: 'center',
-        paddingHorizontal: spacing.xl,
+        color: colors.textSecondary,
+        marginTop: spacing.s,
         letterSpacing: 0.5,
+        opacity: 0.8,
+    },
+    loaderContainer: {
+        position: 'absolute',
+        bottom: 120,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        height: 200,
+        height: 150,
         justifyContent: 'flex-end',
+        zIndex: 1,
     },
     wave: {
-        height: 100,
-        opacity: 0.5,
+        height: 80,
     },
 });

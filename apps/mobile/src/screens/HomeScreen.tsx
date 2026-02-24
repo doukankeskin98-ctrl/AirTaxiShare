@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,15 +9,42 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
 
+import { loadUserProfile, MatchAPI } from '../services/api';
+
 export default function HomeScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
 
-    // Mock user data
-    const user = {
-        name: 'Doğukan',
-        avatar: null, // or url
-    };
+    const [user, setUser] = useState<any>({ fullName: '', photoUrl: null });
+    const [matchHistory, setMatchHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    // Load user profile from cache on mount & focus
+    useFocusEffect(
+        React.useCallback(() => {
+            const loadData = async () => {
+                const profile = await loadUserProfile();
+                if (profile) {
+                    setUser(profile);
+                }
+
+                // Load match history
+                setLoadingHistory(true);
+                try {
+                    const response = await MatchAPI.getHistory();
+                    setMatchHistory(response.data || []);
+                } catch (e) {
+                    // Silently fail - history is not critical
+                    console.log('Failed to load match history:', e);
+                } finally {
+                    setLoadingHistory(false);
+                }
+            };
+            loadData();
+        }, [])
+    );
+
+    const displayName = user.fullName || 'Yolcu';
 
     const handleCreateMatch = () => {
         navigation.navigate('CreateMatch');
@@ -55,7 +82,7 @@ export default function HomeScreen() {
                             transition={{ delay: 100 } as any}
                             style={styles.greeting}
                         >
-                            Merhaba, {user.name}
+                            Merhaba, {displayName.split(' ')[0]}
                         </MotiText>
                         <MotiText
                             from={{ opacity: 0 }}
@@ -96,7 +123,7 @@ export default function HomeScreen() {
                         </BlurView>
                     </MotiView>
 
-                    {/* Main Action: Massive Create Match Card */}
+                    {/* Main Action: Create Match Card */}
                     <MotiView
                         from={{ opacity: 0, scale: 0.95, translateY: 20 }}
                         animate={{ opacity: 1, scale: 1, translateY: 0 }}
@@ -138,7 +165,7 @@ export default function HomeScreen() {
                             transition={{ delay: 500, type: 'spring' } as any}
                             style={styles.secondaryCardWrapper}
                         >
-                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('Queue')}>
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('CreateMatch')}>
                                 <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
                                     <View style={styles.secondaryHighlight} />
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(14, 165, 233, 0.2)' }]}>
@@ -164,13 +191,15 @@ export default function HomeScreen() {
                                         <Ionicons name="pricetag" size={24} color={colors.success} />
                                     </View>
                                     <Text style={styles.secondaryTitle}>{t('home.myMatches')}</Text>
-                                    <Text style={styles.secondarySubtitle}>Geçmiş binişler</Text>
+                                    <Text style={styles.secondarySubtitle}>
+                                        {matchHistory.length > 0 ? `${matchHistory.length} yolculuk` : 'Geçmiş binişler'}
+                                    </Text>
                                 </BlurView>
                             </TouchableOpacity>
                         </MotiView>
                     </View>
 
-                    {/* Recent Activity Empty State */}
+                    {/* Recent Activity */}
                     <MotiView
                         from={{ opacity: 0, translateY: 20 }}
                         animate={{ opacity: 1, translateY: 0 }}
@@ -178,18 +207,51 @@ export default function HomeScreen() {
                         style={styles.recentSection}
                     >
                         <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
-                        <View style={styles.emptyStateBox}>
-                            <BlurView intensity={15} tint="dark" style={styles.emptyStateBlur}>
-                                <Ionicons name="time-outline" size={40} color={colors.textSecondary} />
-                                <Text style={styles.emptyStateText}>Henüz aktif bir yolculuğun yok.</Text>
-                                <PremiumButton
-                                    title="Şimdi Başla"
-                                    variant="glass"
-                                    style={{ marginTop: spacing.l, width: 160 }}
-                                    onPress={handleCreateMatch}
-                                />
-                            </BlurView>
-                        </View>
+
+                        {matchHistory.length > 0 ? (
+                            <View style={styles.historyList}>
+                                {matchHistory.slice(0, 5).map((match, index) => (
+                                    <MotiView
+                                        key={match.id}
+                                        from={{ opacity: 0, translateX: -20 }}
+                                        animate={{ opacity: 1, translateX: 0 }}
+                                        transition={{ delay: 800 + index * 100 } as any}
+                                    >
+                                        <BlurView intensity={15} tint="dark" style={styles.historyItem}>
+                                            <View style={styles.historyIcon}>
+                                                <Ionicons
+                                                    name={match.status === 'COMPLETED' ? 'checkmark-circle' : 'time'}
+                                                    size={24}
+                                                    color={match.status === 'COMPLETED' ? colors.success : colors.warning}
+                                                />
+                                            </View>
+                                            <View style={styles.historyInfo}>
+                                                <Text style={styles.historyDest}>{match.destination}</Text>
+                                                <Text style={styles.historyPartner}>
+                                                    {match.otherUser?.fullName || 'Yolcu'} ile
+                                                </Text>
+                                            </View>
+                                            <Text style={styles.historyDate}>
+                                                {new Date(match.matchedAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                                            </Text>
+                                        </BlurView>
+                                    </MotiView>
+                                ))}
+                            </View>
+                        ) : (
+                            <View style={styles.emptyStateBox}>
+                                <BlurView intensity={15} tint="dark" style={styles.emptyStateBlur}>
+                                    <Ionicons name="time-outline" size={40} color={colors.textSecondary} />
+                                    <Text style={styles.emptyStateText}>Henüz aktif bir yolculuğun yok.</Text>
+                                    <PremiumButton
+                                        title="Şimdi Başla"
+                                        variant="glass"
+                                        style={{ marginTop: spacing.l, width: 160 }}
+                                        onPress={handleCreateMatch}
+                                    />
+                                </BlurView>
+                            </View>
+                        )}
                     </MotiView>
 
                 </ScrollView>
@@ -210,7 +272,7 @@ const styles = StyleSheet.create({
         borderRadius: 150,
         opacity: 0.4,
         transform: [{ scale: 2 }],
-        filter: 'blur(80px)', // requires expo-blur usually, but fallback is opacity. Native doesn't perfectly support CSS blur on absolute views without BlurView, so we rely on extreme scaling and low opacity to simulate it if needed.
+        filter: 'blur(80px)',
     },
     safeArea: {
         flex: 1,
@@ -392,6 +454,40 @@ const styles = StyleSheet.create({
         color: colors.textPrimary,
         marginBottom: spacing.m,
     },
+    historyList: {
+        gap: spacing.s,
+    },
+    historyItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.m,
+        borderRadius: 16,
+        backgroundColor: 'rgba(30, 33, 54, 0.3)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        overflow: 'hidden',
+        marginBottom: spacing.xs,
+    },
+    historyIcon: {
+        marginRight: spacing.m,
+    },
+    historyInfo: {
+        flex: 1,
+    },
+    historyDest: {
+        ...typography.body,
+        color: colors.textPrimary,
+        fontWeight: '600',
+    },
+    historyPartner: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        marginTop: 2,
+    },
+    historyDate: {
+        ...typography.caption,
+        color: colors.textSecondary,
+    },
     emptyStateBox: {
         borderRadius: 24,
         overflow: 'hidden',
@@ -411,4 +507,3 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-

@@ -48,9 +48,9 @@ export default function LoginScreen({ navigation }: any) {
             const { authentication } = response;
             if (authentication?.accessToken) {
                 AuthService.googleLogin(authentication.accessToken)
-                    .then(res => {
+                    .then(async res => {
                         if (res.data?.accessToken) {
-                            setAuthToken(res.data.accessToken);
+                            await setAuthToken(res.data.accessToken);
                         }
                         navigation.replace('Home');
                     })
@@ -76,7 +76,7 @@ export default function LoginScreen({ navigation }: any) {
             );
 
             if (res.data?.accessToken) {
-                setAuthToken(res.data.accessToken);
+                await setAuthToken(res.data.accessToken);
             }
             navigation.replace('Home');
         } catch (error: any) {

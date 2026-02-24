@@ -11,6 +11,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { UserService, saveUserProfile } from '../services/api';
+
 export default function ProfileSetupScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
@@ -19,6 +21,7 @@ export default function ProfileSetupScreen() {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [image, setImage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Consents
     const [tosAccepted, setTosAccepted] = useState(false);
@@ -38,7 +41,7 @@ export default function ProfileSetupScreen() {
         }
     };
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (!name) {
             Alert.alert('Error', t('profile.error.nameRequired'));
             return;
@@ -47,17 +50,32 @@ export default function ProfileSetupScreen() {
             Alert.alert('Error', t('profile.error.photoRequired'));
             return;
         }
-        // In a real app, strict consent checks might be here, but for demo we might relax or keep them
         if (!tosAccepted || !privacyAccepted) {
             Alert.alert('Error', 'Please accept mandatory consents.');
             return;
         }
 
-        // Navigate to Home
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home' }],
-        });
+        setIsLoading(true);
+        try {
+            // Save profile to backend
+            const response = await UserService.updateProfile({
+                fullName: name,
+                phoneNumber: phone || undefined,
+                photoUrl: image, // In production, upload to cloud storage first
+            });
+
+            // Cache profile locally
+            await saveUserProfile(response.data);
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to save profile');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -147,6 +165,7 @@ export default function ProfileSetupScreen() {
                 <PremiumButton
                     title={t('profile.continue')}
                     onPress={handleContinue}
+                    loading={isLoading}
                     icon={<Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
                 />
                 <View style={styles.bottomSpacer} />

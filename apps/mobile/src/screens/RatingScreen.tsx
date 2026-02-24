@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
 import { PremiumCard } from '../components/PremiumCard';
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView, MotiText } from 'moti';
 
+import { MatchAPI } from '../services/api';
+
 export default function RatingScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
+    const { matchId, otherUser } = route.params || {};
 
     const [rating, setRating] = useState(0);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [note, setNote] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const tags = [
         { id: 'polite', label: t('rating.tags.polite') },
@@ -32,12 +37,27 @@ export default function RatingScreen() {
         }
     };
 
-    const handleSubmit = () => {
-        // Mock submit
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home' }],
-        });
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            // Submit rating to backend
+            await MatchAPI.submitRating({
+                matchId: matchId || '',
+                toUserId: otherUser?.id || '',
+                score: rating,
+                tags: selectedTags,
+                note: note,
+            });
+        } catch (error: any) {
+            console.log('Rating submit error (non-critical):', error.message);
+            // Don't block navigation on rating failure
+        } finally {
+            setIsSubmitting(false);
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+        }
     };
 
     return (
@@ -141,6 +161,7 @@ export default function RatingScreen() {
                     title={t('rating.cta.submit')}
                     onPress={handleSubmit}
                     disabled={rating === 0}
+                    loading={isSubmitting}
                     icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
                     style={styles.submitButton}
                 />
@@ -206,7 +227,7 @@ const styles = StyleSheet.create({
     },
     tagSelected: {
         borderColor: colors.primary,
-        backgroundColor: colors.surface, // Or primaryLight with low opacity
+        backgroundColor: colors.surface,
     },
     tagText: {
         ...typography.caption,

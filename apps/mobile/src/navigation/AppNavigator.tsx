@@ -26,8 +26,8 @@ export type RootStackParamList = {
     Queue: { destination: string; time: string; luggage: string };
     MatchFound: { matchId: string; otherUser: any };
     Chat: { matchId: string; otherUser: any };
-    MeetupConfirm: { matchId: string };
-    Rating: { matchId: string };
+    MeetupConfirm: { matchId: string; otherUser?: any };
+    Rating: { matchId: string; otherUser?: any };
     Settings: undefined;
     Legal: { type: 'tos' | 'privacy' };
 };

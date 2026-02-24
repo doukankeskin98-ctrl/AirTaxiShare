@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Dimensions, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Dimensions, Alert, useWindowDimensions, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -81,9 +81,9 @@ export default function WelcomeScreen() {
             if (authentication?.accessToken) {
                 // Real integration
                 AuthService.googleLogin(authentication.accessToken)
-                    .then(res => {
+                    .then(async res => {
                         if (res.data?.accessToken) {
-                            setAuthToken(res.data.accessToken);
+                            await setAuthToken(res.data.accessToken);
                         }
                         navigation.replace('Home');
                     })
@@ -109,7 +109,7 @@ export default function WelcomeScreen() {
             );
 
             if (res.data?.accessToken) {
-                setAuthToken(res.data.accessToken);
+                await setAuthToken(res.data.accessToken);
             }
             navigation.replace('Home');
         } catch (error: any) {
@@ -152,10 +152,17 @@ export default function WelcomeScreen() {
 
                     {/* Foreground Glass Circle */}
                     <View style={styles.glassCircleWrapper}>
-                        <BlurView intensity={80} tint="dark" style={styles.glassCircle}>
-                            <View style={styles.glassCircleBorder} />
-                            <Ionicons name={item.icon as any} size={48} color="#FFF" />
-                        </BlurView>
+                        {Platform.OS === 'web' ? (
+                            <View style={[styles.glassCircle, { backgroundColor: 'rgba(20,20,30,0.85)' }]}>
+                                <View style={styles.glassCircleBorder} />
+                                <Ionicons name={item.icon as any} size={48} color="#FFF" />
+                            </View>
+                        ) : (
+                            <BlurView intensity={80} tint="dark" style={styles.glassCircle}>
+                                <View style={styles.glassCircleBorder} />
+                                <Ionicons name={item.icon as any} size={48} color="#FFF" />
+                            </BlurView>
+                        )}
                     </View>
                 </MotiView>
 
@@ -215,7 +222,8 @@ export default function WelcomeScreen() {
                 {/* The Main Carousel */}
                 <View style={styles.carouselSection}>
                     <Carousel
-                        loop={false}
+                        key={`carousel-${windowWidth}`}
+                        loop={true}
                         width={windowWidth}
                         height={400}
                         autoPlay={true}
@@ -223,10 +231,14 @@ export default function WelcomeScreen() {
                         data={SLIDES}
                         onSnapToItem={(index) => setActiveIndex(index)}
                         renderItem={renderSlide}
-                        mode="parallax"
+                        mode={Platform.OS === 'web' ? 'parallax' : "parallax"}
                         modeConfig={{
                             parallaxScrollingScale: 0.9,
-                            parallaxScrollingOffset: 40,
+                            parallaxScrollingOffset: Platform.OS === 'web' ? 0 : 40,
+                            parallaxAdjacentItemScale: 0.8,
+                        }}
+                        panGestureHandlerProps={{
+                            activeOffsetX: [-10, 10],
                         }}
                     />
 
@@ -253,50 +265,94 @@ export default function WelcomeScreen() {
                     transition={{ type: 'spring', damping: 25, stiffness: 150, delay: 300 } as any}
                     style={styles.sheetWrapper}
                 >
-                    <BlurView intensity={60} tint="dark" style={styles.glassSheet}>
+                    {Platform.OS === 'web' ? (
+                        <View style={[styles.glassSheet, { backgroundColor: 'rgba(20,20,30,0.85)' }]}>
+                            {/* Ultra-subtle 1px Top Shine */}
+                            <View style={styles.sheetTopHighlight} />
 
-                        {/* Ultra-subtle 1px Top Shine */}
-                        <View style={styles.sheetTopHighlight} />
-
-                        <PremiumButton
-                            title="Email ile Devam Et"
-                            onPress={handleEmailAuth}
-                            icon={<Ionicons name="mail" size={20} color={colors.textPrimary} />}
-                            variant="primary"
-                            style={styles.actionButton}
-                        />
-
-                        {/* Divider */}
-                        <View style={styles.dividerContainer}>
-                            <View style={styles.dividerLine} />
-                            <Text style={styles.dividerText}>ya da</Text>
-                            <View style={styles.dividerLine} />
-                        </View>
-
-                        <View style={styles.socialRow}>
                             <PremiumButton
-                                title="Apple"
-                                onPress={handleAppleLogin}
-                                loading={isSocialLoading}
-                                icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
-                                variant="glass"
-                                style={styles.socialHalfButton}
+                                title="Email ile Devam Et"
+                                onPress={handleEmailAuth}
+                                icon={<Ionicons name="mail" size={20} color={colors.textPrimary} />}
+                                variant="primary"
+                                style={styles.actionButton}
                             />
-                            <View style={{ width: spacing.m }} />
-                            <PremiumButton
-                                title="Google"
-                                onPress={handleGoogleLogin}
-                                loading={isSocialLoading}
-                                icon={<Ionicons name="logo-google" size={20} color={colors.textPrimary} />}
-                                variant="glass"
-                                style={styles.socialHalfButton}
-                            />
-                        </View>
 
-                        <Text style={styles.disclaimer}>
-                            Devam ederek Hizmet Şartlarımızı onaylamış olursunuz.
-                        </Text>
-                    </BlurView>
+                            {/* Divider */}
+                            <View style={styles.dividerContainer}>
+                                <View style={styles.dividerLine} />
+                                <Text style={styles.dividerText}>ya da</Text>
+                                <View style={styles.dividerLine} />
+                            </View>
+
+                            <View style={styles.socialRow}>
+                                <PremiumButton
+                                    title="Apple"
+                                    onPress={handleAppleLogin}
+                                    loading={isSocialLoading}
+                                    icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
+                                    variant="glass"
+                                    style={styles.socialHalfButton}
+                                />
+                                <View style={{ width: spacing.m }} />
+                                <PremiumButton
+                                    title="Google"
+                                    onPress={handleGoogleLogin}
+                                    loading={isSocialLoading}
+                                    icon={<Ionicons name="logo-google" size={20} color={colors.textPrimary} />}
+                                    variant="glass"
+                                    style={styles.socialHalfButton}
+                                />
+                            </View>
+
+                            <Text style={styles.disclaimer}>
+                                Devam ederek Hizmet Şartlarımızı onaylamış olursunuz.
+                            </Text>
+                        </View>
+                    ) : (
+                        <BlurView intensity={60} tint="dark" style={styles.glassSheet}>
+                            {/* ... Content ... */}
+                            <View style={styles.sheetTopHighlight} />
+
+                            <PremiumButton
+                                title="Email ile Devam Et"
+                                onPress={handleEmailAuth}
+                                icon={<Ionicons name="mail" size={20} color={colors.textPrimary} />}
+                                variant="primary"
+                                style={styles.actionButton}
+                            />
+
+                            <View style={styles.dividerContainer}>
+                                <View style={styles.dividerLine} />
+                                <Text style={styles.dividerText}>ya da</Text>
+                                <View style={styles.dividerLine} />
+                            </View>
+
+                            <View style={styles.socialRow}>
+                                <PremiumButton
+                                    title="Apple"
+                                    onPress={handleAppleLogin}
+                                    loading={isSocialLoading}
+                                    icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
+                                    variant="glass"
+                                    style={styles.socialHalfButton}
+                                />
+                                <View style={{ width: spacing.m }} />
+                                <PremiumButton
+                                    title="Google"
+                                    onPress={handleGoogleLogin}
+                                    loading={isSocialLoading}
+                                    icon={<Ionicons name="logo-google" size={20} color={colors.textPrimary} />}
+                                    variant="glass"
+                                    style={styles.socialHalfButton}
+                                />
+                            </View>
+
+                            <Text style={styles.disclaimer}>
+                                Devam ederek Hizmet Şartlarımızı onaylamış olursunuz.
+                            </Text>
+                        </BlurView>
+                    )}
                 </MotiView>
             </SafeAreaView>
         </View>

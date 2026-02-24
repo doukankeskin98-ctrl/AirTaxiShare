@@ -7,28 +7,49 @@ import { Ionicons } from '@expo/vector-icons';
 import { MotiView, MotiText } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import SocketService from '../services/socket';
+
 export default function ChatScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const title = route.params?.otherUser?.name || 'Mehmet Y.'; // Mock name
+    const { otherUser, matchId } = route.params || {};
+    const safeOtherUser = otherUser || { name: 'Yolcu' };
+    const title = safeOtherUser.name || 'Yolcu';
 
-    const [messages, setMessages] = useState([
-        { id: '1', text: 'Hi! I am at Exit 9.', sender: 'them', time: '10:05' },
-        { id: '2', text: 'Okay, coming specifically there.', sender: 'me', time: '10:06' },
-        { id: '3', text: 'Great, see you soon!', sender: 'them', time: '10:07' },
-    ]);
+    const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
+    useEffect(() => {
+        SocketService.onReceiveMessage((message: any) => {
+            setMessages(prev => [...prev, {
+                id: message.id,
+                text: message.text,
+                sender: 'them',
+                time: message.time
+            }]);
+        });
+
+        return () => {
+            SocketService.offReceiveMessage();
+        };
+    }, []);
+
     const handleSend = () => {
-        if (!inputText.trim()) return;
-        setMessages([...messages, {
+        if (!inputText.trim() || !matchId) return;
+
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newMessage = {
             id: Date.now().toString(),
             text: inputText,
             sender: 'me',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
+            time: time
+        };
+
+        setMessages([...messages, newMessage]);
+        SocketService.sendMessage(matchId, inputText);
+
         setInputText('');
     };
 

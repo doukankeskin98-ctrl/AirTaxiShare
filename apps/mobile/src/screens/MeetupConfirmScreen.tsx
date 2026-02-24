@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
 import { PremiumButton } from '../components/PremiumButton';
 import { PremiumCard } from '../components/PremiumCard';
@@ -13,6 +13,8 @@ import { BlurView } from 'expo-blur';
 export default function MeetupConfirmScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
+    const { matchId, otherUser } = route.params || {};
 
     // State: 'pending', 'confirmed_by_me', 'success'
     const [status, setStatus] = useState('pending');
@@ -25,13 +27,13 @@ export default function MeetupConfirmScreen() {
             setStatus('success');
             // Navigate to Rating after short delay
             setTimeout(() => {
-                navigation.replace('Rating', { matchId: 'mock-123' });
+                navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
             }, 1500);
         }, 2000);
     };
 
     const handleDispute = () => {
-        alert('Dispute reported');
+        alert('Sorun bildirildi');
     };
 
     return (
@@ -124,7 +126,7 @@ export default function MeetupConfirmScreen() {
                         <View style={styles.successCircle}>
                             <Ionicons name="checkmark" size={60} color="#FFF" />
                         </View>
-                        <Text style={styles.successText}>Meetup Confirmed!</Text>
+                        <Text style={styles.successText}>Buluşma Onaylandı!</Text>
                     </MotiView>
                 )}
 

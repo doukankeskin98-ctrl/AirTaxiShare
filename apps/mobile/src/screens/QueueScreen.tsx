@@ -9,6 +9,7 @@ import { MotiView, MotiText } from 'moti';
 import { Easing } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import SocketService, { MatchFoundPayload } from '../services/socket';
+import { getAuthToken } from '../services/api';
 
 export default function QueueScreen() {
     const { t } = useTranslation();
@@ -19,8 +20,9 @@ export default function QueueScreen() {
     const [liveCount, setLiveCount] = useState(3);
 
     useEffect(() => {
-        // Connect and join the queue
-        SocketService.connect();
+        // Connect with auth token and join the queue
+        const token = getAuthToken();
+        SocketService.connect(token || undefined);
         SocketService.joinQueue({ destination, time, luggage });
 
         // Listen for match events

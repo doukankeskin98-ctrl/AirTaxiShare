@@ -24,7 +24,7 @@ export default function VerifyScreen({ route, navigation }: any) {
             // Mock verify for now if API fails or for demo
             // const response = await AuthService.verify(phoneNumber, code);
             // const { accessToken } = response.data;
-            // setAuthToken(accessToken);
+            // await setAuthToken(accessToken);
 
             // For smoother demo if backend isn't ready:
             setTimeout(() => {

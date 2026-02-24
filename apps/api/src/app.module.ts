@@ -6,6 +6,8 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MatchModule } from './match/match.module';
 import { TripRequest } from './match/trip-request.entity';
+import { Rating } from './match/rating.entity';
+import { MatchHistory } from './match/match-history.entity';
 
 @Module({
     imports: [
@@ -22,9 +24,9 @@ import { TripRequest } from './match/trip-request.entity';
                     return {
                         type: 'postgres',
                         url: databaseUrl,
-                        entities: [User, TripRequest],
-                        synchronize: true, // Auto-migrate in MVP, disable later
-                        ssl: { rejectUnauthorized: false }, // Required for Render DB
+                        entities: [User, TripRequest, Rating, MatchHistory],
+                        synchronize: true,
+                        ssl: { rejectUnauthorized: false },
                     };
                 }
 
@@ -35,13 +37,13 @@ import { TripRequest } from './match/trip-request.entity';
                     username: configService.get<string>('DB_USER', 'airtaxi'),
                     password: configService.get<string>('DB_PASS', 'password'),
                     database: configService.get<string>('DB_NAME', 'airtaxi_db'),
-                    entities: [User, TripRequest],
+                    entities: [User, TripRequest, Rating, MatchHistory],
                     synchronize: true,
                 };
             },
             inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, TripRequest]),
+        TypeOrmModule.forFeature([User, TripRequest, Rating, MatchHistory]),
         UserModule,
         AuthModule,
         MatchModule,

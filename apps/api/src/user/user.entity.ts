@@ -23,6 +23,9 @@ export class User {
     @Column({ unique: true, nullable: true })
     appleId: string;
 
+    @Column({ nullable: true })
+    passwordHash: string;
+
     @Column()
     fullName: string;
 

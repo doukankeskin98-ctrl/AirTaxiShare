@@ -1,6 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
+import * as crypto from 'crypto';
+
+// Simple password hashing for MVP (use bcrypt in production)
+function hashPassword(password: string): string {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 @Injectable()
 export class AuthService {
@@ -9,9 +15,46 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
+    // --- EMAIL AUTH ---
+    async emailRegister(email: string, password: string, fullName?: string): Promise<{ accessToken: string; user: any }> {
+        // Check if email already exists
+        const existing = await this.userService.findByEmail(email);
+        if (existing) {
+            throw new ConflictException('Email already registered');
+        }
+
+        const user = await this.userService.createWithEmail(
+            email,
+            hashPassword(password),
+            fullName || 'New User',
+        );
+
+        const payload = { sub: user.id, email: user.email };
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: this.sanitizeUser(user),
+        };
+    }
+
+    async emailLogin(email: string, password: string): Promise<{ accessToken: string; user: any }> {
+        const user = await this.userService.findByEmail(email);
+        if (!user || !user.passwordHash) {
+            throw new UnauthorizedException('Invalid email or password');
+        }
+
+        if (user.passwordHash !== hashPassword(password)) {
+            throw new UnauthorizedException('Invalid email or password');
+        }
+
+        const payload = { sub: user.id, email: user.email };
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: this.sanitizeUser(user),
+        };
+    }
+
+    // --- PHONE OTP ---
     async requestOtp(phoneNumber: string): Promise<{ message: string; mockOtp: string }> {
-        // In production, send SMS here.
-        // For MVP/Dev, return the OTP.
         return {
             message: 'OTP sent (mock)',
             mockOtp: '123456',
@@ -23,7 +66,6 @@ export class AuthService {
             throw new UnauthorizedException('Invalid OTP');
         }
 
-        // Find or Create User
         let user = await this.userService.findByPhoneNumber(phoneNumber);
         if (!user) {
             user = await this.userService.create(phoneNumber);
@@ -32,47 +74,36 @@ export class AuthService {
         const payload = { sub: user.id, phoneNumber: user.phoneNumber, email: user.email };
         return {
             accessToken: this.jwtService.sign(payload),
-            user,
+            user: this.sanitizeUser(user),
         };
     }
 
+    // --- SOCIAL AUTH ---
     async verifyGoogleToken(idToken: string): Promise<{ accessToken: string; user: any }> {
-        // In a real application, you would use google-auth-library here.
         if (!idToken) throw new UnauthorizedException('Invalid Google Token');
 
-        const mockEmail = 'mock@gmail.com'; // Extracted from token payload
-        const mockGoogleId = 'google-12345'; // Extracted from token sub
+        const mockEmail = 'mock@gmail.com';
+        const mockGoogleId = 'google-12345';
 
         let user = await this.userService.findByGoogleId(mockGoogleId);
 
         if (!user) {
-            // Alternatively, check if email exists and link account
             user = await this.userService.findByEmail(mockEmail);
-
             if (user) {
-                // Link Google ID to existing email account
                 user = await this.userService.update(user.id, { googleId: mockGoogleId });
             } else {
-                // Create new user
-                user = await this.userService.create(
-                    undefined,
-                    'Google User',
-                    mockEmail,
-                    mockGoogleId,
-                    undefined
-                );
+                user = await this.userService.create(undefined, 'Google User', mockEmail, mockGoogleId, undefined);
             }
         }
 
         const payload = { sub: user.id, email: user.email };
         return {
             accessToken: this.jwtService.sign(payload),
-            user,
+            user: this.sanitizeUser(user),
         };
     }
 
     async verifyAppleToken(identityToken: string, fullName?: string): Promise<{ accessToken: string; user: any }> {
-        // In a real app, you would verify the Apple JWT identityToken.
         if (!identityToken) throw new UnauthorizedException('Invalid Apple Token');
 
         const mockEmail = 'mock@icloud.com';
@@ -82,26 +113,22 @@ export class AuthService {
 
         if (!user) {
             user = await this.userService.findByEmail(mockEmail);
-
             if (user) {
-                // Link Apple ID
                 user = await this.userService.update(user.id, { appleId: mockAppleId });
             } else {
-                // Create new user
-                user = await this.userService.create(
-                    undefined,
-                    fullName || 'Apple User',
-                    mockEmail,
-                    undefined,
-                    mockAppleId
-                );
+                user = await this.userService.create(undefined, fullName || 'Apple User', mockEmail, undefined, mockAppleId);
             }
         }
 
         const payload = { sub: user.id, email: user.email };
         return {
             accessToken: this.jwtService.sign(payload),
-            user,
+            user: this.sanitizeUser(user),
         };
+    }
+
+    private sanitizeUser(user: any) {
+        const { passwordHash, ...safe } = user;
+        return safe;
     }
 }

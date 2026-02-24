@@ -37,7 +37,6 @@ export class UserService {
         googleId?: string,
         appleId?: string,
     ): Promise<User> {
-        // Generate a random temporary phone number if none provided (for initial social login)
         const tempPhone = phoneNumber || `temp_${Math.random().toString(36).substring(7)}`;
 
         const user = this.userRepository.create({
@@ -51,8 +50,36 @@ export class UserService {
         return this.userRepository.save(user);
     }
 
+    async createWithEmail(email: string, passwordHash: string, fullName: string): Promise<User> {
+        const user = this.userRepository.create({
+            email,
+            passwordHash,
+            fullName,
+            phoneNumber: `temp_${Math.random().toString(36).substring(7)}`,
+            status: UserStatus.ACTIVE,
+        });
+        return this.userRepository.save(user);
+    }
+
     async update(id: string, updateData: Partial<User>): Promise<User> {
         await this.userRepository.update(id, updateData);
         return this.userRepository.findOne({ where: { id } }) as Promise<User>;
+    }
+
+    async updateRating(userId: string, newRating: number): Promise<void> {
+        const user = await this.findById(userId);
+        if (!user) return;
+
+        // Calculate running average
+        const totalTrips = user.tripsCompleted || 0;
+        const currentRating = user.rating || 5.0;
+        const updatedRating = totalTrips === 0
+            ? newRating
+            : (currentRating * totalTrips + newRating) / (totalTrips + 1);
+
+        await this.userRepository.update(userId, {
+            rating: Math.round(updatedRating * 10) / 10,
+            tripsCompleted: totalTrips + 1,
+        });
     }
 }
