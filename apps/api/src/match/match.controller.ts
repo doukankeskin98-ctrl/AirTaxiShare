@@ -29,4 +29,10 @@ export class MatchController {
     async getHistory(@Request() req: any) {
         return this.matchService.getHistory(req.user.id);
     }
+
+    // Admin endpoint — returns summary stats
+    @Get('stats')
+    async getStats() {
+        return this.matchService.getAdminStats();
+    }
 }

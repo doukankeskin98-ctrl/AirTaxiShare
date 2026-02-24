@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Put, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { IsOptional, IsString, IsUrl, Length } from 'class-validator';
@@ -49,5 +49,17 @@ export class UserController {
     async updatePushToken(@Request() req: any, @Body() dto: UpdatePushTokenDto) {
         await this.userService.updatePushToken(req.user.id, dto.pushToken);
         return { success: true };
+    }
+
+    // Admin endpoint — returns all users (no sensitive fields)
+    @Get('all')
+    async getAllUsers() {
+        return this.userService.findAll();
+    }
+
+    // Admin endpoint — returns aggregate stats
+    @Get('stats')
+    async getStats() {
+        return this.userService.getStats();
     }
 }

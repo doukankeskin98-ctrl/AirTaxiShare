@@ -287,15 +287,17 @@ export default function WelcomeScreen() {
                             </View>
 
                             <View style={styles.socialRow}>
-                                <PremiumButton
-                                    title="Apple"
-                                    onPress={handleAppleLogin}
-                                    loading={isSocialLoading}
-                                    icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
-                                    variant="glass"
-                                    style={styles.socialHalfButton}
-                                />
-                                <View style={{ width: spacing.m }} />
+                                {Platform.OS === 'ios' && (
+                                    <PremiumButton
+                                        title="Apple"
+                                        onPress={handleAppleLogin}
+                                        loading={isSocialLoading}
+                                        icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
+                                        variant="glass"
+                                        style={styles.socialHalfButton}
+                                    />
+                                )}
+                                {Platform.OS === 'ios' && <View style={{ width: spacing.m }} />}
                                 <PremiumButton
                                     title="Google"
                                     onPress={handleGoogleLogin}
@@ -330,15 +332,17 @@ export default function WelcomeScreen() {
                             </View>
 
                             <View style={styles.socialRow}>
-                                <PremiumButton
-                                    title="Apple"
-                                    onPress={handleAppleLogin}
-                                    loading={isSocialLoading}
-                                    icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
-                                    variant="glass"
-                                    style={styles.socialHalfButton}
-                                />
-                                <View style={{ width: spacing.m }} />
+                                {Platform.OS === 'ios' && (
+                                    <PremiumButton
+                                        title="Apple"
+                                        onPress={handleAppleLogin}
+                                        loading={isSocialLoading}
+                                        icon={<Ionicons name="logo-apple" size={22} color={colors.textPrimary} />}
+                                        variant="glass"
+                                        style={styles.socialHalfButton}
+                                    />
+                                )}
+                                {Platform.OS === 'ios' && <View style={{ width: spacing.m }} />}
                                 <PremiumButton
                                     title="Google"
                                     onPress={handleGoogleLogin}

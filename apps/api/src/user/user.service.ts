@@ -100,4 +100,19 @@ export class UserService {
             tripsCompleted: totalTrips + 1,
         });
     }
+
+    async findAll(): Promise<Partial<User>[]> {
+        const users = await this.userRepository.find({
+            order: { createdAt: 'DESC' },
+            take: 200,
+        });
+        // Strip sensitive fields
+        return users.map(({ passwordHash, pushToken, ...safe }: any) => safe);
+    }
+
+    async getStats(): Promise<{ totalUsers: number; activeUsers: number }> {
+        const totalUsers = await this.userRepository.count();
+        const activeUsers = await this.userRepository.count({ where: { status: 'ACTIVE' as any } });
+        return { totalUsers, activeUsers };
+    }
 }

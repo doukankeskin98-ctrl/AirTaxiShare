@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -36,7 +36,6 @@ export default function HomeScreen() {
                     setMatchHistory(response.data || []);
                 } catch (e) {
                     // Silently fail - history is not critical
-                    console.log('Failed to load match history:', e);
                 } finally {
                     setLoadingHistory(false);
                 }
@@ -192,7 +191,7 @@ export default function HomeScreen() {
                             transition={{ delay: 600, type: 'spring' } as any}
                             style={styles.secondaryCardWrapper}
                         >
-                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard}>
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('Settings')}>
                                 <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
                                     <View style={styles.secondaryHighlight} />
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
@@ -280,7 +279,8 @@ const styles = StyleSheet.create({
         borderRadius: 150,
         opacity: 0.4,
         transform: [{ scale: 2 }],
-        filter: 'blur(80px)',
+        // filter: 'blur(80px)' is web-only CSS — do not use in RN
+        ...(Platform.OS === 'web' ? { filter: 'blur(80px)' } as any : {}),
     },
     safeArea: {
         flex: 1,

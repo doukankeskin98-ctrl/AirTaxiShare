@@ -127,4 +127,11 @@ export class MatchService {
             };
         });
     }
+
+    async getAdminStats(): Promise<{ totalMatches: number; completedMatches: number; activeMatches: number }> {
+        const totalMatches = await this.matchHistoryRepository.count();
+        const completedMatches = await this.matchHistoryRepository.count({ where: { status: 'COMPLETED' as any } });
+        const activeMatches = await this.matchHistoryRepository.count({ where: { status: 'ACTIVE' as any } });
+        return { totalMatches, completedMatches, activeMatches };
+    }
 }

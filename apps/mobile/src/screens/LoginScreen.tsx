@@ -163,14 +163,16 @@ export default function LoginScreen({ navigation }: any) {
                         <View style={styles.dividerLine} />
                     </View>
 
-                    <PremiumButton
-                        title="Continue with Apple"
-                        onPress={handleAppleLogin}
-                        loading={isSocialLoading}
-                        variant="secondary"
-                        icon={<Ionicons name="logo-apple" size={20} color={colors.textInverse} />}
-                        style={{ marginBottom: spacing.m }}
-                    />
+                    {Platform.OS === 'ios' && (
+                        <PremiumButton
+                            title="Continue with Apple"
+                            onPress={handleAppleLogin}
+                            loading={isSocialLoading}
+                            variant="secondary"
+                            icon={<Ionicons name="logo-apple" size={20} color={colors.textInverse} />}
+                            style={{ marginBottom: spacing.m }}
+                        />
+                    )}
 
                     <PremiumButton
                         title="Continue with Google"
