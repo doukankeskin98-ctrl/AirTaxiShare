@@ -49,17 +49,22 @@ export default function ProfileSetupScreen() {
         }
     };
 
+    // Cross-platform alert that works on both web and native
+    const showAlert = (title: string, message: string) => {
+        if (Platform.OS === 'web') {
+            window.alert(`${title}: ${message}`);
+        } else {
+            Alert.alert(title, message);
+        }
+    };
+
     const handleContinue = async () => {
         if (!name) {
-            Alert.alert('Error', t('profile.error.nameRequired'));
-            return;
-        }
-        if (!image) {
-            Alert.alert('Error', t('profile.error.photoRequired'));
+            showAlert('Error', t('profile.error.nameRequired'));
             return;
         }
         if (!tosAccepted || !privacyAccepted) {
-            Alert.alert('Error', 'Please accept mandatory consents.');
+            showAlert('Error', 'Please accept mandatory consents.');
             return;
         }
 
@@ -69,7 +74,7 @@ export default function ProfileSetupScreen() {
             const response = await UserService.updateProfile({
                 fullName: name,
                 phoneNumber: phone || undefined,
-                photoUrl: image, // In production, upload to cloud storage first
+                photoUrl: image || undefined, // Photo is optional
             });
 
             // Cache profile locally
@@ -80,7 +85,7 @@ export default function ProfileSetupScreen() {
                 routes: [{ name: 'Home' }],
             });
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to save profile');
+            showAlert('Error', error.message || 'Failed to save profile');
         } finally {
             setIsLoading(false);
         }

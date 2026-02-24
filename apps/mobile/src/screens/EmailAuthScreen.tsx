@@ -20,9 +20,18 @@ export default function EmailAuthScreen() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Cross-platform alert
+    const showAlert = (title: string, message: string) => {
+        if (Platform.OS === 'web') {
+            window.alert(`${title}: ${message}`);
+        } else {
+            Alert.alert(title, message);
+        }
+    };
+
     const handleAuth = async () => {
         if (!email || !password) {
-            Alert.alert('Error', 'Please fill all fields');
+            showAlert('Error', 'Please fill all fields');
             return;
         }
 
@@ -53,7 +62,7 @@ export default function EmailAuthScreen() {
                 });
             }
         } catch (error: any) {
-            Alert.alert(
+            showAlert(
                 'Error',
                 error.message || (mode === 'signin' ? 'Invalid email or password' : 'Registration failed')
             );
