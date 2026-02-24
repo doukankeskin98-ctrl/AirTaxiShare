@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
 import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
 import SocketService from '../services/socket';
+import { useChatContext } from '../context/ChatContext';
 
 export default function MatchFoundScreen() {
     const { t } = useTranslation();
@@ -18,7 +19,11 @@ export default function MatchFoundScreen() {
     const { otherUser, luggage, matchId } = route.params || {};
     const safeOtherUser = otherUser || { name: 'Yolcu', rating: 5.0, trips: 10, trustBadge: false, phoneVerified: false, emailVerified: false };
 
+    const { getUnread } = useChatContext();
+    const unreadCount = getUnread(matchId);
+
     const [meetingPoint, setMeetingPoint] = React.useState('exitA');
+    const [partnerMeetingPoint, setPartnerMeetingPoint] = React.useState<string | null>(null);
 
     const meetupCode = React.useMemo(() => {
         if (!matchId || matchId === 'mock-id') return '8492';
@@ -28,10 +33,29 @@ export default function MatchFoundScreen() {
     }, [matchId]);
 
     const meetingPoints = [
-        { label: 'Çıkış A (Metro)', value: 'exitA', icon: 'subway' },
-        { label: 'Çıkış B (Meydan)', value: 'exitB', icon: 'walk' },
-        { label: 'Taksi Sırası', value: 'taxiQueue', icon: 'car' },
+        { label: 'Çıkış A — Metro', value: 'exitA', icon: 'subway', description: 'Metro çıkışı, kuzey girişi' },
+        { label: 'Çıkış B — Meydan', value: 'exitB', icon: 'walk', description: 'Taksi durağı yanı, güney' },
+        { label: 'Taksi Sırası', value: 'taxiQueue', icon: 'car', description: 'Terminal taksici bölgesi' },
     ];
+
+    // Listen for partner's meeting point selection
+    useEffect(() => {
+        SocketService.onPartnerMeetingPoint((point) => {
+            setPartnerMeetingPoint(point);
+        });
+
+        return () => {
+            SocketService.offPartnerMeetingPoint();
+        };
+    }, []);
+
+    const handleSelectMeetingPoint = (point: string) => {
+        setMeetingPoint(point);
+        // Sync to partner in real-time
+        if (matchId && matchId !== 'mock-id') {
+            SocketService.selectMeetingPoint(matchId, point);
+        }
+    };
 
     const handleOpenChat = () => {
         navigation.navigate('Chat', { otherUser, matchId });
@@ -78,7 +102,7 @@ export default function MatchFoundScreen() {
                             },
                             'İptal Et',
                             'Vazgeç',
-                            true
+                            true,
                         );
                     }}
                 >
@@ -106,7 +130,9 @@ export default function MatchFoundScreen() {
                         </LinearGradient>
                     </View>
                     <Text style={styles.successTitle}>Eşleşme Bulundu!</Text>
-                    <Text style={styles.successSubtitle}>Yolculuğunuzu {safeOtherUser.name.split(' ')[0] || 'birisi'} ile paylaşıyorsunuz.</Text>
+                    <Text style={styles.successSubtitle}>
+                        Yolculuğunuzu {safeOtherUser.name.split(' ')[0] || 'birisi'} ile paylaşıyorsunuz.
+                    </Text>
                 </MotiView>
 
                 {/* User Card */}
@@ -120,10 +146,7 @@ export default function MatchFoundScreen() {
                         <View style={styles.userRow}>
                             <View style={styles.avatarContainer}>
                                 {safeOtherUser.photoUrl ? (
-                                    <Image
-                                        source={{ uri: safeOtherUser.photoUrl }}
-                                        style={styles.avatarPhoto}
-                                    />
+                                    <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
                                 ) : (
                                     <View style={styles.avatar}>
                                         <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
@@ -171,33 +194,56 @@ export default function MatchFoundScreen() {
                                 </View>
                             </View>
 
+                            {/* Chat button with unread badge */}
                             <TouchableOpacity style={styles.chatBtn} onPress={handleOpenChat} activeOpacity={0.8}>
                                 <Ionicons name="chatbubble-ellipses" size={24} color="#FFF" />
+                                {unreadCount > 0 && (
+                                    <View style={styles.unreadBadge}>
+                                        <Text style={styles.unreadText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                                    </View>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </BlurView>
                 </MotiView>
 
-                {/* Meeting Point Selection */}
+                {/* Meeting Point Selection — real-time synced */}
                 <MotiView
                     from={{ opacity: 0, translateY: 20 }}
                     animate={{ opacity: 1, translateY: 0 }}
                     transition={{ delay: 500 } as any}
                 >
-                    <Text style={styles.sectionTitle}>Buluşma Noktası</Text>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Buluşma Noktası</Text>
+                        {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
+                            <View style={styles.partnerBadge}>
+                                <Ionicons name="person" size={11} color={colors.primary} />
+                                <Text style={styles.partnerBadgeText}>
+                                    Yolcu: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
                     <View style={styles.meetingPointsContainer}>
                         {meetingPoints.map((point) => {
                             const isSelected = meetingPoint === point.value;
+                            const partnerSelected = partnerMeetingPoint === point.value;
                             return (
                                 <TouchableOpacity
                                     key={point.value}
-                                    onPress={() => setMeetingPoint(point.value)}
+                                    onPress={() => handleSelectMeetingPoint(point.value)}
                                     activeOpacity={0.8}
                                 >
-                                    <BlurView intensity={isSelected ? 40 : 20} tint={isSelected ? "light" : "dark"} style={[
-                                        styles.meetingPointCard,
-                                        isSelected && styles.meetingPointCardSelected
-                                    ]}>
+                                    <BlurView
+                                        intensity={isSelected ? 40 : 20}
+                                        tint={isSelected ? 'light' : 'dark'}
+                                        style={[
+                                            styles.meetingPointCard,
+                                            isSelected && styles.meetingPointCardSelected,
+                                            partnerSelected && !isSelected && styles.meetingPointCardPartner,
+                                        ]}
+                                    >
                                         {isSelected && <View style={styles.meetingHighlight} />}
                                         <View style={styles.meetingPointRow}>
                                             <View style={[styles.iconBox, isSelected && { backgroundColor: colors.primary }]}>
@@ -207,11 +253,17 @@ export default function MatchFoundScreen() {
                                                     color={isSelected ? '#FFF' : colors.textSecondary}
                                                 />
                                             </View>
-                                            <Text style={[styles.meetingPointLabel, isSelected && styles.meetingPointLabelSelected]}>
-                                                {point.label}
-                                            </Text>
-                                            {isSelected && (
-                                                <Ionicons name="checkmark-circle" size={26} color={colors.primary} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={[styles.meetingPointLabel, isSelected && styles.meetingPointLabelSelected]}>
+                                                    {point.label}
+                                                </Text>
+                                                <Text style={styles.meetingPointDescription}>{point.description}</Text>
+                                            </View>
+                                            {isSelected && <Ionicons name="checkmark-circle" size={26} color={colors.primary} />}
+                                            {partnerSelected && !isSelected && (
+                                                <View style={styles.partnerIndicator}>
+                                                    <Ionicons name="person" size={12} color={colors.primary} />
+                                                </View>
                                             )}
                                         </View>
                                     </BlurView>
@@ -219,6 +271,19 @@ export default function MatchFoundScreen() {
                             );
                         })}
                     </View>
+
+                    {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
+                        <MotiView
+                            from={{ opacity: 0, translateY: -4 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            style={styles.warningBox}
+                        >
+                            <Ionicons name="warning-outline" size={16} color="#F59E0B" />
+                            <Text style={styles.warningText}>
+                                Yol arkadaşınızla farklı noktayı işaretlediniz. Aynı noktayı seçmeniz önerilir.
+                            </Text>
+                        </MotiView>
+                    )}
                 </MotiView>
 
                 {/* Match Code */}
@@ -261,10 +326,7 @@ export default function MatchFoundScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
     orb: {
         position: 'absolute',
         width: 350,
@@ -272,305 +334,61 @@ const styles = StyleSheet.create({
         borderRadius: 175,
         opacity: 0.3,
         transform: [{ scale: 1.5 }],
-        filter: 'blur(90px)',
+        ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: spacing.m,
-        paddingTop: 60,
-        zIndex: 10,
-    },
-    backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        overflow: 'hidden',
-    },
-    backBlur: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    content: {
-        padding: spacing.xl,
-        paddingTop: 20,
-    },
-    successHeader: {
-        alignItems: 'center',
-        marginBottom: spacing.xxl,
-    },
-    successIconWrapper: {
-        padding: 8,
-        borderRadius: 60,
-        backgroundColor: 'rgba(16, 185, 129, 0.2)', // Success tint
-        marginBottom: spacing.l,
-    },
-    successIcon: {
-        width: 88,
-        height: 88,
-        borderRadius: 44,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: colors.success,
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.6,
-        shadowRadius: 20,
-        elevation: 15,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.4)',
-    },
-    successTitle: {
-        ...typography.h1,
-        color: colors.textPrimary,
-        marginBottom: spacing.s,
-        fontWeight: '800',
-        fontSize: 34,
-    },
-    successSubtitle: {
-        ...typography.body,
-        color: colors.textSecondary,
-        fontSize: 16,
-    },
-    glassCard: {
-        marginBottom: spacing.xl,
-        padding: spacing.l,
-        borderRadius: 24,
-        overflow: 'hidden',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.1)',
-        backgroundColor: 'rgba(25, 28, 43, 0.3)',
-    },
-    cardHighlight: {
-        position: 'absolute',
-        top: 0, left: 0, right: 0, height: 1,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-    },
-    userRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    avatarContainer: {
-        position: 'relative',
-        marginRight: spacing.l,
-    },
-    avatar: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: 'rgba(79, 70, 229, 0.8)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.2)',
-    },
-    avatarPhoto: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.3)',
-    },
-    avatarText: {
-        ...typography.h1,
-        color: '#FFF',
-    },
-    badge: {
-        position: 'absolute',
-        bottom: -4,
-        right: -4,
-        backgroundColor: colors.success,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#15142E',
-    },
-    userInfo: {
-        flex: 1,
-    },
-    userName: {
-        ...typography.h3,
-        color: colors.textPrimary,
-        marginBottom: 8,
-        fontWeight: '700',
-    },
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.s,
-    },
-    starPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(245, 158, 11, 0.2)', // Warning transparent
-        borderWidth: 1,
-        borderColor: 'rgba(245, 158, 11, 0.5)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 16,
-        gap: 4,
-    },
-    luggagePill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(79, 70, 229, 0.2)', // Primary transparent
-        borderWidth: 1,
-        borderColor: 'rgba(79, 70, 229, 0.5)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 16,
-        gap: 4,
-    },
-    ratingText: {
-        ...typography.caption,
-        color: '#FFF',
-        fontWeight: '700',
-        fontSize: 12,
-    },
-    tripsText: {
-        ...typography.caption,
-        color: colors.textSecondary,
-        fontWeight: '600',
-    },
-    chatBtn: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: 'rgba(79, 70, 229, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(79, 70, 229, 0.5)',
-    },
-    trustRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
-        marginTop: 8,
-    },
-    trustBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-        borderWidth: 1,
-        borderColor: 'rgba(16, 185, 129, 0.4)',
-        paddingHorizontal: 7,
-        paddingVertical: 3,
-        borderRadius: 10,
-    },
-    trustBadgeGold: {
-        backgroundColor: 'rgba(245, 158, 11, 0.15)',
-        borderColor: 'rgba(245, 158, 11, 0.4)',
-    },
-    trustBadgeText: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: colors.success,
-    },
-    sectionTitle: {
-        ...typography.h3,
-        color: colors.textPrimary,
-        marginBottom: spacing.l,
-        marginLeft: spacing.xs,
-        fontWeight: '700',
-    },
-    meetingPointsContainer: {
-        gap: spacing.m,
-        marginBottom: spacing.xxl,
-    },
-    meetingPointCard: {
-        padding: spacing.l,
-        borderRadius: 20,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.1)',
-        overflow: 'hidden',
-    },
-    meetingPointCardSelected: {
-        borderColor: colors.primary,
-        backgroundColor: 'rgba(79, 70, 229, 0.15)', // Light primary tint
-    },
-    meetingHighlight: {
-        position: 'absolute',
-        top: 0, left: 0, right: 0, height: 1,
-        backgroundColor: 'rgba(255,255,255,0.3)',
-    },
-    meetingPointRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    iconBox: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: spacing.l,
-    },
-    meetingPointLabel: {
-        ...typography.body,
-        color: colors.textPrimary,
-        flex: 1,
-        fontSize: 18,
-    },
-    meetingPointLabelSelected: {
-        fontWeight: '700',
-        color: '#FFF',
-    },
-    codeCard: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(25, 28, 43, 0.4)',
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: 24,
-        padding: spacing.xl,
-        overflow: 'hidden',
-    },
-    codeLabel: {
-        ...typography.caption,
-        color: colors.textSecondary,
-        marginBottom: spacing.l,
-        textTransform: 'uppercase',
-        letterSpacing: 2,
-        fontWeight: '700',
-    },
-    codeBox: {
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        paddingHorizontal: spacing.xxl,
-        paddingVertical: spacing.m,
-        borderRadius: 20,
-        marginBottom: spacing.l,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-    },
-    codeText: {
-        fontSize: 40,
-        fontWeight: '900',
-        color: colors.primaryLight,
-        letterSpacing: 10,
-    },
-    codeHint: {
-        ...typography.caption,
-        color: colors.textSecondary,
-        fontSize: 14,
-    },
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-    },
-    footerBlur: {
-        padding: spacing.xl,
-        paddingBottom: 40,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: 'rgba(255,255,255,0.1)',
-    },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.m, paddingTop: 60, zIndex: 10 },
+    backButton: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden' },
+    backBlur: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)' },
+    content: { padding: spacing.xl, paddingTop: 20 },
+    successHeader: { alignItems: 'center', marginBottom: spacing.xxl },
+    successIconWrapper: { padding: 8, borderRadius: 60, backgroundColor: 'rgba(16, 185, 129, 0.2)', marginBottom: spacing.l },
+    successIcon: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center', shadowColor: colors.success, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.6, shadowRadius: 20, elevation: 15, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.4)' },
+    successTitle: { ...typography.h1, color: colors.textPrimary, marginBottom: spacing.s, fontWeight: '800', fontSize: 34 },
+    successSubtitle: { ...typography.body, color: colors.textSecondary, fontSize: 16 },
+    glassCard: { marginBottom: spacing.xl, padding: spacing.l, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(25, 28, 43, 0.3)' },
+    cardHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.15)' },
+    userRow: { flexDirection: 'row', alignItems: 'center' },
+    avatarContainer: { position: 'relative', marginRight: spacing.l },
+    avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(79, 70, 229, 0.8)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
+    avatarPhoto: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
+    avatarText: { ...typography.h1, color: '#FFF' },
+    badge: { position: 'absolute', bottom: -4, right: -4, backgroundColor: colors.success, width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#15142E' },
+    userInfo: { flex: 1 },
+    userName: { ...typography.h3, color: colors.textPrimary, marginBottom: 8, fontWeight: '700' },
+    ratingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
+    starPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(245, 158, 11, 0.2)', borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16, gap: 4 },
+    luggagePill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(79, 70, 229, 0.2)', borderWidth: 1, borderColor: 'rgba(79, 70, 229, 0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16, gap: 4 },
+    ratingText: { ...typography.caption, color: '#FFF', fontWeight: '700', fontSize: 12 },
+    tripsText: { ...typography.caption, color: colors.textSecondary, fontWeight: '600' },
+    chatBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(79, 70, 229, 0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(79, 70, 229, 0.5)', position: 'relative' },
+    unreadBadge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#EF4444', minWidth: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#15142E', paddingHorizontal: 3 },
+    unreadText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+    trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+    trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(16, 185, 129, 0.15)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.4)', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 10 },
+    trustBadgeGold: { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.4)' },
+    trustBadgeText: { fontSize: 10, fontWeight: '600', color: colors.success },
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.l, marginLeft: spacing.xs },
+    sectionTitle: { ...typography.h3, color: colors.textPrimary, fontWeight: '700' },
+    partnerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(79,70,229,0.15)', borderWidth: 1, borderColor: 'rgba(79,70,229,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
+    partnerBadgeText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
+    meetingPointsContainer: { gap: spacing.m, marginBottom: spacing.l },
+    meetingPointCard: { padding: spacing.l, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' },
+    meetingPointCardSelected: { borderColor: colors.primary, backgroundColor: 'rgba(79, 70, 229, 0.15)' },
+    meetingPointCardPartner: { borderColor: 'rgba(79,70,229,0.3)', backgroundColor: 'rgba(79,70,229,0.05)' },
+    meetingHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' },
+    meetingPointRow: { flexDirection: 'row', alignItems: 'center' },
+    iconBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center', marginRight: spacing.m },
+    meetingPointLabel: { ...typography.body, color: colors.textPrimary, flex: 1, fontSize: 16, fontWeight: '600' },
+    meetingPointLabelSelected: { fontWeight: '700', color: '#FFF' },
+    meetingPointDescription: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    partnerIndicator: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(79,70,229,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(79,70,229,0.4)' },
+    warningBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)', borderRadius: 12, padding: spacing.m, marginBottom: spacing.l },
+    warningText: { flex: 1, fontSize: 13, color: '#F59E0B', lineHeight: 18 },
+    codeCard: { alignItems: 'center', backgroundColor: 'rgba(25, 28, 43, 0.4)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: spacing.xl, overflow: 'hidden' },
+    codeLabel: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.l, textTransform: 'uppercase', letterSpacing: 2, fontWeight: '700' },
+    codeBox: { backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: spacing.xxl, paddingVertical: spacing.m, borderRadius: 20, marginBottom: spacing.l, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    codeText: { fontSize: 40, fontWeight: '900', color: colors.primaryLight, letterSpacing: 10 },
+    codeHint: { ...typography.caption, color: colors.textSecondary, fontSize: 14 },
+    footer: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+    footerBlur: { padding: spacing.xl, paddingBottom: 40, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.1)' },
 });

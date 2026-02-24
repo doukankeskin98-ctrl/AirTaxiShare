@@ -8,6 +8,8 @@ import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import SocketService from '../services/socket';
+import { useChatContext } from '../context/ChatContext';
+
 
 interface Message {
     id: string;
@@ -27,8 +29,19 @@ export default function ChatScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    const [partnerOnline, setPartnerOnline] = useState(true); // Optimistic default
+    const [partnerOnline, setPartnerOnline] = useState(true);
     const flatListRef = useRef<FlatList>(null);
+
+    const { markRead, setActiveChatId } = useChatContext();
+
+    // Signal to ChatContext that this chat is active + clear unread badge
+    useEffect(() => {
+        if (matchId) {
+            setActiveChatId(matchId);
+            markRead(matchId);
+        }
+        return () => setActiveChatId(null);
+    }, [matchId]);
 
     // Load persisted messages on mount
     useEffect(() => {

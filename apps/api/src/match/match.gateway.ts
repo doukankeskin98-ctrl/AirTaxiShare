@@ -299,6 +299,25 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    @SubscribeMessage('select_meeting_point')
+    handleSelectMeetingPoint(client: Socket, payload: { matchId: string; point: string }) {
+        try {
+            const { matchId, point } = payload;
+            if (!matchId || !point) return;
+
+            const participants = this.activeMatches.get(matchId);
+            if (!participants) return;
+
+            const partnerId = participants.find(id => id !== client.id);
+            if (partnerId) {
+                this.server.to(partnerId).emit('partner_meeting_point', { point });
+                this.logger.debug(`[Meetup] Meeting point "${point}" forwarded to partner ${partnerId}`);
+            }
+        } catch (err: any) {
+            this.logger.error(`[MeetingPoint] Error: ${err.message}`);
+        }
+    }
+
     @SubscribeMessage('confirm_meetup')
     async handleConfirmMeetup(client: Socket, payload: { matchId: string }) {
         try {

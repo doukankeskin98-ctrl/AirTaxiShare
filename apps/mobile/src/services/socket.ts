@@ -166,6 +166,18 @@ class SocketService {
         return true;
     }
 
+    /**
+     * Global raw listener — used by ChatContext to persist messages app-wide.
+     * Unlike onReceiveMessage, does NOT require matchId in scope.
+     */
+    public onRawReceiveMessage(callback: (message: any) => void) {
+        this.socket?.on('receive_message', callback);
+    }
+
+    public offRawReceiveMessage() {
+        this.socket?.off('receive_message');
+    }
+
     /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
     public onReceiveMessage(matchId: string, callback: (message: any) => void) {
         this.socket?.on('receive_message', (message: any) => {
@@ -186,6 +198,20 @@ class SocketService {
 
     public endMatch(matchId: string) {
         this.socket?.emit('end_match', { matchId });
+    }
+
+    // --- MEETING POINT SYNC ---
+
+    public selectMeetingPoint(matchId: string, point: string) {
+        this.socket?.emit('select_meeting_point', { matchId, point });
+    }
+
+    public onPartnerMeetingPoint(callback: (point: string) => void) {
+        this.socket?.on('partner_meeting_point', (payload: { point: string }) => callback(payload.point));
+    }
+
+    public offPartnerMeetingPoint() {
+        this.socket?.off('partner_meeting_point');
     }
 
     // --- MEETUP CONFIRMATION ---
