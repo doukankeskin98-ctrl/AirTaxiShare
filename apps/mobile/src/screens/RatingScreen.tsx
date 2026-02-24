@@ -25,8 +25,8 @@ export default function RatingScreen() {
         { id: 'polite', label: t('rating.tags.polite') },
         { id: 'ontime', label: t('rating.tags.ontime') },
         { id: 'communication', label: t('rating.tags.communication') },
-        { id: 'clean', label: 'Clean' },
-        { id: 'driver', label: 'Good Driving' },
+        { id: 'clean', label: 'Temiz' },
+        { id: 'driver', label: 'Güvenli Sürüş' },
     ];
 
     const toggleTag = (id: string) => {
@@ -112,7 +112,7 @@ export default function RatingScreen() {
                         transition={{ type: 'spring' } as any}
                     >
                         <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>What went well?</Text>
+                            <Text style={styles.sectionLabel}>Neler iyiydi?</Text>
                             <View style={styles.tagContainer}>
                                 {tags.map((tag) => {
                                     const isSelected = selectedTags.includes(tag.id);
@@ -136,9 +136,9 @@ export default function RatingScreen() {
                         </PremiumCard>
 
                         <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>Add a note (optional)</Text>
+                            <Text style={styles.sectionLabel}>Not ekle (isteğe bağlı)</Text>
                             <TextInput
-                                placeholder="How was your experience?"
+                                placeholder="Deneyiminiz nasıldı?"
                                 placeholderTextColor={colors.textDisabled}
                                 value={note}
                                 onChangeText={setNote}

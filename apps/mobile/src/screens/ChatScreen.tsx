@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import SocketService from '../services/socket';
 import { useChatContext } from '../context/ChatContext';
-
+import { showAlert } from '../utils/alert';
 
 interface Message {
     id: string;
@@ -75,9 +75,20 @@ export default function ChatScreen() {
             setPartnerOnline(online);
         });
 
+        // If partner closes the app or cancels the match while in chat
+        SocketService.onMatchEnded((payload) => {
+            const name = safeOtherUser.name?.split(' ')[0] || 'Yolcu';
+            const msg = payload?.reason === 'partner_left'
+                ? `${name} uygulamayı kapattı.`
+                : 'Bağlantı kesildi.';
+            showAlert('Eşleşme Sona Erdi', msg);
+            setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }), 1500);
+        });
+
         return () => {
             SocketService.offReceiveMessage();
             SocketService.offPartnerOnlineStatus();
+            SocketService.offMatchEnded();
         };
     }, [matchId]);
 

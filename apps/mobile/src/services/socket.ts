@@ -22,7 +22,35 @@ class SocketService {
     private socket: Socket | null = null;
     private connectPromise: Promise<void> | null = null;
 
+    // Callbacks registered before the socket was created — replayed on connect
+    private pendingCallbacks: Map<string, ((...args: any[]) => void)[]> = new Map();
+
     private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
+    /** Queue or immediately register an event listener */
+    private on(event: string, cb: (...args: any[]) => void) {
+        if (this.socket) {
+            this.socket.on(event, cb);
+        } else {
+            const list = this.pendingCallbacks.get(event) || [];
+            list.push(cb);
+            this.pendingCallbacks.set(event, list);
+        }
+    }
+
+    /** Remove an event listener and also remove from pending queue */
+    private off(event: string) {
+        this.socket?.off(event);
+        this.pendingCallbacks.delete(event);
+    }
+
+    /** Apply any pending callbacks onto the freshly created socket */
+    private flushPendingCallbacks() {
+        this.pendingCallbacks.forEach((cbs, event) => {
+            cbs.forEach(cb => this.socket?.on(event, cb));
+        });
+        this.pendingCallbacks.clear();
+    }
 
     public async connect(token?: string): Promise<void> {
         if (this.socket?.connected) return;
@@ -59,6 +87,7 @@ class SocketService {
 
             this.socket.on('connect', () => {
                 console.log('[Socket] Connected:', this.socket?.id);
+                this.flushPendingCallbacks(); // Replay any listeners registered before connect
                 cleanup();
                 resolve();
             });
@@ -168,14 +197,14 @@ class SocketService {
 
     /**
      * Global raw listener — used by ChatContext to persist messages app-wide.
-     * Unlike onReceiveMessage, does NOT require matchId in scope.
+     * Safe to call before connect() — will be queued and applied on connection.
      */
     public onRawReceiveMessage(callback: (message: any) => void) {
-        this.socket?.on('receive_message', callback);
+        this.on('receive_message', callback);
     }
 
     public offRawReceiveMessage() {
-        this.socket?.off('receive_message');
+        this.off('receive_message');
     }
 
     /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
@@ -193,7 +222,7 @@ class SocketService {
     }
 
     public offReceiveMessage() {
-        this.socket?.off('receive_message');
+        this.off('receive_message');
     }
 
     public endMatch(matchId: string) {
@@ -207,11 +236,11 @@ class SocketService {
     }
 
     public onPartnerMeetingPoint(callback: (point: string) => void) {
-        this.socket?.on('partner_meeting_point', (payload: { point: string }) => callback(payload.point));
+        this.on('partner_meeting_point', (payload: { point: string }) => callback(payload.point));
     }
 
     public offPartnerMeetingPoint() {
-        this.socket?.off('partner_meeting_point');
+        this.off('partner_meeting_point');
     }
 
     // --- MEETUP CONFIRMATION ---

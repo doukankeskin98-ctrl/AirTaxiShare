@@ -11,6 +11,9 @@ import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
 import SocketService from '../services/socket';
 import { useChatContext } from '../context/ChatContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ACTIVE_MATCH_KEY = '@active_match';
 
 export default function MatchFoundScreen() {
     const { t } = useTranslation();
@@ -24,6 +27,39 @@ export default function MatchFoundScreen() {
 
     const [meetingPoint, setMeetingPoint] = React.useState('exitA');
     const [partnerMeetingPoint, setPartnerMeetingPoint] = React.useState<string | null>(null);
+
+    // Persist active match so app can restore on restart
+    useEffect(() => {
+        if (matchId) {
+            AsyncStorage.setItem(ACTIVE_MATCH_KEY, JSON.stringify({ matchId, otherUser, luggage }))
+                .catch(() => { });
+        }
+        return () => {
+            // Clear active match when leaving this screen intentionally
+            AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
+        };
+    }, [matchId]);
+
+    // Handle partner disconnecting/leaving
+    useEffect(() => {
+        SocketService.onMatchEnded((payload) => {
+            const reason = payload?.reason;
+            const msg = reason === 'partner_left'
+                ? `${safeOtherUser.name.split(' ')[0]} uygulamayı kapattı veya eşleşmeyi iptal etti.`
+                : 'Eşleşme sona erdi.';
+
+            showConfirm(
+                'Eşleşme Sona Erdi',
+                msg,
+                () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
+                'Ana Sayfaya Dön',
+                undefined,   // no cancel option — they must go home
+                false,
+            );
+        });
+
+        return () => SocketService.offMatchEnded();
+    }, [safeOtherUser.name, navigation]);
 
     const meetupCode = React.useMemo(() => {
         if (!matchId || matchId === 'mock-id') return '8492';

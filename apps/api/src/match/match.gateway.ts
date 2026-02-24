@@ -369,7 +369,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
     }
 
-    private notifyPartnerOnDisconnect(socketId: string) {
+    private async notifyPartnerOnDisconnect(socketId: string) {
         const matchId = this.userMatchMap.get(socketId);
         if (matchId) {
             const participants = this.activeMatches.get(matchId);
@@ -379,6 +379,30 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                     this.logger.log(`[Disconnect] Notifying partner ${partnerId} of offline status`);
                     this.server.to(partnerId).emit('partner_disconnected');
                     this.server.to(partnerId).emit('partner_offline');
+                    this.server.to(partnerId).emit('match_ended', { reason: 'partner_left' });
+
+                    // Push notification for when partner's app is in background
+                    const disconnectedUserId = this.socketUserMap.get(socketId);
+                    const partnerUserId = this.socketUserMap.get(partnerId);
+                    if (disconnectedUserId && partnerUserId) {
+                        try {
+                            const [disconnectedUser, partnerUser] = await Promise.all([
+                                this.getOrFetchUser(disconnectedUserId),
+                                this.getOrFetchUser(partnerUserId),
+                            ]);
+                            if (partnerUser.pushToken) {
+                                const name = disconnectedUser.name || 'Yolcu';
+                                await this.notificationsService.sendToToken(
+                                    partnerUser.pushToken,
+                                    'Eşleşme İptal Edildi',
+                                    `${name} uygulamayı kapattı veya eşleşmeyi iptal etti.`,
+                                    { type: 'match_cancelled' },
+                                ).catch(e => this.logger.error('[Push] Disconnect notification failed:', e.message));
+                            }
+                        } catch (e: any) {
+                            this.logger.error('[Disconnect] Failed to send push notification:', e.message);
+                        }
+                    }
                 }
             }
             this.userMatchMap.delete(socketId);
