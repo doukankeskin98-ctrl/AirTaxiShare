@@ -28,16 +28,13 @@ export default function MatchFoundScreen() {
     const [meetingPoint, setMeetingPoint] = React.useState('exitA');
     const [partnerMeetingPoint, setPartnerMeetingPoint] = React.useState<string | null>(null);
 
-    // Persist active match so app can restore on restart
+    // Persist active match so app can restore on restart + ensure socket is connected
     useEffect(() => {
-        if (matchId) {
+        SocketService.connect().catch(() => { });
+        if (matchId && matchId !== 'mock-id') {
             AsyncStorage.setItem(ACTIVE_MATCH_KEY, JSON.stringify({ matchId, otherUser, luggage }))
                 .catch(() => { });
         }
-        return () => {
-            // Clear active match when leaving this screen intentionally
-            AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
-        };
     }, [matchId]);
 
     // Handle partner disconnecting/leaving
@@ -134,6 +131,7 @@ export default function MatchFoundScreen() {
                                 if (matchId && matchId !== 'mock-id') {
                                     SocketService.endMatch(matchId);
                                 }
+                                AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
                                 navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
                             },
                             'İptal Et',

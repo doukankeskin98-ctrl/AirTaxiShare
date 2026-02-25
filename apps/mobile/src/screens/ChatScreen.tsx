@@ -34,8 +34,9 @@ export default function ChatScreen() {
 
     const { markRead, setActiveChatId } = useChatContext();
 
-    // Signal to ChatContext that this chat is active + clear unread badge
+    // Signal to ChatContext that this chat is active + clear unread badge + ensure socket
     useEffect(() => {
+        SocketService.connect().catch(() => { });
         if (matchId) {
             setActiveChatId(matchId);
             markRead(matchId);

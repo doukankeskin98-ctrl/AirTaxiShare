@@ -11,6 +11,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import SocketService from '../services/socket';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MeetupConfirmScreen() {
     const { t } = useTranslation();
@@ -22,10 +23,13 @@ export default function MeetupConfirmScreen() {
     const [status, setStatus] = useState<'pending' | 'waiting_partner' | 'success'>('pending');
 
     useEffect(() => {
+        SocketService.connect().catch(() => { });
+
         // Listen for the server to confirm both sides have confirmed
         const unsubConfirm = SocketService.onMeetupConfirmed(() => {
             setStatus('success');
             setTimeout(() => {
+                AsyncStorage.removeItem('@active_match').catch(() => { });
                 navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
             }, 1500);
         });
@@ -44,7 +48,10 @@ export default function MeetupConfirmScreen() {
             // Demo mode: auto-complete after 2 seconds
             setTimeout(() => {
                 setStatus('success');
-                setTimeout(() => navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser }), 1500);
+                setTimeout(() => {
+                    AsyncStorage.removeItem('@active_match').catch(() => { });
+                    navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
+                }, 1500);
             }, 2000);
         }
     };
@@ -57,6 +64,7 @@ export default function MeetupConfirmScreen() {
                 if (matchId && matchId !== 'mock-id') {
                     SocketService.endMatch(matchId);
                 }
+                AsyncStorage.removeItem('@active_match').catch(() => { });
                 navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
             },
             'Evet, Sorun Var',

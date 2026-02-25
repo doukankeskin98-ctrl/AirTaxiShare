@@ -205,19 +205,11 @@ class SocketService {
         return this.on('receive_message', callback);
     }
 
-    /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
+    /** Register receive_message listener purely for the screen. ChatContext handles global persistence. */
     public onReceiveMessage(matchId: string, callback: (message: any) => void) {
         const wrapped = (message: any) => {
-            // Only handle if message belongs to this active chat
+            // Only fire callback if message belongs to this active chat
             if (message.matchId && message.matchId !== matchId) return;
-
-            // Always persist — even if ChatScreen re-mounts later
-            this.persistMessage(matchId, {
-                id: message.id,
-                text: message.text,
-                sender: 'them',
-                time: message.time,
-            });
             callback(message);
         };
         return this.on('receive_message', wrapped);
