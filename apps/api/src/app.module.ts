@@ -42,11 +42,16 @@ import { HealthModule } from './health/health.module';
                 };
 
                 if (databaseUrl) {
+                    // Render internal URLs (e.g. dpg-cxyz123-a) do not support SSL and will time out if forced. 
+                    // External URLs (e.g. dpg-cxyz...render.com) require SSL.
+                    const isInternalRender = databaseUrl.includes('dpg-') && !databaseUrl.includes('.render.com');
+                    const useSsl = isInternalRender ? false : { rejectUnauthorized: false };
+
                     return {
                         ...base,
                         type: 'postgres',
                         url: databaseUrl,
-                        ssl: { rejectUnauthorized: false },
+                        ssl: useSsl,
                     };
                 }
 
