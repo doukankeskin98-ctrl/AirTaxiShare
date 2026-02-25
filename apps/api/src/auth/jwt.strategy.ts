@@ -10,10 +10,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         private configService: ConfigService,
         private userService: UserService,
     ) {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+            throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing.');
+        }
+
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT_SECRET', 'dev_secret_key_123'),
+            secretOrKey: secret,
         });
     }
 

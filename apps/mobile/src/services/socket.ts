@@ -133,11 +133,11 @@ class SocketService {
     }
 
     public onMatchFound(callback: (payload: MatchFoundPayload) => void) {
-        this.socket?.on('match_found', callback);
+        this.on('match_found', callback);
     }
 
     public offMatchFound() {
-        this.socket?.off('match_found');
+        this.off('match_found');
     }
 
     public onQueueCount(callback: (count: number) => void) {
@@ -149,19 +149,19 @@ class SocketService {
     }
 
     public onPartnerDisconnected(callback: () => void) {
-        this.socket?.on('partner_disconnected', callback);
+        this.on('partner_disconnected', callback);
     }
 
     public offPartnerDisconnected() {
-        this.socket?.off('partner_disconnected');
+        this.off('partner_disconnected');
     }
 
     public onMatchEnded(callback: (payload: { reason: string }) => void) {
-        this.socket?.on('match_ended', callback);
+        this.on('match_ended', callback);
     }
 
     public offMatchEnded() {
-        this.socket?.off('match_ended');
+        this.off('match_ended');
     }
 
     // --- CHAT ---
@@ -217,7 +217,7 @@ class SocketService {
 
     /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
     public onReceiveMessage(matchId: string, callback: (message: any) => void) {
-        this.socket?.on('receive_message', (message: any) => {
+        this.on('receive_message', (message: any) => {
             // Always persist — even if ChatScreen re-mounts later
             this.persistMessage(matchId, {
                 id: message.id,
@@ -258,23 +258,23 @@ class SocketService {
     }
 
     public onMeetupConfirmed(callback: () => void) {
-        this.socket?.on('meetup_confirmed', callback);
+        this.on('meetup_confirmed', callback);
     }
 
     public offMeetupConfirmed() {
-        this.socket?.off('meetup_confirmed');
+        this.off('meetup_confirmed');
     }
 
     // --- PARTNER PRESENCE ---
 
     public onPartnerOnlineStatus(callback: (online: boolean) => void) {
-        this.socket?.on('partner_online', () => callback(true));
-        this.socket?.on('partner_offline', () => callback(false));
+        this.on('partner_online', () => callback(true));
+        this.on('partner_offline', () => callback(false));
     }
 
     public offPartnerOnlineStatus() {
-        this.socket?.off('partner_online');
-        this.socket?.off('partner_offline');
+        this.off('partner_online');
+        this.off('partner_offline');
     }
 }
 

@@ -71,6 +71,12 @@ export class AuthService {
         // const check = await twilioClient.verify.v2.services(serviceSid).verificationChecks.create({ to: phoneNumber, code });
         // if (check.status !== 'approved') throw new UnauthorizedException('Invalid OTP');
 
+        const env = this.configService.get<string>('NODE_ENV', 'development');
+        if (env === 'production') {
+            this.logger.error('CRITICAL: OTP provider not configured for production!');
+            throw new UnauthorizedException('Not implemented: missing OTP provider in production');
+        }
+
         // Development mock — accept '123456' only
         const devOtp = this.configService.get<string>('DEV_OTP', '123456');
         if (code !== devOtp) {
@@ -96,6 +102,7 @@ export class AuthService {
         let name: string;
 
         const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+        const env = this.configService.get<string>('NODE_ENV', 'development');
 
         if (googleClientId) {
             // Production: real Google token verification
@@ -113,6 +120,10 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid Google token');
             }
         } else {
+            if (env === 'production') {
+                this.logger.error('CRITICAL: GOOGLE_CLIENT_ID missing in production!');
+                throw new UnauthorizedException('Google Login is not configured for production');
+            }
             // Development mock (no Google client ID configured)
             this.logger.warn('[DEV] Using mock Google auth — set GOOGLE_CLIENT_ID for production');
             googleId = `google-dev-${Buffer.from(idToken).toString('base64').substring(0, 12)}`;
@@ -142,6 +153,7 @@ export class AuthService {
         let email: string;
 
         const appleClientId = this.configService.get<string>('APPLE_CLIENT_ID');
+        const env = this.configService.get<string>('NODE_ENV', 'development');
 
         if (appleClientId) {
             // Production: real Apple JWT verification via JWKS
@@ -158,6 +170,10 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid Apple token');
             }
         } else {
+            if (env === 'production') {
+                this.logger.error('CRITICAL: APPLE_CLIENT_ID missing in production!');
+                throw new UnauthorizedException('Apple Login is not configured for production');
+            }
             // Development mock
             this.logger.warn('[DEV] Using mock Apple auth — set APPLE_CLIENT_ID for production');
             appleId = `apple-dev-${Buffer.from(identityToken).toString('base64').substring(0, 12)}`;

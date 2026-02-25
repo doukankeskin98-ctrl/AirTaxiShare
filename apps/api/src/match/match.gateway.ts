@@ -26,7 +26,6 @@ interface UserCacheEntry {
 }
 
 interface QueuedUser {
-    socketId: string;
     userId: string;
     destination: string;
     time: string;
@@ -34,9 +33,12 @@ interface QueuedUser {
     userData: UserCacheEntry;
 }
 
+const isProd = process.env.NODE_ENV === 'production';
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
+
 @WebSocketGateway({
     cors: {
-        origin: process.env.ALLOWED_ORIGINS?.split(',') || true,
+        origin: isProd ? allowedOrigins : true,
         credentials: true,
     },
     pingInterval: 25000,
@@ -53,18 +55,34 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         private notificationsService: NotificationsService,
     ) { }
 
-    // In-memory state (for production scale, move to Redis pub/sub)
+    // State mapped by userId prevents ghost sessions
     private activeQueues: Map<string, QueuedUser[]> = new Map();
+
+    // matchId -> [userId1, userId2]
     private activeMatches: Map<string, string[]> = new Map();
+
+    // userId -> matchId
     private userMatchMap: Map<string, string> = new Map();
+
+    // userId -> Set<socketId>
+    private userSockets: Map<string, Set<string>> = new Map();
+    // socketId -> userId
     private socketUserMap: Map<string, string> = new Map();
 
-    // Meetup confirmation tracking: matchId → Set of socket IDs that confirmed
+    // Meetup confirmation tracking: matchId → Set of user IDs that confirmed
     private meetupConfirmations: Map<string, Set<string>> = new Map();
 
     // Short-lived user data cache (5 min TTL) — reduces DB calls per queue join
     private userCache: Map<string, UserCacheEntry> = new Map();
     private readonly CACHE_TTL_MS = 5 * 60 * 1000;
+
+    /** Helper to emit to all sockets of a user */
+    private emitToUser(userId: string, event: string, payload?: any) {
+        const sockets = this.userSockets.get(userId);
+        if (sockets) {
+            sockets.forEach(socketId => this.server.to(socketId).emit(event, payload));
+        }
+    }
 
     async handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
@@ -74,17 +92,25 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             try {
                 const payload = this.jwtService.verify(token);
                 if (payload?.sub) {
-                    this.socketUserMap.set(client.id, payload.sub);
-                    this.logger.debug(`[Auth] Socket ${client.id} → user ${payload.sub}`);
+                    const userId = payload.sub;
+                    this.socketUserMap.set(client.id, userId);
 
-                    // Notify partner (if in active match) that this user is online
-                    const matchId = this.userMatchMap.get(client.id);
+                    if (!this.userSockets.has(userId)) {
+                        this.userSockets.set(userId, new Set());
+                    }
+                    this.userSockets.get(userId)!.add(client.id);
+
+                    this.logger.debug(`[Auth] Socket ${client.id} → bound to user ${userId}`);
+
+                    // Restore match session if returning
+                    const matchId = this.userMatchMap.get(userId);
                     if (matchId) {
                         const participants = this.activeMatches.get(matchId);
                         if (participants) {
-                            const partnerId = participants.find(id => id !== client.id);
+                            const partnerId = participants.find(id => id !== userId);
                             if (partnerId) {
-                                this.server.to(partnerId).emit('partner_online');
+                                // Notify partner user
+                                this.emitToUser(partnerId, 'partner_online');
                             }
                         }
                     }
@@ -97,9 +123,71 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        this.removeFromQueues(client.id);
-        this.notifyPartnerOnDisconnect(client.id);
+        const userId = this.socketUserMap.get(client.id);
+
+        if (userId) {
+            const sockets = this.userSockets.get(userId);
+            if (sockets) {
+                sockets.delete(client.id);
+                // If user has no more active sockets, consider them offline
+                if (sockets.size === 0) {
+                    this.userSockets.delete(userId);
+                    this.handleUserOffline(userId);
+                }
+            }
+        }
         this.socketUserMap.delete(client.id);
+    }
+
+    private async handleUserOffline(userId: string) {
+        // If they were in a queue, remove them from all queues (Queue Consistency - Section 3)
+        this.removeUserFromAllQueues(userId);
+
+        const matchId = this.userMatchMap.get(userId);
+        if (matchId) {
+            const participants = this.activeMatches.get(matchId);
+            if (participants) {
+                const partnerId = participants.find(id => id !== userId);
+                if (partnerId) {
+                    this.logger.log(`[Disconnect] Notifying partner ${partnerId} that ${userId} is offline`);
+                    this.emitToUser(partnerId, 'partner_offline');
+
+                    // Push notification for when partner's app goes background
+                    this.sendDisconnectWarning(userId, partnerId);
+                }
+            }
+        }
+    }
+
+    private async sendDisconnectWarning(offlineUserId: string, onlineUserId: string) {
+        try {
+            const [offlineUser, onlineUser] = await Promise.all([
+                this.getOrFetchUser(offlineUserId),
+                this.getOrFetchUser(onlineUserId),
+            ]);
+            if (onlineUser.pushToken) {
+                const name = offlineUser.name || 'Yolcu';
+                await this.notificationsService.sendToToken(
+                    onlineUser.pushToken,
+                    'Partnerin Koptu',
+                    `${name} geçici olarak bağlantısını kaybetti veya uygulamayı arka plana aldı.`,
+                    { type: 'partner_offline' },
+                ).catch(e => this.logger.error('[Push] Disconnect warning failed:', e.message));
+            }
+        } catch (e: any) {
+            this.logger.error('[Disconnect] Failed to send push warning:', e.message);
+        }
+    }
+
+    private removeUserFromAllQueues(userId: string) {
+        this.activeQueues.forEach((queue, destination) => {
+            const index = queue.findIndex(u => u.userId === userId);
+            if (index !== -1) {
+                queue.splice(index, 1);
+                this.logger.debug(`[Queue] Removed user ${userId} from ${destination}`);
+                this.broadcastQueueCount(destination, queue);
+            }
+        });
     }
 
     private async getOrFetchUser(userId: string): Promise<UserCacheEntry> {
@@ -134,17 +222,47 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    /**
+     * Strict Authorization Wrapper (Section 2)
+     */
+    private validateMatchAccess(client: Socket, matchId: string): string | null {
+        const userId = this.socketUserMap.get(client.id);
+        if (!userId) {
+            this.logger.warn(`[Auth] Unauthenticated socket ${client.id} trying to access match ${matchId}`);
+            return null;
+        }
+        const userMatch = this.userMatchMap.get(userId);
+        if (userMatch !== matchId) {
+            this.logger.warn(`[Auth] User ${userId} unauthorized access to match ${matchId}`);
+            return null;
+        }
+        return userId;
+    }
+
     @SubscribeMessage('join_queue')
     async handleJoinQueue(client: Socket, payload: { destination: string; time: string; luggage: string }) {
         try {
             if (!payload?.destination) {
-                this.logger.warn(`[Queue] ${client.id} sent invalid payload`);
                 client.emit('error', { message: 'Invalid payload: destination is required' });
                 return;
             }
             const { destination, time, luggage } = payload;
-            const userId = this.socketUserMap.get(client.id) || '';
-            this.logger.log(`[Queue] user=${userId || 'anon'} socket=${client.id} joining for ${destination}`);
+            const userId = this.socketUserMap.get(client.id);
+            if (!userId) {
+                client.emit('error', { message: 'Unauthorized' });
+                return;
+            }
+
+            this.logger.log(`[Queue] user=${userId} joining for ${destination}`);
+
+            // Ensure user is not already in a match
+            if (this.userMatchMap.has(userId)) {
+                this.logger.warn(`[Queue] User ${userId} already in active match. Ignoring join.`);
+                return;
+            }
+
+            // Remove from any other queues (Section 3: Queue Consistency)
+            this.removeUserFromAllQueues(userId);
 
             const userData = await this.getOrFetchUser(userId);
 
@@ -154,14 +272,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             const queue = this.activeQueues.get(destination)!;
 
-            if (queue.some(u => u.socketId === client.id)) return;
-            if (this.userMatchMap.has(client.id)) {
-                this.logger.warn(`[Queue] ${client.id} already in active match`);
-                return;
-            }
-
             const newUser: QueuedUser = {
-                socketId: client.id,
                 userId,
                 destination,
                 time,
@@ -173,6 +284,8 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             let partnerFoundIndex = -1;
             for (let i = 0; i < queue.length; i++) {
                 const p = queue[i];
+                if (p.userId === userId) continue; // safety check
+
                 const totalLuggage = this.getLuggageScore(newUser.luggage) + this.getLuggageScore(p.luggage);
                 const timeOk = !newUser.time || !p.time || newUser.time === p.time;
                 if (totalLuggage <= 4 && timeOk) {
@@ -183,48 +296,46 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             if (partnerFoundIndex !== -1) {
                 const partner = queue.splice(partnerFoundIndex, 1)[0];
-                const matchId = `match-${client.id.substring(0, 5)}-${partner.socketId.substring(0, 5)}-${Date.now()}`;
+                const matchId = `match-${userId.substring(0, 5)}-${partner.userId.substring(0, 5)}-${Date.now()}`;
 
-                this.activeMatches.set(matchId, [client.id, partner.socketId]);
-                this.userMatchMap.set(client.id, matchId);
-                this.userMatchMap.set(partner.socketId, matchId);
+                this.activeMatches.set(matchId, [userId, partner.userId]);
+                this.userMatchMap.set(userId, matchId);
+                this.userMatchMap.set(partner.userId, matchId);
 
-                this.logger.log(`[Match] ${client.id} + ${partner.socketId} → ${matchId}`);
+                this.logger.log(`[Match] ${userId} + ${partner.userId} → ${matchId}`);
 
                 // Save to DB
-                if (newUser.userId && partner.userId) {
-                    try {
-                        await this.matchService.saveMatchHistory({
-                            matchSocketId: matchId,
-                            user1Id: newUser.userId,
-                            user2Id: partner.userId,
-                            destination,
-                        });
-                    } catch (e) {
-                        this.logger.error('[Match] Failed to save history:', e.message);
-                    }
+                try {
+                    await this.matchService.saveMatchHistory({
+                        matchSocketId: matchId,
+                        user1Id: userId,
+                        user2Id: partner.userId,
+                        destination,
+                    });
+                } catch (e) {
+                    this.logger.error('[Match] Failed to save history:', e.message);
                 }
 
-                // Emit match events with full user data (including trust fields)
-                const newUserPayload = { matchId, partnerId: partner.socketId, userData: { ...partner.userData } };
-                const partnerPayload = { matchId, partnerId: client.id, userData: { ...newUser.userData } };
+                // Emit match events with full user data
+                const newUserPayload = { matchId, partnerId: partner.userId, userData: { ...partner.userData } };
+                const partnerPayload = { matchId, partnerId: userId, userData: { ...newUser.userData } };
 
-                this.server.to(client.id).emit('match_found', newUserPayload);
-                this.server.to(partner.socketId).emit('match_found', partnerPayload);
+                this.emitToUser(userId, 'match_found', newUserPayload);
+                this.emitToUser(partner.userId, 'match_found', partnerPayload);
 
-                // Push notifications (non-blocking)
+                // Push notifications
                 if (partner.userData.pushToken) {
                     this.notificationsService
                         .sendMatchFoundNotification(partner.userData.pushToken, newUser.userData.name)
-                        .catch(e => this.logger.error('[Push] match notification error:', e.message));
+                        .catch(e => this.logger.error('[Push] error:', e.message));
                 }
                 if (newUser.userData.pushToken) {
                     this.notificationsService
                         .sendMatchFoundNotification(newUser.userData.pushToken, partner.userData.name)
-                        .catch(e => this.logger.error('[Push] match notification error:', e.message));
+                        .catch(e => this.logger.error('[Push] error:', e.message));
                 }
             } else {
-                this.logger.log(`[Queue] No partner found yet for ${client.id}, queuing...`);
+                this.logger.log(`[Queue] No partner found yet for ${userId}, queuing...`);
                 queue.push(newUser);
                 this.broadcastQueueCount(destination, queue);
             }
@@ -234,70 +345,80 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
-    private broadcastQueueCount(destination: string, queue: any[]) {
+    private broadcastQueueCount(destination: string, queue: QueuedUser[]) {
         queue.forEach(u => {
-            this.server.to(u.socketId).emit('queue_count', { count: queue.length });
+            this.emitToUser(u.userId, 'queue_count', { count: queue.length });
         });
     }
 
     @SubscribeMessage('leave_queue')
     handleLeaveQueue(client: Socket) {
-        this.logger.log(`[Queue] ${client.id} voluntarily left`);
-        this.removeFromQueues(client.id);
+        const userId = this.socketUserMap.get(client.id);
+        if (userId) {
+            this.logger.log(`[Queue] User ${userId} voluntarily left`);
+            this.removeUserFromAllQueues(userId);
+        }
     }
 
     @SubscribeMessage('send_message')
     async handleChatMessage(client: Socket, payload: { matchId: string; text: string; time: string }) {
         try {
-            if (!payload?.matchId || !payload?.text) {
-                client.emit('error', { message: 'Invalid payload' });
-                return;
-            }
-            const { matchId, text, time } = payload;
+            if (!payload?.matchId || !payload?.text) return;
 
+            const userId = this.validateMatchAccess(client, payload.matchId);
+            if (!userId) return;
+
+            // Optional: limit text length (Section 9)
+            if (payload.text.length > 500) return;
+
+            const { matchId, text, time } = payload;
             const participants = this.activeMatches.get(matchId);
             if (!participants) return;
 
-            const partnerId = participants.find(id => id !== client.id);
+            const partnerId = participants.find(id => id !== userId);
             if (!partnerId) return;
 
-            const userId = this.socketUserMap.get(client.id) || 'anon';
-            this.logger.debug(`[Chat] user=${userId} → matchId=${matchId}`);
-
-            this.server.to(partnerId).emit('receive_message', {
+            this.emitToUser(partnerId, 'receive_message', {
                 id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
                 text,
-                senderId: client.id,
+                senderId: userId, // client sends their user ID instead of socketId
                 time,
             });
 
-            const partnerUserId = this.socketUserMap.get(partnerId);
-            if (partnerUserId) {
-                const partnerData = await this.getOrFetchUser(partnerUserId);
-                const senderData = await this.getOrFetchUser(this.socketUserMap.get(client.id) || '');
-                if (partnerData.pushToken) {
+            const partnerData = await this.getOrFetchUser(partnerId);
+            const senderData = await this.getOrFetchUser(userId);
+
+            if (partnerData.pushToken) {
+                // If partner has no active sockets, send push notification immediately
+                const partnerSockets = this.userSockets.get(partnerId);
+                if (!partnerSockets || partnerSockets.size === 0) {
                     this.notificationsService
                         .sendMessageNotification(partnerData.pushToken, senderData.name, text, matchId)
                         .catch(e => this.logger.error('[Push] message notification error:', e.message));
                 }
             }
         } catch (err: any) {
-            this.logger.error(`[Chat] Unhandled error for ${client.id}: ${err.message}`, err.stack);
+            this.logger.error(`[Chat] Error: ${err.message}`);
         }
     }
 
     @SubscribeMessage('end_match')
     async handleEndMatch(client: Socket, payload: { matchId: string }) {
-        this.logger.log(`[Match] Ended by ${client.id}: ${payload.matchId}`);
+        const userId = this.validateMatchAccess(client, payload.matchId);
+        if (!userId) return;
+
+        this.logger.log(`[Match] Ended by ${userId}: ${payload.matchId}`);
         const participants = this.activeMatches.get(payload.matchId);
         if (participants) {
-            participants.forEach(p => this.userMatchMap.delete(p));
+            participants.forEach(pId => this.userMatchMap.delete(pId));
             this.activeMatches.delete(payload.matchId);
             this.meetupConfirmations.delete(payload.matchId);
-            const partnerId = participants.find(id => id !== client.id);
+
+            const partnerId = participants.find(id => id !== userId);
             if (partnerId) {
-                this.server.to(partnerId).emit('match_ended', { reason: 'partner_left' });
+                this.emitToUser(partnerId, 'match_ended', { reason: 'partner_left' });
             }
+
             try {
                 await this.matchService.completeMatch(payload.matchId);
             } catch (e) {
@@ -308,113 +429,48 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage('select_meeting_point')
     handleSelectMeetingPoint(client: Socket, payload: { matchId: string; point: string }) {
-        try {
-            const { matchId, point } = payload;
-            if (!matchId || !point) return;
+        const userId = this.validateMatchAccess(client, payload.matchId);
+        if (!userId || !payload.point) return;
 
-            const participants = this.activeMatches.get(matchId);
-            if (!participants) return;
-
-            const partnerId = participants.find(id => id !== client.id);
+        const participants = this.activeMatches.get(payload.matchId);
+        if (participants) {
+            const partnerId = participants.find(id => id !== userId);
             if (partnerId) {
-                this.server.to(partnerId).emit('partner_meeting_point', { point });
-                this.logger.debug(`[Meetup] Meeting point "${point}" forwarded to partner ${partnerId}`);
+                this.emitToUser(partnerId, 'partner_meeting_point', { point: payload.point });
             }
-        } catch (err: any) {
-            this.logger.error(`[MeetingPoint] Error: ${err.message}`);
         }
     }
 
     @SubscribeMessage('confirm_meetup')
     async handleConfirmMeetup(client: Socket, payload: { matchId: string }) {
-        try {
-            const { matchId } = payload;
-            if (!matchId) return;
+        const userId = this.validateMatchAccess(client, payload.matchId);
+        if (!userId) return;
 
-            const participants = this.activeMatches.get(matchId);
-            if (!participants) {
-                this.logger.warn(`[Meetup] confirm_meetup for unknown matchId=${matchId}`);
-                return;
-            }
+        const matchId = payload.matchId;
+        const participants = this.activeMatches.get(matchId);
+        if (!participants) return;
 
-            if (!this.meetupConfirmations.has(matchId)) {
-                this.meetupConfirmations.set(matchId, new Set());
-            }
-            const confirmSet = this.meetupConfirmations.get(matchId)!;
-            confirmSet.add(client.id);
-
-            const userId = this.socketUserMap.get(client.id) || 'anon';
-            this.logger.log(`[Meetup] user=${userId} confirmed meetup for match=${matchId} (${confirmSet.size}/2)`);
-
-            if (confirmSet.size >= 2) {
-                // Both confirmed — notify both sides
-                participants.forEach(socketId => {
-                    this.server.to(socketId).emit('meetup_confirmed');
-                });
-                this.meetupConfirmations.delete(matchId);
-                this.logger.log(`[Meetup] Both confirmed for match=${matchId} ✓`);
-
-                // Complete match in DB
-                try {
-                    await this.matchService.completeMatch(matchId);
-                } catch (e) {
-                    this.logger.error('[Meetup] Failed to complete match in DB:', e.message);
-                }
-            }
-        } catch (err: any) {
-            this.logger.error(`[Meetup] Error: ${err.message}`, err.stack);
+        if (!this.meetupConfirmations.has(matchId)) {
+            this.meetupConfirmations.set(matchId, new Set());
         }
-    }
+        const confirmSet = this.meetupConfirmations.get(matchId)!;
+        confirmSet.add(userId); // Confirm using userId now!
 
-    private removeFromQueues(socketId: string) {
-        this.activeQueues.forEach((queue, destination) => {
-            const index = queue.findIndex(u => u.socketId === socketId);
-            if (index !== -1) {
-                queue.splice(index, 1);
-                this.logger.debug(`[Queue] Removed ${socketId} from ${destination}`);
-                this.broadcastQueueCount(destination, queue);
+        this.logger.log(`[Meetup] user=${userId} confirmed meetup (${confirmSet.size}/2)`);
+
+        if (confirmSet.size >= 2) {
+            participants.forEach(pId => {
+                this.emitToUser(pId, 'meetup_confirmed');
+            });
+            this.meetupConfirmations.delete(matchId);
+            this.logger.log(`[Meetup] Both confirmed for match=${matchId} ✓`);
+
+            try {
+                await this.matchService.completeMatch(matchId);
+                // We keep them in activeMatches so chat continues until they leave
+            } catch (e) {
+                this.logger.error('[Meetup] Failed to complete in DB:', e.message);
             }
-        });
-    }
-
-    private async notifyPartnerOnDisconnect(socketId: string) {
-        const matchId = this.userMatchMap.get(socketId);
-        if (matchId) {
-            const participants = this.activeMatches.get(matchId);
-            if (participants) {
-                const partnerId = participants.find(id => id !== socketId);
-                if (partnerId) {
-                    this.logger.log(`[Disconnect] Notifying partner ${partnerId} of offline status`);
-                    this.server.to(partnerId).emit('partner_disconnected');
-                    this.server.to(partnerId).emit('partner_offline');
-                    this.server.to(partnerId).emit('match_ended', { reason: 'partner_left' });
-
-                    // Push notification for when partner's app is in background
-                    const disconnectedUserId = this.socketUserMap.get(socketId);
-                    const partnerUserId = this.socketUserMap.get(partnerId);
-                    if (disconnectedUserId && partnerUserId) {
-                        try {
-                            const [disconnectedUser, partnerUser] = await Promise.all([
-                                this.getOrFetchUser(disconnectedUserId),
-                                this.getOrFetchUser(partnerUserId),
-                            ]);
-                            if (partnerUser.pushToken) {
-                                const name = disconnectedUser.name || 'Yolcu';
-                                await this.notificationsService.sendToToken(
-                                    partnerUser.pushToken,
-                                    'Eşleşme İptal Edildi',
-                                    `${name} uygulamayı kapattı veya eşleşmeyi iptal etti.`,
-                                    { type: 'match_cancelled' },
-                                ).catch(e => this.logger.error('[Push] Disconnect notification failed:', e.message));
-                            }
-                        } catch (e: any) {
-                            this.logger.error('[Disconnect] Failed to send push notification:', e.message);
-                        }
-                    }
-                }
-            }
-            this.userMatchMap.delete(socketId);
-            this.activeMatches.delete(matchId);
         }
     }
 }

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { RedisIoAdapter } from './match/redis-io.adapter';
 // Use require for CJS middlewares to ensure runtime compatibility on Render/Linux
 const helmet = require('helmet');
 const compression = require('compression');
@@ -12,6 +13,11 @@ async function bootstrap() {
         bodyParser: true,
     });
 
+    // Initialize Redis adapter for WebSockets
+    const redisIoAdapter = new RedisIoAdapter(app);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+
     // Increase body size limit to 10mb (default is 100kb — too small for profile photos)
     app.use(require('express').json({ limit: '10mb' }));
     app.use(require('express').urlencoded({ limit: '10mb', extended: true }));
@@ -22,9 +28,17 @@ async function bootstrap() {
     // Gzip compression (~70% bandwidth reduction)
     app.use(compression());
 
+    const isProd = process.env.NODE_ENV === 'production';
+    const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
+
+    if (isProd && !allowedOrigins) {
+        logger.error('CRITICAL SECURITY ERROR: ALLOWED_ORIGINS must be strictly defined in production.');
+        process.exit(1);
+    }
+
     // CORS — tighten in production by specifying allowed origins
     app.enableCors({
-        origin: process.env.ALLOWED_ORIGINS?.split(',') || true,
+        origin: isProd ? allowedOrigins : true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
         credentials: true,
     });

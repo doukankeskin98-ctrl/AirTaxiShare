@@ -1,7 +1,10 @@
 import { Controller, Get, Put, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
-import { IsOptional, IsString, IsUrl, Length } from 'class-validator';
+import { IsOptional, IsString, IsUrl, Length, MaxLength } from 'class-validator';
+import { Role } from './user.entity';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 class UpdateProfileDto {
     @IsOptional()
@@ -11,6 +14,7 @@ class UpdateProfileDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(10000000) // ~10MB max length for Base64 Profile Photos to match express body parser
     photoUrl?: string;
 
     @IsOptional()
@@ -53,12 +57,16 @@ export class UserController {
 
     // Admin endpoint — returns all users (no sensitive fields)
     @Get('all')
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
     async getAllUsers() {
         return this.userService.findAll();
     }
 
     // Admin endpoint — returns aggregate stats
     @Get('stats')
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
     async getStats() {
         return this.userService.getStats();
     }

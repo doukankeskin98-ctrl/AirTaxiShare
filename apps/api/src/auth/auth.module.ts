@@ -13,10 +13,16 @@ import { JwtStrategy } from './jwt.strategy';
         PassportModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET', 'dev_secret_key_123'),
-                signOptions: { expiresIn: '7d' },
-            }),
+            useFactory: async (configService: ConfigService) => {
+                const secret = configService.get<string>('JWT_SECRET');
+                if (!secret) {
+                    throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing.');
+                }
+                return {
+                    secret,
+                    signOptions: { expiresIn: '7d' },
+                };
+            },
             inject: [ConfigService],
         }),
     ],

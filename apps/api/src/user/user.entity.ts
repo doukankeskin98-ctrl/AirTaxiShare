@@ -1,5 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
+export enum Role {
+    USER = 'USER',
+    ADMIN = 'ADMIN',
+}
+
 export enum UserStatus {
     ACTIVE = 'ACTIVE',
     SUSPENDED = 'SUSPENDED',
@@ -53,6 +58,13 @@ export class User {
 
     @Column({ default: false })
     phoneVerified: boolean;
+
+    @Column({
+        type: 'enum',
+        enum: Role,
+        default: Role.USER,
+    })
+    role: Role;
 
     @Column({
         type: 'enum',

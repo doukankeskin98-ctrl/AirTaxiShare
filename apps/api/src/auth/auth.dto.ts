@@ -1,11 +1,13 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength, MaxLength } from 'class-validator';
 
 export class EmailRegisterDto {
     @IsEmail()
+    @MaxLength(100)
     email: string;
 
     @IsString()
     @MinLength(6)
+    @MaxLength(100)
     password: string;
 
     @IsOptional()
@@ -16,10 +18,12 @@ export class EmailRegisterDto {
 
 export class EmailLoginDto {
     @IsEmail()
+    @MaxLength(100)
     email: string;
 
     @IsString()
     @IsNotEmpty()
+    @MaxLength(100)
     password: string;
 }
 
@@ -33,6 +37,7 @@ export class PhoneLoginDto {
 export class VerifyOtpDto {
     @IsString()
     @IsNotEmpty()
+    @MaxLength(20)
     phoneNumber: string;
 
     @IsString()
@@ -43,12 +48,14 @@ export class VerifyOtpDto {
 export class GoogleLoginDto {
     @IsString()
     @IsNotEmpty()
+    @MaxLength(4000)
     idToken: string;
 }
 
 export class AppleLoginDto {
     @IsString()
     @IsNotEmpty()
+    @MaxLength(4000)
     identityToken: string;
 
     @IsOptional()
