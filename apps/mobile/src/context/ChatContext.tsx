@@ -74,11 +74,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         };
 
         // Register a raw receive_message listener (no matchId required since this is global)
-        SocketService.onRawReceiveMessage(handleIncomingMessage);
+        const unsub = SocketService.onRawReceiveMessage(handleIncomingMessage);
 
         return () => {
             // This cleanup only runs on full app unmount, which is fine
-            SocketService.offRawReceiveMessage();
+            if (unsub) unsub();
         };
     }, []);
 

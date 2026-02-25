@@ -42,7 +42,7 @@ export default function MatchFoundScreen() {
 
     // Handle partner disconnecting/leaving
     useEffect(() => {
-        SocketService.onMatchEnded((payload) => {
+        const unsubEnd = SocketService.onMatchEnded((payload) => {
             const reason = payload?.reason;
             const msg = reason === 'partner_left'
                 ? `${safeOtherUser.name.split(' ')[0]} uygulamayı kapattı veya eşleşmeyi iptal etti.`
@@ -58,7 +58,7 @@ export default function MatchFoundScreen() {
             );
         });
 
-        return () => SocketService.offMatchEnded();
+        return () => { if (unsubEnd) unsubEnd(); };
     }, [safeOtherUser.name, navigation]);
 
     const meetupCode = React.useMemo(() => {
@@ -76,12 +76,12 @@ export default function MatchFoundScreen() {
 
     // Listen for partner's meeting point selection
     useEffect(() => {
-        SocketService.onPartnerMeetingPoint((point) => {
+        const unsubPoint = SocketService.onPartnerMeetingPoint((point) => {
             setPartnerMeetingPoint(point);
         });
 
         return () => {
-            SocketService.offPartnerMeetingPoint();
+            if (unsubPoint) unsubPoint();
         };
     }, []);
 

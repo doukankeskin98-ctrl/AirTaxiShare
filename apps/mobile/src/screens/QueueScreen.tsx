@@ -23,6 +23,9 @@ export default function QueueScreen() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let unsubMatch: (() => void) | undefined;
+        let unsubQueue: (() => void) | undefined;
+
         const startSearch = async () => {
             try {
                 setIsFinding(true);
@@ -34,7 +37,7 @@ export default function QueueScreen() {
                 await SocketService.joinQueue({ destination, time, luggage });
 
                 // Listen for match events (after socket is connected)
-                SocketService.onMatchFound((payload: MatchFoundPayload) => {
+                unsubMatch = SocketService.onMatchFound((payload: MatchFoundPayload) => {
                     navigation.replace('MatchFound', {
                         matchId: payload.matchId,
                         otherUser: payload.userData,
@@ -43,7 +46,7 @@ export default function QueueScreen() {
                 });
 
                 // Listen for real queue count updates
-                SocketService.onQueueCount((count: number) => {
+                unsubQueue = SocketService.onQueueCount((count: number) => {
                     setLiveCount(count);
                 });
             } catch (err: any) {
@@ -63,8 +66,8 @@ export default function QueueScreen() {
         // Cleanup on unmount
         return () => {
             SocketService.leaveQueue();
-            SocketService.offMatchFound();
-            SocketService.offQueueCount();
+            if (unsubMatch) unsubMatch();
+            if (unsubQueue) unsubQueue();
             setIsFinding(false);
         };
     }, [navigation, destination, time, luggage]);

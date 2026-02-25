@@ -393,6 +393,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 text,
                 senderId: userId, // client sends their user ID instead of socketId
                 time,
+                matchId,
             });
 
             const partnerData = await this.getOrFetchUser(partnerId);

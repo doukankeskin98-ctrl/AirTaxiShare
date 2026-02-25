@@ -23,7 +23,7 @@ export default function MeetupConfirmScreen() {
 
     useEffect(() => {
         // Listen for the server to confirm both sides have confirmed
-        SocketService.onMeetupConfirmed(() => {
+        const unsubConfirm = SocketService.onMeetupConfirmed(() => {
             setStatus('success');
             setTimeout(() => {
                 navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
@@ -31,7 +31,7 @@ export default function MeetupConfirmScreen() {
         });
 
         return () => {
-            SocketService.offMeetupConfirmed();
+            if (unsubConfirm) unsubConfirm();
         };
     }, [matchId, navigation, otherUser]);
 

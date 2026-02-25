@@ -61,7 +61,7 @@ export default function ChatScreen() {
         if (!matchId) return;
 
         // Incoming messages — also auto-persisted inside SocketService
-        SocketService.onReceiveMessage(matchId, (message: any) => {
+        const unsubMsg = SocketService.onReceiveMessage(matchId, (message: any) => {
             setMessages(prev => [...prev, {
                 id: message.id,
                 text: message.text,
@@ -71,12 +71,12 @@ export default function ChatScreen() {
         });
 
         // Partner presence
-        SocketService.onPartnerOnlineStatus((online) => {
+        const unsubStatus = SocketService.onPartnerOnlineStatus((online) => {
             setPartnerOnline(online);
         });
 
         // If partner closes the app or cancels the match while in chat
-        SocketService.onMatchEnded((payload) => {
+        const unsubEnded = SocketService.onMatchEnded((payload) => {
             const name = safeOtherUser.name?.split(' ')[0] || 'Yolcu';
             const msg = payload?.reason === 'partner_left'
                 ? `${name} uygulamayı kapattı.`
@@ -86,18 +86,13 @@ export default function ChatScreen() {
         });
 
         return () => {
-            SocketService.offReceiveMessage();
-            SocketService.offPartnerOnlineStatus();
-            SocketService.offMatchEnded();
+            if (unsubMsg) unsubMsg();
+            if (unsubStatus) unsubStatus();
+            if (unsubEnded) unsubEnded();
         };
     }, [matchId]);
 
-    // Auto-scroll to bottom on new message
-    useEffect(() => {
-        if (messages.length > 0) {
-            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-        }
-    }, [messages.length]);
+    // Native inverted FlatList automatically handles pinning to bottom.
 
     const handleCall = () => {
         if (safeOtherUser?.phoneNumber) {
@@ -205,10 +200,15 @@ export default function ChatScreen() {
 
                     <FlatList
                         ref={flatListRef}
-                        data={messages}
+                        data={[...messages].reverse()}
+                        inverted={true}
                         renderItem={renderItem}
                         keyExtractor={item => item.id}
-                        contentContainerStyle={[styles.listContent, messages.length === 0 && { display: 'none' }]}
+                        contentContainerStyle={[
+                            styles.listContent,
+                            messages.length === 0 && { display: 'none' },
+                            { paddingBottom: spacing.m, paddingTop: spacing.xl }
+                        ]}
                         showsVerticalScrollIndicator={false}
                     />
                 </>

@@ -27,8 +27,8 @@ class SocketService {
 
     private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
-    /** Queue or immediately register an event listener */
-    private on(event: string, cb: (...args: any[]) => void) {
+    /** Queue or immediately register an event listener. Returns an unsubscribe function. */
+    private on(event: string, cb: (...args: any[]) => void): () => void {
         if (this.socket) {
             this.socket.on(event, cb);
         } else {
@@ -36,12 +36,22 @@ class SocketService {
             list.push(cb);
             this.pendingCallbacks.set(event, list);
         }
+        return () => this.off(event, cb);
     }
 
-    /** Remove an event listener and also remove from pending queue */
-    private off(event: string) {
-        this.socket?.off(event);
-        this.pendingCallbacks.delete(event);
+    /** Remove a specific event listener, or all if no cb provided */
+    private off(event: string, cb?: (...args: any[]) => void) {
+        if (this.socket) {
+            if (cb) this.socket.off(event, cb);
+            else this.socket.off(event);
+        }
+
+        if (cb && this.pendingCallbacks.has(event)) {
+            const list = this.pendingCallbacks.get(event)!;
+            this.pendingCallbacks.set(event, list.filter(fn => fn !== cb));
+        } else if (!cb) {
+            this.pendingCallbacks.delete(event);
+        }
     }
 
     /** Apply any pending callbacks onto the freshly created socket */
@@ -133,35 +143,19 @@ class SocketService {
     }
 
     public onMatchFound(callback: (payload: MatchFoundPayload) => void) {
-        this.on('match_found', callback);
-    }
-
-    public offMatchFound() {
-        this.off('match_found');
+        return this.on('match_found', callback);
     }
 
     public onQueueCount(callback: (count: number) => void) {
-        this.on('queue_count', (payload: { count: number }) => callback(payload.count));
-    }
-
-    public offQueueCount() {
-        this.off('queue_count');
+        return this.on('queue_count', (payload: { count: number }) => callback(payload.count));
     }
 
     public onPartnerDisconnected(callback: () => void) {
-        this.on('partner_disconnected', callback);
-    }
-
-    public offPartnerDisconnected() {
-        this.off('partner_disconnected');
+        return this.on('partner_disconnected', callback);
     }
 
     public onMatchEnded(callback: (payload: { reason: string }) => void) {
-        this.on('match_ended', callback);
-    }
-
-    public offMatchEnded() {
-        this.off('match_ended');
+        return this.on('match_ended', callback);
     }
 
     // --- CHAT ---
@@ -208,16 +202,15 @@ class SocketService {
      * Safe to call before connect() — will be queued and applied on connection.
      */
     public onRawReceiveMessage(callback: (message: any) => void) {
-        this.on('receive_message', callback);
-    }
-
-    public offRawReceiveMessage() {
-        this.off('receive_message');
+        return this.on('receive_message', callback);
     }
 
     /** Register receive_message listener. Also saves every incoming message to AsyncStorage. */
     public onReceiveMessage(matchId: string, callback: (message: any) => void) {
-        this.on('receive_message', (message: any) => {
+        const wrapped = (message: any) => {
+            // Only handle if message belongs to this active chat
+            if (message.matchId && message.matchId !== matchId) return;
+
             // Always persist — even if ChatScreen re-mounts later
             this.persistMessage(matchId, {
                 id: message.id,
@@ -226,11 +219,8 @@ class SocketService {
                 time: message.time,
             });
             callback(message);
-        });
-    }
-
-    public offReceiveMessage() {
-        this.off('receive_message');
+        };
+        return this.on('receive_message', wrapped);
     }
 
     public endMatch(matchId: string) {
@@ -244,11 +234,7 @@ class SocketService {
     }
 
     public onPartnerMeetingPoint(callback: (point: string) => void) {
-        this.on('partner_meeting_point', (payload: { point: string }) => callback(payload.point));
-    }
-
-    public offPartnerMeetingPoint() {
-        this.off('partner_meeting_point');
+        return this.on('partner_meeting_point', (payload: { point: string }) => callback(payload.point));
     }
 
     // --- MEETUP CONFIRMATION ---
@@ -258,23 +244,18 @@ class SocketService {
     }
 
     public onMeetupConfirmed(callback: () => void) {
-        this.on('meetup_confirmed', callback);
-    }
-
-    public offMeetupConfirmed() {
-        this.off('meetup_confirmed');
+        return this.on('meetup_confirmed', callback);
     }
 
     // --- PARTNER PRESENCE ---
 
     public onPartnerOnlineStatus(callback: (online: boolean) => void) {
-        this.on('partner_online', () => callback(true));
-        this.on('partner_offline', () => callback(false));
-    }
-
-    public offPartnerOnlineStatus() {
-        this.off('partner_online');
-        this.off('partner_offline');
+        const unsubOnline = this.on('partner_online', () => callback(true));
+        const unsubOffline = this.on('partner_offline', () => callback(false));
+        return () => {
+            unsubOnline();
+            unsubOffline();
+        };
     }
 }
 
