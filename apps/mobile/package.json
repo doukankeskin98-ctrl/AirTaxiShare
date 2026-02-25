@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "ios:local": "expo start --ios --localhost --clear",
     "web": "expo start --web",
-    "tunnel": "expo start --tunnel"
+    "tunnel": "expo start --tunnel",
+    "build": "expo export --platform web"
   },
   "dependencies": {
     "@airtaxishare/shared": "*",
