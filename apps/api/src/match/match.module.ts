@@ -18,9 +18,13 @@ import { NotificationsModule } from '../notifications/notifications.module';
         NotificationsModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET', 'dev_secret_key_123'),
-            }),
+            useFactory: (configService: ConfigService) => {
+                let secret = configService.get<string>('JWT_SECRET');
+                if (!secret) {
+                    secret = 'airtaxishare-render-fallback-secret-2026-c8f9q2!';
+                }
+                return { secret };
+            },
             inject: [ConfigService],
         }),
     ],
