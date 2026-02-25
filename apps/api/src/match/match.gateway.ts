@@ -34,11 +34,21 @@ interface QueuedUser {
 }
 
 const isProd = process.env.NODE_ENV === 'production';
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
+
+let corsOrigin: boolean | string[] = true;
+if (isProd) {
+    const envOrigins = process.env.ALLOWED_ORIGINS;
+    if (envOrigins) {
+        corsOrigin = envOrigins.split(',');
+    } else {
+        // Dynamic fallback mirroring to satisfy credentials: true if missing in prod
+        corsOrigin = true;
+    }
+}
 
 @WebSocketGateway({
     cors: {
-        origin: isProd ? allowedOrigins : true,
+        origin: corsOrigin,
         credentials: true,
     },
     pingInterval: 25000,
