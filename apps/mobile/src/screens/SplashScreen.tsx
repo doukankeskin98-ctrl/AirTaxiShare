@@ -53,7 +53,6 @@ export default function SplashScreen() {
                     }, 1500);
                 } catch (error) {
                     // Token is invalid/expired → Clear and go to Welcome
-                    console.log('Token invalid, redirecting to Welcome');
                     await setAuthToken('');
                     await clearUserProfile();
                     setTimeout(() => {

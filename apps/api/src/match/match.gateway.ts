@@ -372,6 +372,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (index !== -1) {
                 queue.splice(index, 1);
                 this.logger.debug(`[Queue] Removed ${socketId} from ${destination}`);
+                this.broadcastQueueCount(destination, queue);
             }
         });
     }

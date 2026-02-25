@@ -103,7 +103,7 @@ export default function ChatScreen() {
         if (safeOtherUser?.phoneNumber) {
             Linking.openURL(`tel:${safeOtherUser.phoneNumber}`);
         } else {
-            Alert.alert('Numara Bulunamadı', 'Bu kullanıcının telefon numarası doğrulanmamış veya erişilemiyor.', [{ text: 'Tamam' }]);
+            showAlert('Numara Bulunamadı', 'Bu kullanıcının telefon numarası doğrulanmamış veya erişilemiyor.');
         }
     };
 

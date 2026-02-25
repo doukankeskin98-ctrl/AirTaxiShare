@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, RefreshControl, StatusBar, Image, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -19,30 +19,36 @@ export default function HomeScreen() {
     const [user, setUser] = useState<any>({ fullName: '', photoUrl: null });
     const [matchHistory, setMatchHistory] = useState<any[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // Load user profile from cache on mount & focus
+    const loadData = async () => {
+        const profile = await loadUserProfile();
+        if (profile) {
+            setUser(profile);
+        }
+
+        setLoadingHistory(true);
+        try {
+            const response = await MatchAPI.getHistory();
+            setMatchHistory(response.data || []);
+        } catch (e) {
+            // Silently fail - history is not critical
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
     useFocusEffect(
         React.useCallback(() => {
-            const loadData = async () => {
-                const profile = await loadUserProfile();
-                if (profile) {
-                    setUser(profile);
-                }
-
-                // Load match history
-                setLoadingHistory(true);
-                try {
-                    const response = await MatchAPI.getHistory();
-                    setMatchHistory(response.data || []);
-                } catch (e) {
-                    // Silently fail - history is not critical
-                } finally {
-                    setLoadingHistory(false);
-                }
-            };
             loadData();
         }, [])
     );
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await loadData();
+        setRefreshing(false);
+    }, []);
 
     const displayName = user.fullName || 'Yolcu';
 
@@ -109,8 +115,17 @@ export default function HomeScreen() {
                         )}
                     </TouchableOpacity>
                 </View>
-
-                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={colors.primary}
+                        />
+                    }
+                >
 
                     {/* Security Notification Pill */}
                     <MotiView
