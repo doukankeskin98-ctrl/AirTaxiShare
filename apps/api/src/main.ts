@@ -31,14 +31,20 @@ async function bootstrap() {
     const isProd = process.env.NODE_ENV === 'production';
     let allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
 
-    if (isProd && !allowedOrigins) {
-        logger.error('CRITICAL SECURITY WARNING: ALLOWED_ORIGINS is missing in production. Falling back to wildcard (*). Please set this in Render Dashboard.');
-        allowedOrigins = ['*'];
+    let corsOrigin: boolean | string[] = true;
+
+    if (isProd) {
+        if (!allowedOrigins) {
+            logger.error('CRITICAL SECURITY WARNING: ALLOWED_ORIGINS is missing in production. Falling back to dynamic origin (true). Please set this tightly in Render Dashboard.');
+            corsOrigin = true; // Dynamic mirroring to satisfy credentials: true
+        } else {
+            corsOrigin = allowedOrigins;
+        }
     }
 
     // CORS — tighten in production by specifying allowed origins
     app.enableCors({
-        origin: isProd ? allowedOrigins : true,
+        origin: corsOrigin,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
         credentials: true,
     });
