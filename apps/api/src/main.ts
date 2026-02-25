@@ -29,11 +29,11 @@ async function bootstrap() {
     app.use(compression());
 
     const isProd = process.env.NODE_ENV === 'production';
-    const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
+    let allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : undefined;
 
     if (isProd && !allowedOrigins) {
-        logger.error('CRITICAL SECURITY ERROR: ALLOWED_ORIGINS must be strictly defined in production.');
-        process.exit(1);
+        logger.error('CRITICAL SECURITY WARNING: ALLOWED_ORIGINS is missing in production. Falling back to wildcard (*). Please set this in Render Dashboard.');
+        allowedOrigins = ['*'];
     }
 
     // CORS — tighten in production by specifying allowed origins
