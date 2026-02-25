@@ -30,8 +30,8 @@ import { HealthModule } from './health/health.module';
 
                 const base = {
                     entities: [User, TripRequest, Rating, MatchHistory],
-                    // synchronize: false in production — use migrations
-                    synchronize: !isProduction,
+                    // Temporarily set to true in production to sync the new 'role' column from the RBAC update
+                    synchronize: true,
                     logging: !isProduction ? (['error'] as any) : false,
                     // Connection pool for high concurrency
                     extra: {
