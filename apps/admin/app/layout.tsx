@@ -1,6 +1,5 @@
 import './globals.css';
-import Link from 'next/link';
-import { LogoutButton } from './components/LogoutButton';
+import { Sidebar } from './components/Sidebar';
 
 export const metadata = {
     title: 'AirTaxiShare Admin',
@@ -14,31 +13,12 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body style={{ display: 'flex', minHeight: '100vh' }}>
-                <aside style={{ width: 250, backgroundColor: '#0A2540', color: 'white', padding: 20 }}>
-                    <h2 style={{ marginBottom: 40, borderBottom: '1px solid #333', paddingBottom: 20 }}>AirTaxiShare</h2>
-                    <nav style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <Link href="/" style={navItemStyle}>Dashboard</Link>
-                        <Link href="/users" style={navItemStyle}>User Management</Link>
-                        <Link href="/logs" style={navItemStyle}>Ride Logs</Link>
-                        <Link href="/settings" style={navItemStyle}>Settings</Link>
-                    </nav>
-                    <div style={{ flex: 1 }} />
-                    <LogoutButton />
-                </aside>
-                <main style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+            <body style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0B0F19' }}>
+                <Sidebar />
+                <main style={{ flex: 1, padding: '40px 50px', overflowY: 'auto' }}>
                     {children}
                 </main>
             </body>
         </html>
     );
 }
-
-const navItemStyle = {
-    padding: '10px 15px',
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    color: '#ddd',
-    display: 'block',
-    marginBottom: 5,
-};

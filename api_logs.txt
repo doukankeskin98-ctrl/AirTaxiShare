@@ -1,0 +1,93 @@
+
+> @airtaxishare/api@0.0.1 start
+> nest start
+
+(node:64339) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +8ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mThrottlerModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTerminusModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+CRITICAL SECURITY WARNING: JWT_SECRET environment variable is missing. Using fallback for Render deployment. PLEASE UPDATE RENDER DASHBOARD.
+[33m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [33m   WARN[39m [38;5;3m[NotificationsService] [39m[33m[Notifications] FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mNotificationsModule dependencies initialized[39m[38;5;3m +19ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmCoreModule dependencies initialized[39m[38;5;3m +91ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +0ms[39m
+CRITICAL SECURITY WARNING: JWT_SECRET environment variable is missing.
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUserModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAdminModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMatchModule dependencies initialized[39m[38;5;3m +0ms[39m
+[33m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [33m   WARN[39m [38;5;3m[RedisIoAdapter] [39m[33mREDIS_URL is not defined. Falling back to in-memory adapter.[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "join_queue" message[39m[38;5;3m +20ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "leave_queue" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "get_active_queues" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "send_message" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "end_match" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "select_meeting_point" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mMatchGateway subscribed to the "confirm_meetup" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUserController {/user}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/me, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/profile, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/push-token, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/all, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/user/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/email-register, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/email-login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/admin-login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/verify, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/google, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/apple, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMatchController {/match}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/request, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/rating, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/history, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/user/:id/reviews, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/debug/submit-rating, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/match/debug/ratings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAdminController {/admin}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/admin/stats, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/admin/users, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/admin/logs, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +1ms[39m
+[31m[Nest] 64345  - [39m02/27/2026, 1:39:32 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::4000[39m[38;5;3m +1ms[39m
+Fatal startup error: Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at ExpressAdapter.listen (/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/node_modules/@nestjs/platform-express/adapters/express-adapter.js:95:32)
+    at /Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/node_modules/@nestjs/core/nest-application.js:183:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/node_modules/@nestjs/core/nest-application.js:173:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async bootstrap (/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/api/src/main.ts:66:5) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 4000
+}
+npm error Lifecycle script `start` failed with error:
+npm error code 1
+npm error path /Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/api
+npm error workspace @airtaxishare/api@0.0.1
+npm error location /Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/api
+npm error command failed
+npm error command sh -c nest start

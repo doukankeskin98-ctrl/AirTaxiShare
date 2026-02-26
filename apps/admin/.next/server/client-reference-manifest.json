@@ -742,6 +742,32 @@
         "async": false
       }
     },
+    "(app-client)/./app/login/page.tsx": {
+      "*": {
+        "id": "(sc_client)/./app/login/page.tsx",
+        "name": "*",
+        "chunks": [
+          "app/login/page:static/chunks/app/login/page.js"
+        ],
+        "async": false
+      },
+      "": {
+        "id": "(sc_client)/./app/login/page.tsx",
+        "name": "",
+        "chunks": [
+          "app/login/page:static/chunks/app/login/page.js"
+        ],
+        "async": false
+      },
+      "default": {
+        "id": "(sc_client)/./app/login/page.tsx",
+        "name": "default",
+        "chunks": [
+          "app/login/page:static/chunks/app/login/page.js"
+        ],
+        "async": false
+      }
+    },
     "(app-client)/./app/components/LogoutButton.tsx": {
       "*": {
         "id": "(sc_client)/./app/components/LogoutButton.tsx",
@@ -762,6 +788,32 @@
       "LogoutButton": {
         "id": "(sc_client)/./app/components/LogoutButton.tsx",
         "name": "LogoutButton",
+        "chunks": [
+          "app/layout:static/chunks/app/layout.js"
+        ],
+        "async": false
+      }
+    },
+    "(app-client)/./app/components/Sidebar.tsx": {
+      "*": {
+        "id": "(sc_client)/./app/components/Sidebar.tsx",
+        "name": "*",
+        "chunks": [
+          "app/layout:static/chunks/app/layout.js"
+        ],
+        "async": false
+      },
+      "": {
+        "id": "(sc_client)/./app/components/Sidebar.tsx",
+        "name": "",
+        "chunks": [
+          "app/layout:static/chunks/app/layout.js"
+        ],
+        "async": false
+      },
+      "Sidebar": {
+        "id": "(sc_client)/./app/components/Sidebar.tsx",
+        "name": "Sidebar",
         "chunks": [
           "app/layout:static/chunks/app/layout.js"
         ],
@@ -794,28 +846,28 @@
         "async": false
       }
     },
-    "(app-client)/./app/login/page.tsx": {
+    "(app-client)/./app/components/AnalyticsChart.tsx": {
       "*": {
-        "id": "(sc_client)/./app/login/page.tsx",
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
         "name": "*",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       },
       "": {
-        "id": "(sc_client)/./app/login/page.tsx",
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
         "name": "",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       },
-      "default": {
-        "id": "(sc_client)/./app/login/page.tsx",
-        "name": "default",
+      "AnalyticsChart": {
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
+        "name": "AnalyticsChart",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       }
@@ -2524,6 +2576,30 @@
       ],
       "async": false
     },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx": {
+      "id": "(app-client)/./app/login/page.tsx",
+      "name": "*",
+      "chunks": [
+        "app/login/page:static/chunks/app/login/page.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#": {
+      "id": "(app-client)/./app/login/page.tsx",
+      "name": "",
+      "chunks": [
+        "app/login/page:static/chunks/app/login/page.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#default": {
+      "id": "(app-client)/./app/login/page.tsx",
+      "name": "default",
+      "chunks": [
+        "app/login/page:static/chunks/app/login/page.js"
+      ],
+      "async": false
+    },
     "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/globals.css#": {
       "id": "null",
       "name": "default",
@@ -2550,6 +2626,30 @@
     "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/LogoutButton.tsx#LogoutButton": {
       "id": "(app-client)/./app/components/LogoutButton.tsx",
       "name": "LogoutButton",
+      "chunks": [
+        "app/layout:static/chunks/app/layout.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/Sidebar.tsx": {
+      "id": "(app-client)/./app/components/Sidebar.tsx",
+      "name": "*",
+      "chunks": [
+        "app/layout:static/chunks/app/layout.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/Sidebar.tsx#": {
+      "id": "(app-client)/./app/components/Sidebar.tsx",
+      "name": "",
+      "chunks": [
+        "app/layout:static/chunks/app/layout.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/Sidebar.tsx#Sidebar": {
+      "id": "(app-client)/./app/components/Sidebar.tsx",
+      "name": "Sidebar",
       "chunks": [
         "app/layout:static/chunks/app/layout.js"
       ],
@@ -2603,27 +2703,27 @@
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx": {
-      "id": "(app-client)/./app/login/page.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
       "name": "*",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#": {
-      "id": "(app-client)/./app/login/page.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
       "name": "",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#default": {
-      "id": "(app-client)/./app/login/page.tsx",
-      "name": "default",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#AnalyticsChart": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
+      "name": "AnalyticsChart",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     }

@@ -25,3 +25,25 @@ a {
   color: inherit;
 }
 
+/* Premium Admin Styles */
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #F9FAFB !important;
+}
+
+.table-row {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background-color 0.15s ease;
+}
+
+.table-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.glass-card {
+  background: rgba(30, 34, 53, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+

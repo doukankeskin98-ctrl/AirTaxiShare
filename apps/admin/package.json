@@ -9,10 +9,12 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@airtaxishare/shared": "*",
+        "lucide-react": "^0.575.0",
         "next": "13.4.0",
         "react": "18.2.0",
         "react-dom": "18.2.0",
-        "@airtaxishare/shared": "*"
+        "recharts": "^3.7.0"
     },
     "devDependencies": {
         "@types/node": "20.2.0",
