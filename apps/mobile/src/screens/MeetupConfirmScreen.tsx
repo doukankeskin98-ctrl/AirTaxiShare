@@ -58,8 +58,8 @@ export default function MeetupConfirmScreen() {
 
     const handleDispute = () => {
         showConfirm(
-            'Sorun Bildir',
-            'Bu eşleşmeyle ilgili bir sorun mu yaşıyorsunuz?',
+            t('meetup.dispute.title'),
+            t('meetup.dispute.msg'),
             () => {
                 if (matchId && matchId !== 'mock-id') {
                     SocketService.endMatch(matchId);
@@ -67,8 +67,8 @@ export default function MeetupConfirmScreen() {
                 AsyncStorage.removeItem('@active_match').catch(() => { });
                 navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
             },
-            'Evet, Sorun Var',
-            'İptal',
+            t('meetup.dispute.yes'),
+            t('common.cancel'),
             true,
         );
     };
@@ -86,11 +86,11 @@ export default function MeetupConfirmScreen() {
                     style={styles.backButton}
                     onPress={() => {
                         showConfirm(
-                            'İptal Et',
-                            'Buluşmayı iptal etmek istiyor musunuz?',
+                            t('meetup.cancel.title'),
+                            t('meetup.cancel.msg'),
                             () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
-                            'Evet, İptal Et',
-                            'Hayır',
+                            t('meetup.cancel.yes'),
+                            t('common.no'),
                             true,
                         );
                     }}
@@ -137,17 +137,17 @@ export default function MeetupConfirmScreen() {
                 >
                     <Text style={styles.title}>
                         {status === 'success'
-                            ? 'Buluşma Onaylandı! 🎉'
+                            ? t('meetup.status.success_title')
                             : status === 'waiting_partner'
-                                ? 'Diğer yolcu bekleniyor...'
+                                ? t('meetup.status.waiting_title')
                                 : t('meetup.subtitle')}
                     </Text>
                     <Text style={styles.subtitle}>
                         {status === 'success'
-                            ? 'Harika bir yolculuk dileriz!'
+                            ? t('meetup.status.success_msg')
                             : status === 'waiting_partner'
-                                ? `${otherUser?.name || 'Yolcu'} buluşmayı onaylaması bekleniyor.`
-                                : 'Buluşma noktasında karşılaştığınızda her iki taraf da onaylamalıdır.'}
+                                ? t('meetup.status.waiting_msg', { name: otherUser?.name || t('common.passenger') })
+                                : t('meetup.status.pending_msg')}
                     </Text>
                 </MotiView>
 

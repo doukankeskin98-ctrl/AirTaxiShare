@@ -50,7 +50,7 @@ export default function HomeScreen() {
         setRefreshing(false);
     }, []);
 
-    const displayName = user.fullName || 'Yolcu';
+    const displayName = user.fullName || t('common.passenger');
 
     const handleCreateMatch = () => {
         navigation.navigate('CreateMatch');
@@ -88,7 +88,7 @@ export default function HomeScreen() {
                             transition={{ delay: 100 } as any}
                             style={styles.greeting}
                         >
-                            Merhaba, {displayName.split(' ')[0]}
+                            {t('home.greeting', { name: displayName.split(' ')[0] })}
                         </MotiText>
                         <MotiText
                             from={{ opacity: 0 }}
@@ -140,7 +140,7 @@ export default function HomeScreen() {
                                 <Ionicons name="shield-checkmark" size={16} color={colors.success} />
                             </View>
                             <Text style={styles.securityPillText}>
-                                Yolculuklar 7/24 Uygulama İçi Takip Edilir
+                                {t('home.security_pill')}
                             </Text>
                         </BlurView>
                     </MotiView>
@@ -170,8 +170,8 @@ export default function HomeScreen() {
                                         <Ionicons name="add" size={32} color={colors.primary} />
                                     </View>
                                     <View>
-                                        <Text style={styles.mainCardTitle}>Yolculuk Başlat</Text>
-                                        <Text style={styles.mainCardSubtitle}>Aynı yöne gidenlerle masrafı paylaş</Text>
+                                        <Text style={styles.mainCardTitle}>{t('home.start_trip.title')}</Text>
+                                        <Text style={styles.mainCardSubtitle}>{t('home.start_trip.subtitle')}</Text>
                                     </View>
                                 </View>
                             </LinearGradient>
@@ -193,8 +193,8 @@ export default function HomeScreen() {
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(14, 165, 233, 0.2)' }]}>
                                         <Ionicons name="search" size={24} color={colors.secondary} />
                                     </View>
-                                    <Text style={styles.secondaryTitle}>Mevcutlara katıl</Text>
-                                    <Text style={styles.secondarySubtitle}>Yolculuk Birlikteliği</Text>
+                                    <Text style={styles.secondaryTitle}>{t('home.join_queue.title')}</Text>
+                                    <Text style={styles.secondarySubtitle}>{t('home.join_queue.subtitle')}</Text>
                                 </BlurView>
                             </TouchableOpacity>
                         </MotiView>
@@ -214,7 +214,7 @@ export default function HomeScreen() {
                                     </View>
                                     <Text style={styles.secondaryTitle}>{t('home.myMatches')}</Text>
                                     <Text style={styles.secondarySubtitle}>
-                                        {matchHistory.length > 0 ? `${matchHistory.length} yolculuk` : 'Geçmiş binişler'}
+                                        {matchHistory.length > 0 ? t('home.my_matches_subtitle.count', { count: matchHistory.length }) : t('home.my_matches_subtitle.zero')}
                                     </Text>
                                 </BlurView>
                             </TouchableOpacity>
@@ -228,7 +228,7 @@ export default function HomeScreen() {
                         transition={{ delay: 700 } as any}
                         style={styles.recentSection}
                     >
-                        <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
+                        <Text style={styles.sectionTitle}>{t('home.recent_activity.title')}</Text>
 
                         {matchHistory.length > 0 ? (
                             <View style={styles.historyList}>
@@ -250,7 +250,7 @@ export default function HomeScreen() {
                                             <View style={styles.historyInfo}>
                                                 <Text style={styles.historyDest}>{match.destination}</Text>
                                                 <Text style={styles.historyPartner}>
-                                                    {match.otherUser?.fullName || 'Yolcu'} ile
+                                                    {t('home.recent_activity.with', { name: match.otherUser?.fullName || t('common.passenger') })}
                                                 </Text>
                                             </View>
                                             <Text style={styles.historyDate}>
@@ -264,9 +264,9 @@ export default function HomeScreen() {
                             <View style={styles.emptyStateBox}>
                                 <BlurView intensity={15} tint="dark" style={styles.emptyStateBlur}>
                                     <Ionicons name="time-outline" size={40} color={colors.textSecondary} />
-                                    <Text style={styles.emptyStateText}>Henüz aktif bir yolculuğun yok.</Text>
+                                    <Text style={styles.emptyStateText}>{t('home.recent_activity.empty')}</Text>
                                     <PremiumButton
-                                        title="Şimdi Başla"
+                                        title={t('home.recent_activity.btn_start_now')}
                                         variant="glass"
                                         style={{ marginTop: spacing.l, width: 160 }}
                                         onPress={handleCreateMatch}

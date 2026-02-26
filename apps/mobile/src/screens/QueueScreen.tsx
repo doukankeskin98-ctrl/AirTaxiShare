@@ -52,10 +52,10 @@ export default function QueueScreen() {
             } catch (err: any) {
                 console.error('[Queue] Search start failed:', err);
                 setIsFinding(false);
-                setError(err.message || 'Sunucuya bağlanılamadı.');
+                setError(err.message || t('queue.error.server'));
                 showAlert(
-                    'Bağlantı Hatası',
-                    err.message || 'Sunucuya bağlanılamadı. Lütfen internetinizi kontrol edin.',
+                    t('queue.error.title'),
+                    err.message || t('queue.error.msg'),
                 );
                 navigation.goBack();
             }
@@ -74,14 +74,14 @@ export default function QueueScreen() {
 
     const handleCancel = () => {
         showConfirm(
-            'Aramayı İptal Et',
-            'Eşleşme aramasını iptal etmek istediğinize emin misiniz?',
+            t('queue.cancel.title'),
+            t('queue.cancel.msg'),
             () => {
                 SocketService.leaveQueue();
                 navigation.goBack();
             },
-            'Evet, İptal Et',
-            'Hayır',
+            t('queue.cancel.yes'),
+            t('common.no'),
             true
         );
     };
@@ -109,7 +109,7 @@ export default function QueueScreen() {
 
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Eşleşme Aranıyor</Text>
+                    <Text style={styles.headerTitle}>{t('queue.header_title')}</Text>
                 </View>
 
                 <View style={styles.content}>
@@ -141,7 +141,7 @@ export default function QueueScreen() {
                         transition={{ delay: 500 } as any}
                         style={styles.statusText}
                     >
-                        Yakınınızdaki yolcular taranıyor...
+                        {t('queue.scanning_msg')}
                     </MotiText>
 
                     <MotiView
@@ -157,21 +157,21 @@ export default function QueueScreen() {
                                     <View style={styles.iconCircle}>
                                         <Ionicons name="location" size={20} color={colors.primaryLight} />
                                     </View>
-                                    <Text style={styles.infoLabel}>{destination ? destination.toUpperCase() : 'HEDEF'}</Text>
+                                    <Text style={styles.infoLabel}>{destination ? destination.toUpperCase() : t('queue.destination_default')}</Text>
                                 </View>
                                 <View style={styles.divider} />
                                 <View style={styles.infoItem}>
                                     <View style={styles.iconCircle}>
                                         <Ionicons name="briefcase" size={20} color={colors.primaryLight} />
                                     </View>
-                                    <Text style={styles.infoLabel}>{luggage === 'small' ? 'KÜÇÜK' : luggage === 'large' ? 'BÜYÜK' : 'ORTA'}</Text>
+                                    <Text style={styles.infoLabel}>{luggage === 'small' ? t('common.luggage_small_upper') : luggage === 'large' ? t('common.luggage_large_upper') : t('common.luggage_medium_upper')}</Text>
                                 </View>
                                 <View style={styles.divider} />
                                 <View style={styles.infoItem}>
                                     <View style={styles.iconCircle}>
                                         <Ionicons name="people" size={20} color={colors.secondaryLight} />
                                     </View>
-                                    <Text style={styles.infoLabel}>{liveCount !== null ? `${liveCount} YAKINDA` : 'YÜKLENIYOR'}</Text>
+                                    <Text style={styles.infoLabel}>{liveCount !== null ? `${liveCount} ${t('queue.nearby')}` : t('queue.loading')}</Text>
                                 </View>
                             </View>
                         </BlurView>
@@ -188,7 +188,7 @@ export default function QueueScreen() {
                     <TouchableOpacity onPress={handleCancel} style={styles.cancelButton} activeOpacity={0.8}>
                         <BlurView intensity={20} tint="light" style={styles.cancelBlur}>
                             <Ionicons name="close" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
-                            <Text style={styles.cancelText}>Aramayı İptal Et</Text>
+                            <Text style={styles.cancelText}>{t('queue.cancel_btn')}</Text>
                         </BlurView>
                     </TouchableOpacity>
                 </MotiView>

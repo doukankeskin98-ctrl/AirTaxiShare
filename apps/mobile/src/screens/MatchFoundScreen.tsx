@@ -20,7 +20,7 @@ export default function MatchFoundScreen() {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { otherUser, luggage, matchId } = route.params || {};
-    const safeOtherUser = otherUser || { name: 'Yolcu', rating: 5.0, trips: 10, trustBadge: false, phoneVerified: false, emailVerified: false };
+    const safeOtherUser = otherUser || { name: t('common.passenger'), rating: 5.0, trips: 10, trustBadge: false, phoneVerified: false, emailVerified: false };
 
     const { getUnread } = useChatContext();
     const unreadCount = getUnread(matchId);
@@ -42,14 +42,14 @@ export default function MatchFoundScreen() {
         const unsubEnd = SocketService.onMatchEnded((payload) => {
             const reason = payload?.reason;
             const msg = reason === 'partner_left'
-                ? `${safeOtherUser.name.split(' ')[0]} uygulamayı kapattı veya eşleşmeyi iptal etti.`
-                : 'Eşleşme sona erdi.';
+                ? t('match_found.alert.partner_left_msg', { name: safeOtherUser.name.split(' ')[0] })
+                : t('match_found.alert.ended_msg');
 
             showConfirm(
-                'Eşleşme Sona Erdi',
+                t('match_found.alert.ended_title'),
                 msg,
                 () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
-                'Ana Sayfaya Dön',
+                t('match_found.alert.btn_home'),
                 undefined,   // no cancel option — they must go home
                 false,
             );
@@ -66,9 +66,9 @@ export default function MatchFoundScreen() {
     }, [matchId]);
 
     const meetingPoints = [
-        { label: 'Çıkış A — Metro', value: 'exitA', icon: 'subway', description: 'Metro çıkışı, kuzey girişi' },
-        { label: 'Çıkış B — Meydan', value: 'exitB', icon: 'walk', description: 'Taksi durağı yanı, güney' },
-        { label: 'Taksi Sırası', value: 'taxiQueue', icon: 'car', description: 'Terminal taksici bölgesi' },
+        { label: t('match_found.points.exitA.label'), value: 'exitA', icon: 'subway', description: t('match_found.points.exitA.desc') },
+        { label: t('match_found.points.exitB.label'), value: 'exitB', icon: 'walk', description: t('match_found.points.exitB.desc') },
+        { label: t('match_found.points.taxiQueue.label'), value: 'taxiQueue', icon: 'car', description: t('match_found.points.taxiQueue.desc') },
     ];
 
     // Listen for partner's meeting point selection
@@ -125,8 +125,8 @@ export default function MatchFoundScreen() {
                     style={styles.backButton}
                     onPress={() => {
                         showConfirm(
-                            'Eşleşmeyi İptal Et',
-                            'Eşleşmeyi iptal etmek istediğinize emin misiniz? Diğer yolcuya bildirilecek.',
+                            t('match_found.cancel.title'),
+                            t('match_found.cancel.msg'),
                             () => {
                                 if (matchId && matchId !== 'mock-id') {
                                     SocketService.endMatch(matchId);
@@ -134,8 +134,8 @@ export default function MatchFoundScreen() {
                                 AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
                                 navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
                             },
-                            'İptal Et',
-                            'Vazgeç',
+                            t('common.cancel_verb'),
+                            t('common.give_up'),
                             true,
                         );
                     }}
@@ -163,9 +163,9 @@ export default function MatchFoundScreen() {
                             <Ionicons name="checkmark" size={44} color="#FFF" />
                         </LinearGradient>
                     </View>
-                    <Text style={styles.successTitle}>Eşleşme Bulundu!</Text>
+                    <Text style={styles.successTitle}>{t('match_found.success.title')}</Text>
                     <Text style={styles.successSubtitle}>
-                        Yolculuğunuzu {safeOtherUser.name.split(' ')[0] || 'birisi'} ile paylaşıyorsunuz.
+                        {t('match_found.success.subtitle', { name: safeOtherUser.name.split(' ')[0] || t('common.someone') })}
                     </Text>
                 </MotiView>
 
@@ -200,9 +200,9 @@ export default function MatchFoundScreen() {
                                     </View>
                                     <View style={styles.luggagePill}>
                                         <Ionicons name="briefcase" size={12} color="#FFF" />
-                                        <Text style={styles.ratingText}>{luggage === 'small' ? 'KÜÇÜK' : luggage === 'large' ? 'BÜYÜK' : 'ORTA'}</Text>
+                                        <Text style={styles.ratingText}>{luggage === 'small' ? t('common.luggage_small') : luggage === 'large' ? t('common.luggage_large') : t('common.luggage_medium')}</Text>
                                     </View>
-                                    <Text style={styles.tripsText}>{safeOtherUser.trips} yolculuk</Text>
+                                    <Text style={styles.tripsText}>{safeOtherUser.trips} {t('common.trips')}</Text>
                                 </View>
 
                                 {/* Trust badges row */}
@@ -210,19 +210,19 @@ export default function MatchFoundScreen() {
                                     {safeOtherUser.phoneVerified && (
                                         <View style={styles.trustBadge}>
                                             <Ionicons name="call" size={10} color={colors.success} />
-                                            <Text style={styles.trustBadgeText}>Telefon</Text>
+                                            <Text style={styles.trustBadgeText}>{t('badges.phone')}</Text>
                                         </View>
                                     )}
                                     {safeOtherUser.emailVerified && (
                                         <View style={styles.trustBadge}>
                                             <Ionicons name="mail" size={10} color={colors.secondary} />
-                                            <Text style={styles.trustBadgeText}>E-posta</Text>
+                                            <Text style={styles.trustBadgeText}>{t('badges.email')}</Text>
                                         </View>
                                     )}
                                     {safeOtherUser.trustBadge && (
                                         <View style={[styles.trustBadge, styles.trustBadgeGold]}>
                                             <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
-                                            <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>ATS Güven</Text>
+                                            <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>{t('badges.ats_trust')}</Text>
                                         </View>
                                     )}
                                 </View>
@@ -248,12 +248,12 @@ export default function MatchFoundScreen() {
                     transition={{ delay: 500 } as any}
                 >
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Buluşma Noktası</Text>
+                        <Text style={styles.sectionTitle}>{t('match_found.meeting_point')}</Text>
                         {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
                             <View style={styles.partnerBadge}>
                                 <Ionicons name="person" size={11} color={colors.primary} />
                                 <Text style={styles.partnerBadgeText}>
-                                    Yolcu: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
+                                    {t('common.passenger')}: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
                                 </Text>
                             </View>
                         )}
@@ -314,7 +314,7 @@ export default function MatchFoundScreen() {
                         >
                             <Ionicons name="warning-outline" size={16} color="#F59E0B" />
                             <Text style={styles.warningText}>
-                                Yol arkadaşınızla farklı noktayı işaretlediniz. Aynı noktayı seçmeniz önerilir.
+                                {t('match_found.warning_sync')}
                             </Text>
                         </MotiView>
                     )}
@@ -328,11 +328,11 @@ export default function MatchFoundScreen() {
                 >
                     <BlurView intensity={30} tint="dark" style={styles.codeCard}>
                         <View style={styles.cardHighlight} />
-                        <Text style={styles.codeLabel}>ONAY KODU</Text>
+                        <Text style={styles.codeLabel}>{t('match_found.code_label')}</Text>
                         <View style={styles.codeBox}>
                             <Text style={styles.codeText}>{meetupCode}</Text>
                         </View>
-                        <Text style={styles.codeHint}>Bu kodu yol arkadaşınıza gösterin</Text>
+                        <Text style={styles.codeHint}>{t('match_found.code_hint')}</Text>
                     </BlurView>
                 </MotiView>
 
@@ -347,7 +347,7 @@ export default function MatchFoundScreen() {
             >
                 <BlurView intensity={60} tint="dark" style={styles.footerBlur}>
                     <PremiumButton
-                        title="Buluştuk"
+                        title={t('match_found.btn_met')}
                         onPress={handleMet}
                         variant="primary"
                         icon={<Ionicons name="people" size={24} color="#FFF" />}

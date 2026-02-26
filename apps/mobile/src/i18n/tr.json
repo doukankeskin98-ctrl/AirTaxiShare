@@ -4,7 +4,21 @@
         "tagline": "Havalimanında aynı yöne gidenlerle taksiyi paylaş."
     },
     "common": {
-        "error": "Hata"
+        "error": "Hata",
+        "passenger": "Yolcu",
+        "trips": "Yolculuk",
+        "close": "Kapat",
+        "luggage_small": "Sırt Çantası",
+        "luggage_medium": "Kabin Boy",
+        "luggage_large": "Büyük Boy",
+        "luggage_small_upper": "KÜÇÜK",
+        "luggage_medium_upper": "ORTA",
+        "luggage_large_upper": "BÜYÜK",
+        "now": "Hemen",
+        "min": "dk",
+        "anytime": "Farketmez",
+        "no": "Hayır",
+        "cancel": "Vazgeç"
     },
     "login": {
         "title": "Tekrar Hoş Geldin",
@@ -59,7 +73,9 @@
         "error": {
             "photoRequired": "Profil fotoğrafı gerekli.",
             "nameRequired": "Ad Soyad gerekli."
-        }
+        },
+        "recent_reviews": "Son Yorumlar",
+        "empty_reviews": "Henüz yazılı bir yorum bulunmuyor."
     },
     "home": {
         "title": "Ana Sayfa",
@@ -68,6 +84,26 @@
         "safetyBanner": {
             "title": "Güvenlik",
             "body": "Profilini tamamla, puanlamalara dikkat et, sorun olursa bildir."
+        },
+        "greeting": "Merhaba, {{name}}",
+        "security_pill": "Yolculuklar 7/24 Uygulama İçi Takip Edilir",
+        "start_trip": {
+            "title": "Yolculuk Başlat",
+            "subtitle": "Aynı yöne gidenlerle masrafı paylaş"
+        },
+        "join_queue": {
+            "title": "Mevcutlara katıl",
+            "subtitle": "Yolculuk Birlikteliği"
+        },
+        "my_matches_subtitle": {
+            "zero": "Geçmiş binişler",
+            "count": "{{count}} yolculuk"
+        },
+        "recent_activity": {
+            "title": "Son Aktiviteler",
+            "with": "{{name}} ile",
+            "empty": "Henüz aktif bir yolculuğun yok.",
+            "btn_start_now": "Şimdi Başla"
         }
     },
     "create": {
@@ -103,7 +139,11 @@
         "subtitle": "Seni uygun biriyle eşleştiriyoruz.",
         "liveCount": "{{count}} kişi şu an {{destination}} için arıyor",
         "eta": "Tahmini bekleme: {{minutes}} dk",
-        "cancel": "İptal",
+        "cancel": {
+            "title": "Aramayı İptal Et",
+            "msg": "Eşleşme aramasını iptal etmek istediğinize emin misiniz?",
+            "yes": "Evet, İptal Et"
+        },
         "cancelConfirm": {
             "title": "Eşleşmeyi iptal et?",
             "body": "İptal edersen sıradan çıkarsın."
@@ -112,6 +152,17 @@
             "title": "Henüz eşleşme yok",
             "body": "Biraz daha bekleyebilir veya zamanı genişletebilirsin.",
             "suggestion": "Zamanı +15 dk genişlet"
+        },
+        "header_title": "Eşleşme Aranıyor",
+        "scanning_msg": "Yakınınızdaki yolcular taranıyor...",
+        "destination_default": "HEDEF",
+        "nearby": "YAKINDA",
+        "loading": "YÜKLENIYOR",
+        "cancel_btn": "Aramayı İptal Et",
+        "error": {
+            "server": "Sunucuya bağlanılamadı.",
+            "title": "Bağlantı Hatası",
+            "msg": "Sunucuya bağlanılamadı. Lütfen internetinizi kontrol edin."
         }
     },
     "match": {
@@ -152,6 +203,16 @@
         "dispute": {
             "title": "Sorun bildir",
             "body": "Buluşamadıysan veya sorun yaşadıysan bildir."
+        },
+        "cancel": {
+            "title": "İptal Et",
+            "msg": "Buluşmayı iptal etmek istediğinize emin misiniz? Bu durum profilinize olumsuz yansıyabilir.",
+            "yes": "Evet, İptal Et",
+            "no": "Vazgeç"
+        },
+        "status": {
+            "success_title": "Buluşma Başarılı",
+            "success_msg": "Harika! Umarız yolculuğunuz iyi geçer. Taksiyi paylaşarak doğaya ve bütçenize katkı sağladınız."
         }
     },
     "rating": {
@@ -160,11 +221,17 @@
         "tags": {
             "polite": "Kibar",
             "ontime": "Dakik",
-            "communication": "İyi iletişim"
+            "communication": "İyi iletişim",
+            "clean": "Temiz",
+            "driver": "Güvenli Sürüş"
         },
         "cta": {
             "submit": "Gönder"
-        }
+        },
+        "submit_error": "Yorum gönderilirken bir sorun oluştu.",
+        "section_good": "Neler iyiydi?",
+        "section_note": "Not ekle (isteğe bağlı)",
+        "placeholder": "Deneyiminiz nasıldı?"
     },
     "settings": {
         "title": "Ayarlar",
@@ -206,5 +273,57 @@
             "warn": "Uyar",
             "resolve": "Çözümle"
         }
+    },
+    "match_found": {
+        "alert": {
+            "ended_title": "Eşleşme Sona Erdi",
+            "ended_msg": "Taraflardan biri eşleşmeyi sonlandırdı veya zaman aşımı gerçekleşti.",
+            "failed_title": "Eşleşme Kurulamadı",
+            "failed_msg": "Bir hata oluştu. Lütfen tekrar arama yapın."
+        },
+        "labels": {
+            "destination": "Gidilecek Yer",
+            "time": "Ne Zaman",
+            "luggage": "Bagaj",
+            "profile": "Profil"
+        },
+        "profile": {
+            "trust_badge_alt": "Onaylı Profil"
+        },
+        "meeting": {
+            "title": "Buluşma Noktası ve Kodu",
+            "warning_title": "Önemli Uyarı",
+            "warning_msg": "Ödemeyi taksi şoförüne nakit veya kartla yapın. Ugulama üzerinden tarafımızdan herhangi bir ücret talep edilmez."
+        },
+        "code": {
+            "label": "Buluşma Kodu",
+            "instruction": "Buluşunca bu kodu karşılıklı doğrulayın."
+        },
+        "btn_chat": "Sohbeti Aç",
+        "btn_confirm": "Buluşmaya Geç"
+    },
+    "active_queues": {
+        "header_title": "Mevcutlara Katıl",
+        "loading": "Kuyruklar aranıyor...",
+        "waiting": "Bekleyen",
+        "btn_join": "Katıl",
+        "capacity": {
+            "title": "Kapasite Aşımı",
+            "msg": "Maalesef seçtiğiniz bagaj boyutu, bekleyen kişinin bagajıyla taksiye aynı anda sığmıyor. Yeni bir eşleşme başlatmayı deneyin."
+        },
+        "empty": {
+            "title": "Henüz Kimse Yok",
+            "subtitle": "Şu anda hiçbir rotada bekleyen yolcu bulunmuyor. Kendi yolculuğunu başlatarak havuzu sen açabilirsin!"
+        },
+        "modal": {
+            "title": "Bagaj Boyutunuz?",
+            "subtitle": "Araca sığacağınızı doğrulamamız gerekiyor.",
+            "btn_confirm": "Eşleşmeyi Başlat"
+        }
+    },
+    "badges": {
+        "phone_verified": "Telefon Onaylı",
+        "email_verified": "E-posta Onaylı",
+        "trusted_profile": "Güvenilir Profil"
     }
 }

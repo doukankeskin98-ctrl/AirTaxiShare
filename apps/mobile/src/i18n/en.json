@@ -4,7 +4,21 @@
         "tagline": "Share a taxi with people going the same way."
     },
     "common": {
-        "error": "Error"
+        "error": "Error",
+        "passenger": "Passenger",
+        "trips": "Trips",
+        "close": "Close",
+        "luggage_small": "Backpack",
+        "luggage_medium": "Cabin Size",
+        "luggage_large": "Large Size",
+        "luggage_small_upper": "SMALL",
+        "luggage_medium_upper": "MEDIUM",
+        "luggage_large_upper": "LARGE",
+        "now": "Now",
+        "min": "min",
+        "anytime": "Anytime",
+        "no": "No",
+        "cancel": "Cancel"
     },
     "login": {
         "title": "Welcome Back",
@@ -59,7 +73,9 @@
         "error": {
             "photoRequired": "Profile photo is required.",
             "nameRequired": "Full name is required."
-        }
+        },
+        "recent_reviews": "Recent Reviews",
+        "empty_reviews": "No written reviews yet."
     },
     "home": {
         "title": "Home",
@@ -68,6 +84,26 @@
         "safetyBanner": {
             "title": "Safety",
             "body": "Complete your profile, check ratings, report any issues."
+        },
+        "greeting": "Hello, {{name}}",
+        "security_pill": "Trips are Tracked 24/7 In-App",
+        "start_trip": {
+            "title": "Start Trip",
+            "subtitle": "Share the cost with people going same way"
+        },
+        "join_queue": {
+            "title": "Join queues",
+            "subtitle": "Travel together"
+        },
+        "my_matches_subtitle": {
+            "zero": "Past rides",
+            "count": "{{count}} trips"
+        },
+        "recent_activity": {
+            "title": "Recent Activity",
+            "with": "with {{name}}",
+            "empty": "You have no active trips yet.",
+            "btn_start_now": "Start Now"
         }
     },
     "create": {
@@ -103,7 +139,11 @@
         "subtitle": "We are matching you with someone suitable.",
         "liveCount": "{{count}} people searching for {{destination}} now",
         "eta": "Estimated wait: {{minutes}} min",
-        "cancel": "Cancel",
+        "cancel": {
+            "title": "Cancel Search",
+            "msg": "Are you sure you want to cancel the match search?",
+            "yes": "Yes, Cancel"
+        },
         "cancelConfirm": {
             "title": "Cancel search?",
             "body": "You will leave the queue."
@@ -112,6 +152,17 @@
             "title": "No match yet",
             "body": "Wait a bit more or widen your time window.",
             "suggestion": "Widen by +15 min"
+        },
+        "header_title": "Searching for a Match",
+        "scanning_msg": "Scanning passengers near you...",
+        "destination_default": "DESTINATION",
+        "nearby": "NEARBY",
+        "loading": "LOADING",
+        "cancel_btn": "Cancel Search",
+        "error": {
+            "server": "Could not connect to the server.",
+            "title": "Connection Error",
+            "msg": "Could not connect to the server. Please check your internet connection."
         }
     },
     "match": {
@@ -152,6 +203,16 @@
         "dispute": {
             "title": "Report an issue",
             "body": "Report if you could not meet or had an issue."
+        },
+        "cancel": {
+            "title": "Cancel Meetup",
+            "msg": "Are you sure you want to cancel the meetup? This may negatively affect your profile.",
+            "yes": "Yes, Cancel",
+            "no": "No, Go back"
+        },
+        "status": {
+            "success_title": "Meetup Successful",
+            "success_msg": "Great! We hope you have a nice trip. You contributed to nature and your budget by sharing a taxi."
         }
     },
     "rating": {
@@ -159,12 +220,18 @@
         "subtitle": "Share your experience.",
         "tags": {
             "polite": "Polite",
-            "ontime": "On time",
-            "communication": "Good communication"
+            "ontime": "On Time",
+            "communication": "Good Communication",
+            "clean": "Clean",
+            "driver": "Safe Driving"
         },
         "cta": {
             "submit": "Submit"
-        }
+        },
+        "submit_error": "An error occurred while submitting the review.",
+        "section_good": "What was good?",
+        "section_note": "Add a note (optional)",
+        "placeholder": "How was your experience?"
     },
     "settings": {
         "title": "Settings",
@@ -206,5 +273,57 @@
             "warn": "Warn",
             "resolve": "Resolve"
         }
+    },
+    "match_found": {
+        "alert": {
+            "ended_title": "Match Ended",
+            "ended_msg": "One of the parties ended the match or a timeout occurred.",
+            "failed_title": "Match Failed",
+            "failed_msg": "An error occurred. Please search again."
+        },
+        "labels": {
+            "destination": "Destination",
+            "time": "When",
+            "luggage": "Luggage",
+            "profile": "Profile"
+        },
+        "profile": {
+            "trust_badge_alt": "Verified Profile"
+        },
+        "meeting": {
+            "title": "Meeting Point & Code",
+            "warning_title": "Important Warning",
+            "warning_msg": "Make the payment to the taxi driver in cash or by card. We do not charge any fee through the app."
+        },
+        "code": {
+            "label": "Meeting Code",
+            "instruction": "Confirm this code with each other when you meet."
+        },
+        "btn_chat": "Open Chat",
+        "btn_confirm": "Proceed to Meetup"
+    },
+    "active_queues": {
+        "header_title": "Join Actives",
+        "loading": "Searching queues...",
+        "waiting": "Waiting",
+        "btn_join": "Join",
+        "capacity": {
+            "title": "Capacity Exceeded",
+            "msg": "Unfortunately, the luggage size you selected does not fit into the taxi. Try starting a new match."
+        },
+        "empty": {
+            "title": "No One Yet",
+            "subtitle": "There are no passengers waiting on any route right now. You can open the pool by starting your own trip!"
+        },
+        "modal": {
+            "title": "Luggage Size?",
+            "subtitle": "We need to verify that you will fit in the vehicle.",
+            "btn_confirm": "Start Match"
+        }
+    },
+    "badges": {
+        "phone_verified": "Phone Verified",
+        "email_verified": "Email Verified",
+        "trusted_profile": "Trusted Profile"
     }
 }

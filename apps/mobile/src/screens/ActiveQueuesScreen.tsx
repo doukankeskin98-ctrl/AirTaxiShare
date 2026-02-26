@@ -123,8 +123,8 @@ export default function ActiveQueuesScreen() {
         if (totalScore > 4) {
             // Fails the matching criteria
             showAlert(
-                'Kapasite Aşımı',
-                'Maalesef seçtiğiniz bagaj boyutu, bekleyen kişinin bagajıyla taksiye aynı anda sığmıyor. Yeni bir eşleşme başlatmayı deneyin.'
+                t('active_queues.capacity.title'),
+                t('active_queues.capacity.msg')
             );
             return;
         }
@@ -163,7 +163,7 @@ export default function ActiveQueuesScreen() {
 
                         <View style={styles.badge}>
                             <View style={styles.pulseDot} />
-                            <Text style={styles.badgeText}>{item.count} Bekleyen</Text>
+                            <Text style={styles.badgeText}>{item.count} {t('active_queues.waiting')}</Text>
                         </View>
                     </View>
 
@@ -172,13 +172,13 @@ export default function ActiveQueuesScreen() {
                         <View style={styles.constraintBadge}>
                             <Ionicons name="time-outline" size={14} color={colors.primaryLight} />
                             <Text style={styles.constraintText}>
-                                {String(item.firstUserTime) === '0' ? 'Hemen' : item.firstUserTime ? `${item.firstUserTime} dk` : 'Farketmez'}
+                                {String(item.firstUserTime) === '0' ? t('common.now') : item.firstUserTime ? `${item.firstUserTime} ${t('common.min')}` : t('common.anytime')}
                             </Text>
                         </View>
                         <View style={styles.constraintBadge}>
                             <Ionicons name="briefcase-outline" size={14} color={colors.primaryLight} />
                             <Text style={styles.constraintText}>
-                                {item.firstUserLuggage === 'small' ? 'Sırt Çantası' : item.firstUserLuggage === 'large' ? 'Büyük Boy' : 'Orta'}
+                                {item.firstUserLuggage === 'small' ? t('common.luggage_small') : item.firstUserLuggage === 'large' ? t('common.luggage_large') : t('common.luggage_medium')}
                             </Text>
                         </View>
                     </View>
@@ -202,7 +202,7 @@ export default function ActiveQueuesScreen() {
                             </View>
                             <View style={styles.profileTextInfo}>
                                 <Text style={styles.profileName} numberOfLines={1}>
-                                    {item.firstUserName || 'Yolcu'}
+                                    {item.firstUserName || t('common.passenger')}
                                 </Text>
                                 <View style={styles.ratingRow}>
                                     <Ionicons name="star" size={12} color="#F59E0B" />
@@ -217,7 +217,7 @@ export default function ActiveQueuesScreen() {
                                 style={styles.joinButton}
                                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                             >
-                                <Text style={styles.joinButtonText}>Katıl</Text>
+                                <Text style={styles.joinButtonText}>{t('active_queues.btn_join')}</Text>
                                 <Ionicons name="arrow-forward" size={16} color="#FFF" />
                             </LinearGradient>
                         </TouchableOpacity>
@@ -237,14 +237,14 @@ export default function ActiveQueuesScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Mevcutlara Katıl</Text>
+                    <Text style={styles.headerTitle}>{t('active_queues.header_title')}</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 {isLoading && !refreshing ? (
                     <View style={styles.centerContainer}>
                         <ActivityIndicator size="large" color={colors.primary} />
-                        <Text style={styles.loadingText}>Kuyruklar aranıyor...</Text>
+                        <Text style={styles.loadingText}>{t('active_queues.loading')}</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -257,8 +257,8 @@ export default function ActiveQueuesScreen() {
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <Ionicons name="sad-outline" size={64} color={colors.textDisabled} />
-                                <Text style={styles.emptyTitle}>Henüz Kimse Yok</Text>
-                                <Text style={styles.emptySubtitle}>Şu anda hiçbir rotada bekleyen yolcu bulunmuyor. Kendi yolculuğunu başlatarak havuzu sen açabilirsin!</Text>
+                                <Text style={styles.emptyTitle}>{t('active_queues.empty.title')}</Text>
+                                <Text style={styles.emptySubtitle}>{t('active_queues.empty.subtitle')}</Text>
                             </View>
                         }
                     />
@@ -277,8 +277,8 @@ export default function ActiveQueuesScreen() {
 
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Bagaj Boyutunuz?</Text>
-                            <Text style={styles.modalSubtitle}>Araca sığacağınızı doğrulamamız gerekiyor.</Text>
+                            <Text style={styles.modalTitle}>{t('active_queues.modal.title')}</Text>
+                            <Text style={styles.modalSubtitle}>{t('active_queues.modal.subtitle')}</Text>
                         </View>
 
                         <View style={styles.luggageOptionsRow}>
@@ -288,7 +288,7 @@ export default function ActiveQueuesScreen() {
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="briefcase-outline" size={28} color={selectedLuggage === 'small' ? colors.primary : colors.textSecondary} />
-                                <Text style={[styles.luggageText, selectedLuggage === 'small' && styles.luggageTextSelected]}>Sırt Çantası</Text>
+                                <Text style={[styles.luggageText, selectedLuggage === 'small' && styles.luggageTextSelected]}>{t('common.luggage_small')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -297,7 +297,7 @@ export default function ActiveQueuesScreen() {
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="business-outline" size={32} color={selectedLuggage === 'medium' ? colors.primary : colors.textSecondary} />
-                                <Text style={[styles.luggageText, selectedLuggage === 'medium' && styles.luggageTextSelected]}>Kabin Boy</Text>
+                                <Text style={[styles.luggageText, selectedLuggage === 'medium' && styles.luggageTextSelected]}>{t('common.luggage_medium')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -306,7 +306,7 @@ export default function ActiveQueuesScreen() {
                                 activeOpacity={0.8}
                             >
                                 <Ionicons name="albums-outline" size={36} color={selectedLuggage === 'large' ? colors.primary : colors.textSecondary} />
-                                <Text style={[styles.luggageText, selectedLuggage === 'large' && styles.luggageTextSelected]}>Büyük Boy</Text>
+                                <Text style={[styles.luggageText, selectedLuggage === 'large' && styles.luggageTextSelected]}>{t('common.luggage_large')}</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -315,7 +315,7 @@ export default function ActiveQueuesScreen() {
                                 style={styles.modalCancelButton}
                                 onPress={() => setLuggageModalVisible(false)}
                             >
-                                <Text style={styles.modalCancelText}>Vazgeç</Text>
+                                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalConfirmWrapper} onPress={handleConfirmJoin}>
                                 <LinearGradient
@@ -323,7 +323,7 @@ export default function ActiveQueuesScreen() {
                                     style={styles.modalConfirmButton}
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                 >
-                                    <Text style={styles.modalConfirmText}>Eşleşmeyi Başlat</Text>
+                                    <Text style={styles.modalConfirmText}>{t('active_queues.modal.btn_confirm')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -352,7 +352,7 @@ export default function ActiveQueuesScreen() {
                                             <Ionicons name="person" size={32} color={colors.textSecondary} />
                                         </View>
                                     )}
-                                    <Text style={styles.profileModalName}>{selectedQueue.firstUserName || 'Yolcu'}</Text>
+                                    <Text style={styles.profileModalName}>{selectedQueue.firstUserName || t('common.passenger')}</Text>
                                     <View style={styles.profileModalStats}>
                                         <View style={styles.statBox}>
                                             <Ionicons name="star" size={16} color="#F59E0B" />
@@ -361,7 +361,7 @@ export default function ActiveQueuesScreen() {
                                         <View style={styles.statDivider} />
                                         <View style={styles.statBox}>
                                             <Ionicons name="car-outline" size={16} color={colors.primaryLight} />
-                                            <Text style={styles.statBoxText}>{selectedQueue.firstUserTrips || 0} Yolculuk</Text>
+                                            <Text style={styles.statBoxText}>{selectedQueue.firstUserTrips || 0} {t('common.trips')}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -371,25 +371,25 @@ export default function ActiveQueuesScreen() {
                                     {selectedQueue.firstUserPhoneVerified && (
                                         <View style={styles.trustBadge}>
                                             <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-                                            <Text style={styles.trustBadgeText}>Telefon Onaylı</Text>
+                                            <Text style={styles.trustBadgeText}>{t('badges.phone_verified')}</Text>
                                         </View>
                                     )}
                                     {selectedQueue.firstUserEmailVerified && (
                                         <View style={styles.trustBadge}>
                                             <Ionicons name="mail" size={14} color={colors.success} />
-                                            <Text style={styles.trustBadgeText}>E-posta Onaylı</Text>
+                                            <Text style={styles.trustBadgeText}>{t('badges.email_verified')}</Text>
                                         </View>
                                     )}
                                     {selectedQueue.firstUserTrustBadge && (
                                         <View style={styles.trustBadge}>
                                             <Ionicons name="shield-checkmark" size={14} color={colors.primaryLight} />
-                                            <Text style={styles.trustBadgeText}>Güvenilir Profil</Text>
+                                            <Text style={styles.trustBadgeText}>{t('badges.trusted_profile')}</Text>
                                         </View>
                                     )}
                                 </View>
 
                                 {/* Reviews Section */}
-                                <Text style={styles.reviewsTitle}>Son Yorumlar</Text>
+                                <Text style={styles.reviewsTitle}>{t('profile.recent_reviews')}</Text>
                                 {isLoadingReviews ? (
                                     <View style={styles.reviewsLoading}>
                                         <ActivityIndicator size="small" color={colors.primary} />
@@ -421,7 +421,7 @@ export default function ActiveQueuesScreen() {
                                     />
                                 ) : (
                                     <View style={styles.reviewsEmpty}>
-                                        <Text style={styles.reviewsEmptyText}>Henüz yazılı bir yorum bulunmuyor.</Text>
+                                        <Text style={styles.reviewsEmptyText}>{t('profile.empty_reviews')}</Text>
                                     </View>
                                 )}
 
@@ -429,7 +429,7 @@ export default function ActiveQueuesScreen() {
                                     style={styles.closeProfileButton}
                                     onPress={() => setProfileModalVisible(false)}
                                 >
-                                    <Text style={styles.closeProfileText}>Kapat</Text>
+                                    <Text style={styles.closeProfileText}>{t('common.close')}</Text>
                                 </TouchableOpacity>
                             </>
                         )}

@@ -33,8 +33,8 @@ export default function RatingScreen() {
         { id: 'polite', label: t('rating.tags.polite') },
         { id: 'ontime', label: t('rating.tags.ontime') },
         { id: 'communication', label: t('rating.tags.communication') },
-        { id: 'clean', label: 'Temiz' },
-        { id: 'driver', label: 'Güvenli Sürüş' },
+        { id: 'clean', label: t('rating.tags.clean') },
+        { id: 'driver', label: t('rating.tags.driver') },
     ];
 
     const toggleTag = (id: string) => {
@@ -58,7 +58,7 @@ export default function RatingScreen() {
             });
         } catch (error: any) {
             console.log('Rating submit error (non-critical):', error.message);
-            Alert.alert('Hata', 'Yorum gönderilirken bir sorun oluştu.');
+            Alert.alert(t('common.error'), t('rating.submit_error'));
             // Don't block navigation on rating failure
         } finally {
             setIsSubmitting(false);
@@ -121,7 +121,7 @@ export default function RatingScreen() {
                         transition={{ type: 'spring' } as any}
                     >
                         <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>Neler iyiydi?</Text>
+                            <Text style={styles.sectionLabel}>{t('rating.section_good')}</Text>
                             <View style={styles.tagContainer}>
                                 {tags.map((tag) => {
                                     const isSelected = selectedTags.includes(tag.id);
@@ -145,9 +145,9 @@ export default function RatingScreen() {
                         </PremiumCard>
 
                         <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>Not ekle (isteğe bağlı)</Text>
+                            <Text style={styles.sectionLabel}>{t('rating.section_note')}</Text>
                             <TextInput
-                                placeholder="Deneyiminiz nasıldı?"
+                                placeholder={t('rating.placeholder')}
                                 placeholderTextColor={colors.textDisabled}
                                 value={note}
                                 onChangeText={setNote}
