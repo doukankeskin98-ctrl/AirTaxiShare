@@ -38,6 +38,15 @@ export class AdminService {
     async getRideLogs() {
         return this.matchHistoryRepository.find({
             relations: ['user1', 'user2'],
+            select: {
+                id: true,
+                destination: true,
+                status: true,
+                matchedAt: true,
+                completedAt: true,
+                user1: { id: true, fullName: true, email: true },
+                user2: { id: true, fullName: true, email: true }
+            },
             order: { completedAt: 'DESC', matchedAt: 'DESC' },
             take: 100 // Limit for MVP dashboard
         });
