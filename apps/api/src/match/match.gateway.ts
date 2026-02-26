@@ -375,7 +375,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = this.socketUserMap.get(client.id);
         if (!userId) return;
 
-        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string; firstUserLuggage?: string }> = [];
+        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string; firstUserLuggage?: string; firstUserTime?: string }> = [];
         this.activeQueues.forEach((queue, destination) => {
             if (queue.length > 0) {
                 queuesList.push({
@@ -383,6 +383,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                     count: queue.length,
                     firstUserPhoto: queue[0].userData.photoUrl,
                     firstUserLuggage: queue[0].luggage,
+                    firstUserTime: queue[0].time,
                 });
             }
         });

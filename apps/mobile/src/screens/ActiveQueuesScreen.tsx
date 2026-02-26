@@ -16,6 +16,7 @@ interface QueueItem {
     count: number;
     firstUserPhoto?: string;
     firstUserLuggage?: string;
+    firstUserTime?: string;
 }
 
 export default function ActiveQueuesScreen() {
@@ -123,6 +124,20 @@ export default function ActiveQueuesScreen() {
                         <View style={styles.badge}>
                             <View style={styles.pulseDot} />
                             <Text style={styles.badgeText}>{item.count} Bekleyen</Text>
+                        </View>
+                    </View>
+
+                    {/* Match Constraints Info */}
+                    <View style={styles.constraintsRow}>
+                        <View style={styles.constraintBadge}>
+                            <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                            <Text style={styles.constraintText}>{item.firstUserTime || 'Farketmez'}</Text>
+                        </View>
+                        <View style={styles.constraintBadge}>
+                            <Ionicons name="briefcase-outline" size={14} color={colors.textSecondary} />
+                            <Text style={styles.constraintText}>
+                                {item.firstUserLuggage === 'small' ? 'Sırt Çantası' : item.firstUserLuggage === 'large' ? 'Büyük Boy' : 'Kabin Boy'}
+                            </Text>
                         </View>
                     </View>
 
@@ -286,6 +301,11 @@ const styles = StyleSheet.create({
     badge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' },
     pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success, marginRight: 6 },
     badgeText: { ...typography.caption, color: colors.success, fontWeight: '600' },
+
+    constraintsRow: { flexDirection: 'row', gap: spacing.s, marginBottom: spacing.m },
+    constraintBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, gap: 4 },
+    constraintText: { ...typography.caption, color: colors.textSecondary, fontSize: 13 },
+
     cardActionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
     avatarStack: { flexDirection: 'row', alignItems: 'center' },
     avatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.surface },
