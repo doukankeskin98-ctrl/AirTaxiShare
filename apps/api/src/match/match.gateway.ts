@@ -189,15 +189,36 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    private broadcastActiveQueues() {
+        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string; firstUserLuggage?: string; firstUserTime?: string }> = [];
+        this.activeQueues.forEach((queue, destination) => {
+            if (queue.length > 0) {
+                queuesList.push({
+                    destination,
+                    count: queue.length,
+                    firstUserPhoto: queue[0].userData.photoUrl,
+                    firstUserLuggage: queue[0].luggage,
+                    firstUserTime: queue[0].time,
+                });
+            }
+        });
+        this.server.emit('active_queues_list', { queues: queuesList });
+    }
+
     private removeUserFromAllQueues(userId: string) {
+        let changed = false;
         this.activeQueues.forEach((queue, destination) => {
             const index = queue.findIndex(u => u.userId === userId);
             if (index !== -1) {
                 queue.splice(index, 1);
                 this.logger.debug(`[Queue] Removed user ${userId} from ${destination}`);
                 this.broadcastQueueCount(destination, queue);
+                changed = true;
             }
         });
+        if (changed) {
+            this.broadcastActiveQueues();
+        }
     }
 
     private async getOrFetchUser(userId: string): Promise<UserCacheEntry> {
@@ -348,6 +369,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 this.logger.log(`[Queue] No partner found yet for ${userId}, queuing...`);
                 queue.push(newUser);
                 this.broadcastQueueCount(destination, queue);
+                this.broadcastActiveQueues();
             }
         } catch (err: any) {
             this.logger.error(`[Queue] Unhandled error for ${client.id}: ${err.message}`, err.stack);

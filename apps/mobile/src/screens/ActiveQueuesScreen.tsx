@@ -130,13 +130,13 @@ export default function ActiveQueuesScreen() {
                     {/* Match Constraints Info */}
                     <View style={styles.constraintsRow}>
                         <View style={styles.constraintBadge}>
-                            <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                            <Ionicons name="time-outline" size={14} color={colors.primaryLight} />
                             <Text style={styles.constraintText}>{item.firstUserTime || 'Farketmez'}</Text>
                         </View>
                         <View style={styles.constraintBadge}>
-                            <Ionicons name="briefcase-outline" size={14} color={colors.textSecondary} />
+                            <Ionicons name="briefcase-outline" size={14} color={colors.primaryLight} />
                             <Text style={styles.constraintText}>
-                                {item.firstUserLuggage === 'small' ? 'Sırt Çantası' : item.firstUserLuggage === 'large' ? 'Büyük Boy' : 'Kabin Boy'}
+                                {item.firstUserLuggage === 'small' ? 'Sırt Çantası' : item.firstUserLuggage === 'large' ? 'Büyük Boy' : 'Orta'}
                             </Text>
                         </View>
                     </View>
@@ -302,9 +302,9 @@ const styles = StyleSheet.create({
     pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success, marginRight: 6 },
     badgeText: { ...typography.caption, color: colors.success, fontWeight: '600' },
 
-    constraintsRow: { flexDirection: 'row', gap: spacing.s, marginBottom: spacing.m },
-    constraintBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, gap: 4 },
-    constraintText: { ...typography.caption, color: colors.textSecondary, fontSize: 13 },
+    constraintsRow: { flexDirection: 'row', gap: spacing.s, marginBottom: spacing.m, paddingHorizontal: spacing.xs },
+    constraintBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(14, 165, 233, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, gap: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(14, 165, 233, 0.3)' },
+    constraintText: { ...typography.caption, color: colors.primaryLight, fontSize: 13, fontWeight: '500' },
 
     cardActionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
     avatarStack: { flexDirection: 'row', alignItems: 'center' },
