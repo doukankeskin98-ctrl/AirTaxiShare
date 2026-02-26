@@ -6,6 +6,7 @@ import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MatchModule } from './match/match.module';
+import { AdminModule } from './admin/admin.module';
 import { TripRequest } from './match/trip-request.entity';
 import { Rating } from './match/rating.entity';
 import { MatchHistory } from './match/match-history.entity';
@@ -72,6 +73,7 @@ import { HealthModule } from './health/health.module';
         UserModule,
         AuthModule,
         MatchModule,
+        AdminModule,
         HealthModule,
     ],
     controllers: [],
