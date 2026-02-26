@@ -370,6 +370,25 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    @SubscribeMessage('get_active_queues')
+    handleGetActiveQueues(client: Socket) {
+        const userId = this.socketUserMap.get(client.id);
+        if (!userId) return;
+
+        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string }> = [];
+        this.activeQueues.forEach((queue, destination) => {
+            if (queue.length > 0) {
+                queuesList.push({
+                    destination,
+                    count: queue.length,
+                    firstUserPhoto: queue[0].userData.photoUrl,
+                });
+            }
+        });
+
+        this.emitToUser(userId, 'active_queues_list', { queues: queuesList });
+    }
+
     @SubscribeMessage('send_message')
     async handleChatMessage(client: Socket, payload: { matchId: string; text: string; time: string }) {
         try {
