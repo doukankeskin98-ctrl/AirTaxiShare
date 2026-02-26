@@ -169,7 +169,9 @@ export default function ActiveQueuesScreen() {
                     <View style={styles.constraintsRow}>
                         <View style={styles.constraintBadge}>
                             <Ionicons name="time-outline" size={14} color={colors.primaryLight} />
-                            <Text style={styles.constraintText}>{item.firstUserTime || 'Farketmez'}</Text>
+                            <Text style={styles.constraintText}>
+                                {item.firstUserTime === '0' ? 'Hemen' : item.firstUserTime ? `${item.firstUserTime} dk` : 'Farketmez'}
+                            </Text>
                         </View>
                         <View style={styles.constraintBadge}>
                             <Ionicons name="briefcase-outline" size={14} color={colors.primaryLight} />
