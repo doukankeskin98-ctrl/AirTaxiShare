@@ -6,8 +6,10 @@
  * ChatScreen is not active. Also tracks unread count per matchId.
  */
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SocketService from '../services/socket';
+import * as Notifications from 'expo-notifications';
 
 interface ChatContextValue {
     /** Unread count for a given matchId */
@@ -70,6 +72,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                     ...prev,
                     [matchId]: (prev[matchId] || 0) + 1,
                 }));
+
+                if (Platform.OS !== 'web') {
+                    Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: 'Yeni Mesaj 💬',
+                            body: message.text || 'Mesajınızı okumak için dokunun',
+                            data: { matchId, type: 'receive_message' },
+                        },
+                        trigger: null, // show immediately
+                    }).catch(() => { });
+                }
             }
         };
 
