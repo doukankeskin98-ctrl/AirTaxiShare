@@ -1,8 +1,0 @@
-{
-  "/page": "/",
-  "/logs/page": "/logs",
-  "/login/page": "/login",
-  "/users/page": "/users",
-  "/api/auth/route": "/api/auth",
-  "/api/auth/logout/route": "/api/auth/logout"
-}

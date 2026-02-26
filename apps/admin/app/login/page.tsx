@@ -4,11 +4,39 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+    const [lang, setLang] = useState<'en' | 'tr'>('tr');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    const dict = {
+        en: {
+            title: 'AirTaxi HQ',
+            subtitle: 'Secure Admin Portal',
+            emailLabel: 'Admin Email',
+            passwordLabel: 'Password',
+            buttonLoading: 'Authenticating...',
+            buttonIdle: 'Sign In to HQ',
+            errorUnexpected: 'An unexpected error occurred',
+            errorLoginFailed: 'Login failed',
+            toggleText: 'TR',
+        },
+        tr: {
+            title: 'AirTaxi HQ',
+            subtitle: 'Güvenli Yönetim Paneli',
+            emailLabel: 'Yönetici E-posta',
+            passwordLabel: 'Şifre',
+            buttonLoading: 'Giriş Yapılıyor...',
+            buttonIdle: 'Yönetim Paneline Gir',
+            errorUnexpected: 'Beklenmeyen bir hata oluştu',
+            errorLoginFailed: 'Giriş başarısız',
+            toggleText: 'EN',
+        }
+    };
+
+    const t = dict[lang];
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,10 +56,10 @@ export default function LoginPage() {
             }
 
             // Successfully set cookie via the Next.js API route
-            router.push('/');
-            router.refresh();
+            // Next 13 App Router sometimes races cookie state on client pushes, so do a hard reload:
+            window.location.href = '/';
         } catch (err: any) {
-            setError(err.message || 'An unexpected error occurred');
+            setError(err.message || t.errorUnexpected);
         } finally {
             setLoading(false);
         }
@@ -39,17 +67,23 @@ export default function LoginPage() {
 
     return (
         <div style={styles.container}>
+            <button
+                onClick={() => setLang(lang === 'en' ? 'tr' : 'en')}
+                style={styles.langToggle}
+            >
+                {t.toggleText}
+            </button>
             <div style={styles.card}>
                 <div style={styles.header}>
-                    <h1 style={styles.title}>AirTaxi HQ</h1>
-                    <p style={styles.subtitle}>Secure Admin Portal</p>
+                    <h1 style={styles.title}>{t.title}</h1>
+                    <p style={styles.subtitle}>{t.subtitle}</p>
                 </div>
 
                 <form onSubmit={handleLogin} style={styles.form}>
                     {error && <div style={styles.errorBox}>{error}</div>}
 
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Admin Email</label>
+                        <label style={styles.label}>{t.emailLabel}</label>
                         <input
                             type="email"
                             value={email}
@@ -61,7 +95,7 @@ export default function LoginPage() {
                     </div>
 
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Password</label>
+                        <label style={styles.label}>{t.passwordLabel}</label>
                         <input
                             type="password"
                             value={password}
@@ -77,7 +111,7 @@ export default function LoginPage() {
                         disabled={loading}
                         style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
                     >
-                        {loading ? 'Authenticating...' : 'Sign In to HQ'}
+                        {loading ? t.buttonLoading : t.buttonIdle}
                     </button>
                 </form>
             </div>
@@ -98,6 +132,20 @@ const styles: Record<string, React.CSSProperties> = {
         alignItems: 'center',
         position: 'relative',
         overflow: 'hidden',
+    },
+    langToggle: {
+        position: 'absolute',
+        top: 30,
+        right: 40,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        color: '#fff',
+        padding: '8px 16px',
+        borderRadius: 20,
+        cursor: 'pointer',
+        fontWeight: 600,
+        zIndex: 20,
+        transition: 'all 0.2s ease',
     },
     card: {
         backgroundColor: 'rgba(20, 22, 38, 0.7)',
