@@ -41,4 +41,11 @@ export class MatchController {
     async getStats() {
         return this.matchService.getAdminStats();
     }
+
+    // Temporary Debug Endpoint for diagnosing empty reviews
+    @Get('debug/ratings')
+    async debugRatings() {
+        const repo = this.matchService['ratingRepository'];
+        return repo.find({ order: { createdAt: 'DESC' }, take: 10, relations: ['toUser', 'fromUser'] });
+    }
 }
