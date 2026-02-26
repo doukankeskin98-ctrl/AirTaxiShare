@@ -22,38 +22,6 @@ export class AuthController {
         return this.authService.emailRegister(dto.email, dto.password, dto.fullName);
     }
 
-    // --- MAGIC ADMIN CREATOR (Temporary for MVP Setup) ---
-    @Get('setup-magic-admin')
-    async setupMagicAdmin() {
-        const adminEmail = 'admin@airtaxishare.com';
-        const adminPass = 'Admin123!';
-
-        try {
-            // Check if exists
-            let user = await this.authService['userService'].findByEmail(adminEmail);
-
-            if (!user) {
-                // Create explicitly
-                const res = await this.authService.emailRegister(adminEmail, adminPass, 'HQ Administrator');
-                user = res.user;
-            }
-
-            // Force status to ADMIN
-            if (user && user.id) {
-                await this.authService['userService'].update(user.id, { role: 'ADMIN' as any, status: 'ACTIVE' as any });
-            }
-
-            return {
-                success: true,
-                message: "Admin account successfully prepared.",
-                credentials: { email: adminEmail, password: adminPass },
-                warning: "Please delete this route from code after first use."
-            };
-        } catch (error) {
-            return { success: false, error: 'Could not create magic admin.' };
-        }
-    }
-
     @Post('email-login')
     @HttpCode(HttpStatus.OK)
     @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 attempts per 60 seconds
