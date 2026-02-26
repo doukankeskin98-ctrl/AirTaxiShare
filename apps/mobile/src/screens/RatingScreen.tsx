@@ -58,6 +58,7 @@ export default function RatingScreen() {
             });
         } catch (error: any) {
             console.log('Rating submit error (non-critical):', error.message);
+            Alert.alert('Hata', 'Yorum gönderilirken bir sorun oluştu.');
             // Don't block navigation on rating failure
         } finally {
             setIsSubmitting(false);
@@ -156,24 +157,24 @@ export default function RatingScreen() {
                         </PremiumCard>
                     </MotiView>
                 )}
-            </ScrollView>
 
-            <MotiView
-                style={styles.footer}
-                animate={{
-                    opacity: rating > 0 ? 1 : 0.5,
-                    translateY: rating > 0 ? 0 : 20
-                }}
-            >
-                <PremiumButton
-                    title={t('rating.cta.submit')}
-                    onPress={handleSubmit}
-                    disabled={rating === 0}
-                    loading={isSubmitting}
-                    icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
-                    style={styles.submitButton}
-                />
-            </MotiView>
+                <MotiView
+                    style={styles.footer}
+                    animate={{
+                        opacity: rating > 0 ? 1 : 0.5,
+                        translateY: rating > 0 ? 0 : 20
+                    }}
+                >
+                    <PremiumButton
+                        title={t('rating.cta.submit')}
+                        onPress={handleSubmit}
+                        disabled={rating === 0}
+                        loading={isSubmitting}
+                        icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
+                        style={styles.submitButton}
+                    />
+                </MotiView>
+            </ScrollView>
         </View>
     );
 }
@@ -256,15 +257,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: spacing.l,
-        paddingBottom: 40,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
+        marginTop: spacing.xl,
+        paddingBottom: spacing.l,
     },
     submitButton: {
         width: '100%',

@@ -140,4 +140,5 @@ export const MatchAPI = {
     submitRating: (data: { toUserId: string; matchId: string; score: number; tags?: string[]; note?: string }) =>
         api.post('/match/rating', data),
     getHistory: () => api.get('/match/history'),
+    getUserReviews: (userId: string) => api.get(`/match/user/${userId}/reviews`),
 };

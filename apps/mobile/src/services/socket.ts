@@ -142,6 +142,10 @@ class SocketService {
         this.socket?.emit('leave_queue');
     }
 
+    public onActiveQueuesList(callback: (payload: { queues: any[] }) => void) {
+        return this.on('active_queues_list', callback);
+    }
+
     public onMatchFound(callback: (payload: MatchFoundPayload) => void) {
         return this.on('match_found', callback);
     }
@@ -248,6 +252,13 @@ class SocketService {
             unsubOnline();
             unsubOffline();
         };
+    }
+
+    /** Helper to emit any ad-hoc event safely */
+    public emit(event: string, payload?: any) {
+        if (this.socket?.connected) {
+            this.socket.emit(event, payload);
+        }
     }
 }
 

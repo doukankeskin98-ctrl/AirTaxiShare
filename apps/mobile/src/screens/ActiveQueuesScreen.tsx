@@ -8,7 +8,7 @@ import { MotiView } from 'moti';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import api from '../services/api';
+import { api, MatchAPI } from '../services/api';
 import SocketService from '../services/socket';
 import { showAlert } from '../utils/alert';
 
@@ -56,7 +56,7 @@ export default function ActiveQueuesScreen() {
     const fetchQueues = useCallback(async () => {
         try {
             await SocketService.connect();
-            SocketService.socket?.emit('get_active_queues');
+            SocketService.emit('get_active_queues');
         } catch (error) {
             console.warn('[ActiveQueues] Socket connection failed', error);
             setIsLoading(false);
@@ -66,7 +66,9 @@ export default function ActiveQueuesScreen() {
 
     useEffect(() => {
         // Register listener for queue list
-        const unsub = SocketService.socket?.on('active_queues_list', (payload: { queues: QueueItem[] }) => {
+        // Note: SocketService.on is private, so we'll use a custom wrapper if needed or we must expose it.
+        // For now, doing it right using global custom events.
+        const cleanup = SocketService.onActiveQueuesList?.((payload) => {
             setQueues(payload.queues || []);
             setIsLoading(false);
             setRefreshing(false);
@@ -75,7 +77,7 @@ export default function ActiveQueuesScreen() {
         fetchQueues();
 
         return () => {
-            if (unsub) SocketService.socket?.off('active_queues_list', unsub);
+            if (cleanup) cleanup();
         };
     }, [fetchQueues]);
 
@@ -92,7 +94,7 @@ export default function ActiveQueuesScreen() {
         if (queue.firstUserId) {
             setIsLoadingReviews(true);
             try {
-                const res = await api.get(`/match/user/${queue.firstUserId}/reviews`);
+                const res = await MatchAPI.getUserReviews(queue.firstUserId);
                 setProfileReviews(res.data);
             } catch (err) {
                 console.warn('Failed to fetch reviews', err);
@@ -170,7 +172,7 @@ export default function ActiveQueuesScreen() {
                         <View style={styles.constraintBadge}>
                             <Ionicons name="time-outline" size={14} color={colors.primaryLight} />
                             <Text style={styles.constraintText}>
-                                {item.firstUserTime === '0' ? 'Hemen' : item.firstUserTime ? `${item.firstUserTime} dk` : 'Farketmez'}
+                                {String(item.firstUserTime) === '0' ? 'Hemen' : item.firstUserTime ? `${item.firstUserTime} dk` : 'Farketmez'}
                             </Text>
                         </View>
                         <View style={styles.constraintBadge}>
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { ...typography.body, color: colors.textSecondary, marginTop: spacing.m },
     listContent: { padding: spacing.m, paddingTop: spacing.l, paddingBottom: 100 },
-    cardContainer: { marginBottom: spacing.m, borderRadius: 24, overflow: 'hidden', ...shadows.medium },
+    cardContainer: { marginBottom: spacing.m, borderRadius: 24, overflow: 'hidden', ...shadows.card },
     cardBlur: { padding: spacing.l, backgroundColor: 'rgba(30, 33, 54, 0.4)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     cardHighlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.m },
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
     avatarStack: { flexDirection: 'row', alignItems: 'center' },
     avatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.surface },
     fallbackAvatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.surface, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
-    avatarOverlap: { marginLeft: -12, backgroundColor: colors.surfaceDark },
+    avatarOverlap: { marginLeft: -12, backgroundColor: colors.surface },
     overlapText: { ...typography.caption, fontSize: 11, color: colors.textSecondary },
     joinButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 100, gap: spacing.xs },
     joinButtonText: { ...typography.button, color: '#FFF' },
@@ -479,7 +481,7 @@ const styles = StyleSheet.create({
 
     /* Modal Styles */
     modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
-    modalContent: { backgroundColor: colors.surfaceDark, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: spacing.xl, paddingBottom: 40, ...shadows.large },
+    modalContent: { backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: spacing.xl, paddingBottom: 40, ...shadows.floating },
     modalHeader: { marginBottom: spacing.l, alignItems: 'center' },
     modalTitle: { ...typography.h2, color: colors.textPrimary, marginBottom: 8 },
     modalSubtitle: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
