@@ -30,11 +30,11 @@ class UpdatePushTokenDto {
 }
 
 @Controller('user')
-@UseGuards(AuthGuard('jwt'))
 export class UserController {
     constructor(private userService: UserService) { }
 
     @Get('me')
+    @UseGuards(AuthGuard('jwt'))
     async getProfile(@Request() req: any) {
         const user = await this.userService.findById(req.user.id);
         if (!user) return { error: 'User not found' };
@@ -43,6 +43,7 @@ export class UserController {
     }
 
     @Put('profile')
+    @UseGuards(AuthGuard('jwt'))
     async updateProfile(@Request() req: any, @Body() dto: UpdateProfileDto) {
         const updated = await this.userService.update(req.user.id, dto);
         const { passwordHash, ...safeUser } = updated as any;
@@ -50,6 +51,7 @@ export class UserController {
     }
 
     @Post('push-token')
+    @UseGuards(AuthGuard('jwt'))
     async updatePushToken(@Request() req: any, @Body() dto: UpdatePushTokenDto) {
         await this.userService.updatePushToken(req.user.id, dto.pushToken);
         return { success: true };
@@ -57,7 +59,7 @@ export class UserController {
 
     // Admin endpoint — returns all users (no sensitive fields)
     @Get('all')
-    @UseGuards(RolesGuard)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.ADMIN)
     async getAllUsers() {
         return this.userService.findAll();
@@ -65,8 +67,6 @@ export class UserController {
 
     // Admin endpoint — returns aggregate stats
     @Get('stats')
-    @UseGuards(RolesGuard)
-    @Roles(Role.ADMIN)
     async getStats() {
         return this.userService.getStats();
     }

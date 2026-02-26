@@ -269,16 +269,26 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     /**
      * Strict Authorization Wrapper (Section 2)
      */
-    private validateMatchAccess(client: Socket, matchId: string): string | null {
+    private async validateMatchAccess(client: Socket, matchId: string): Promise<string | null> {
         const userId = this.socketUserMap.get(client.id);
         if (!userId) {
             this.logger.warn(`[Auth] Unauthenticated socket ${client.id} trying to access match ${matchId}`);
             return null;
         }
-        const userMatch = this.userMatchMap.get(userId);
+        let userMatch = this.userMatchMap.get(userId);
+
+        // Fallback: If memory was cleared (e.g., server restart or multi-pod scale), check database
         if (userMatch !== matchId) {
-            this.logger.warn(`[Auth] User ${userId} unauthorized access to match ${matchId}`);
-            return null;
+            const dbMatch = await this.matchService.findActiveMatchByMatchId(matchId);
+            if (dbMatch && (dbMatch.user1Id === userId || dbMatch.user2Id === userId)) {
+                this.userMatchMap.set(dbMatch.user1Id, matchId);
+                this.userMatchMap.set(dbMatch.user2Id, matchId);
+                this.activeMatches.set(matchId, [dbMatch.user1Id, dbMatch.user2Id]);
+                userMatch = matchId; // Memory restored!
+            } else {
+                this.logger.warn(`[Auth] User ${userId} unauthorized access to match ${matchId}`);
+                return null;
+            }
         }
         return userId;
     }
@@ -444,7 +454,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         try {
             if (!payload?.matchId || !payload?.text) return;
 
-            const userId = this.validateMatchAccess(client, payload.matchId);
+            const userId = await this.validateMatchAccess(client, payload.matchId);
             if (!userId) return;
 
             // Optional: limit text length (Section 9)
@@ -484,7 +494,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage('end_match')
     async handleEndMatch(client: Socket, payload: { matchId: string }) {
-        const userId = this.validateMatchAccess(client, payload.matchId);
+        const userId = await this.validateMatchAccess(client, payload.matchId);
         if (!userId) return;
 
         this.logger.log(`[Match] Ended by ${userId}: ${payload.matchId}`);
@@ -508,8 +518,8 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     @SubscribeMessage('select_meeting_point')
-    handleSelectMeetingPoint(client: Socket, payload: { matchId: string; point: string }) {
-        const userId = this.validateMatchAccess(client, payload.matchId);
+    async handleSelectMeetingPoint(client: Socket, payload: { matchId: string; point: string }) {
+        const userId = await this.validateMatchAccess(client, payload.matchId);
         if (!userId || !payload.point) return;
 
         const participants = this.activeMatches.get(payload.matchId);
@@ -523,7 +533,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @SubscribeMessage('confirm_meetup')
     async handleConfirmMeetup(client: Socket, payload: { matchId: string }) {
-        const userId = this.validateMatchAccess(client, payload.matchId);
+        const userId = await this.validateMatchAccess(client, payload.matchId);
         if (!userId) return;
 
         const matchId = payload.matchId;

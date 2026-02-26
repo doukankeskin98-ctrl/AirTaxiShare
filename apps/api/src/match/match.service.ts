@@ -149,6 +149,12 @@ export class MatchService {
         });
     }
 
+    async findActiveMatchByMatchId(matchId: string): Promise<MatchHistory | null> {
+        return this.matchHistoryRepository.findOne({
+            where: { matchSocketId: matchId, status: MatchStatus.ACTIVE },
+        });
+    }
+
     async getAdminStats(): Promise<{ totalMatches: number; completedMatches: number; activeMatches: number }> {
         const totalMatches = await this.matchHistoryRepository.count();
         const completedMatches = await this.matchHistoryRepository.count({ where: { status: 'COMPLETED' as any } });
