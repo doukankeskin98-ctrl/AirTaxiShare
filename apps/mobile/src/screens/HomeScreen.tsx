@@ -170,7 +170,7 @@ export default function HomeScreen() {
                                         <Ionicons name="add" size={32} color={colors.primary} />
                                     </View>
                                     <View>
-                                        <Text style={styles.mainCardTitle}>{t('home.createMatch')}</Text>
+                                        <Text style={styles.mainCardTitle}>Yolculuk Başlat</Text>
                                         <Text style={styles.mainCardSubtitle}>Aynı yöne gidenlerle masrafı paylaş</Text>
                                     </View>
                                 </View>
@@ -187,14 +187,14 @@ export default function HomeScreen() {
                             transition={{ delay: 500, type: 'spring' } as any}
                             style={styles.secondaryCardWrapper}
                         >
-                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('CreateMatch')}>
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('ActiveQueues')}>
                                 <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
                                     <View style={styles.secondaryHighlight} />
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(14, 165, 233, 0.2)' }]}>
                                         <Ionicons name="search" size={24} color={colors.secondary} />
                                     </View>
-                                    <Text style={styles.secondaryTitle}>Eşleşme Ara</Text>
-                                    <Text style={styles.secondarySubtitle}>Mevcutlara katıl</Text>
+                                    <Text style={styles.secondaryTitle}>Mevcutlara katıl</Text>
+                                    <Text style={styles.secondarySubtitle}>Yolculuk Birlikteliği</Text>
                                 </BlurView>
                             </TouchableOpacity>
                         </MotiView>
@@ -206,7 +206,7 @@ export default function HomeScreen() {
                             transition={{ delay: 600, type: 'spring' } as any}
                             style={styles.secondaryCardWrapper}
                         >
-                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={handleCreateMatch}>
+                            <TouchableOpacity activeOpacity={0.8} style={styles.secondaryCard} onPress={() => navigation.navigate('MatchHistory')}>
                                 <BlurView intensity={30} tint="dark" style={styles.secondaryBlur}>
                                     <View style={styles.secondaryHighlight} />
                                     <View style={[styles.secondaryIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>

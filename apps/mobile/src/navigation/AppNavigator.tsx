@@ -31,9 +31,14 @@ export type RootStackParamList = {
     Rating: { matchId: string; otherUser?: any };
     Settings: undefined;
     Legal: { type: 'tos' | 'privacy' };
+    ActiveQueues: undefined;
+    MatchHistory: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
+
+import ActiveQueuesScreen from '../screens/ActiveQueuesScreen';
+import MatchHistoryScreen from '../screens/MatchHistoryScreen';
 
 import { navigationRef } from './RootNavigation';
 
@@ -60,6 +65,8 @@ export default function AppNavigator() {
                 <Stack.Screen name="Rating" component={RatingScreen} />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="Legal" component={LegalScreen} />
+                <Stack.Screen name="ActiveQueues" component={ActiveQueuesScreen} />
+                <Stack.Screen name="MatchHistory" component={MatchHistoryScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
