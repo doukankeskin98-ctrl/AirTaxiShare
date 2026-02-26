@@ -24,7 +24,7 @@ export class AdminService {
             activeUsers,
             totalMatches,
             completedRides,
-            revenue: completedRides * 45 // mock revenue base calculation
+            revenue: completedRides * 39.99 // mock revenue base calculation (39.99 TL per ride)
         };
     }
 
