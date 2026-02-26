@@ -8,15 +8,32 @@ import { MotiView } from 'moti';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import api from '../services/api';
 import SocketService from '../services/socket';
 import { showAlert } from '../utils/alert';
 
 interface QueueItem {
     destination: string;
     count: number;
+    firstUserId?: string;
+    firstUserName?: string;
     firstUserPhoto?: string;
+    firstUserRating?: number;
+    firstUserTrips?: number;
+    firstUserTrustBadge?: boolean;
+    firstUserPhoneVerified?: boolean;
+    firstUserEmailVerified?: boolean;
     firstUserLuggage?: string;
     firstUserTime?: string;
+}
+
+interface ReviewItem {
+    id: string;
+    score: number;
+    note: string;
+    createdAt: string;
+    reviewerName: string;
+    reviewerPhoto: string | null;
 }
 
 export default function ActiveQueuesScreen() {
@@ -31,6 +48,10 @@ export default function ActiveQueuesScreen() {
     const [isLuggageModalVisible, setLuggageModalVisible] = useState(false);
     const [selectedQueue, setSelectedQueue] = useState<QueueItem | null>(null);
     const [selectedLuggage, setSelectedLuggage] = useState<string>('medium');
+
+    const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+    const [profileReviews, setProfileReviews] = useState<ReviewItem[]>([]);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
     const fetchQueues = useCallback(async () => {
         try {
@@ -62,6 +83,23 @@ export default function ActiveQueuesScreen() {
         setSelectedQueue(queue);
         setSelectedLuggage('medium');
         setLuggageModalVisible(true);
+    };
+
+    const openProfileModal = async (queue: QueueItem) => {
+        setSelectedQueue(queue);
+        setProfileReviews([]);
+        setProfileModalVisible(true);
+        if (queue.firstUserId) {
+            setIsLoadingReviews(true);
+            try {
+                const res = await api.get(`/match/user/${queue.firstUserId}/reviews`);
+                setProfileReviews(res.data);
+            } catch (err) {
+                console.warn('Failed to fetch reviews', err);
+            } finally {
+                setIsLoadingReviews(false);
+            }
+        }
     };
 
     const getLuggageScore = (size: string | undefined): number => {
@@ -143,29 +181,42 @@ export default function ActiveQueuesScreen() {
 
                     {/* Middle Row: Avatars & Action */}
                     <View style={styles.cardActionRow}>
-                        <View style={styles.avatarStack}>
-                            {item.firstUserPhoto ? (
-                                <Image source={{ uri: item.firstUserPhoto }} style={styles.avatar} />
-                            ) : (
-                                <View style={styles.fallbackAvatar}>
-                                    <Ionicons name="person" size={16} color={colors.textSecondary} />
+                        <TouchableOpacity style={styles.profileClickArea} onPress={() => openProfileModal(item)} activeOpacity={0.7}>
+                            <View style={styles.avatarStack}>
+                                {item.firstUserPhoto ? (
+                                    <Image source={{ uri: item.firstUserPhoto }} style={styles.avatar} />
+                                ) : (
+                                    <View style={styles.fallbackAvatar}>
+                                        <Ionicons name="person" size={16} color={colors.textSecondary} />
+                                    </View>
+                                )}
+                                {item.count > 1 && (
+                                    <View style={[styles.fallbackAvatar, styles.avatarOverlap]}>
+                                        <Text style={styles.overlapText}>+{item.count - 1}</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <View style={styles.profileTextInfo}>
+                                <Text style={styles.profileName} numberOfLines={1}>
+                                    {item.firstUserName || 'Yolcu'}
+                                </Text>
+                                <View style={styles.ratingRow}>
+                                    <Ionicons name="star" size={12} color="#F59E0B" />
+                                    <Text style={styles.ratingText}>{item.firstUserRating ? item.firstUserRating.toFixed(1) : '5.0'}</Text>
                                 </View>
-                            )}
-                            {item.count > 1 && (
-                                <View style={[styles.fallbackAvatar, styles.avatarOverlap]}>
-                                    <Text style={styles.overlapText}>+{item.count - 1}</Text>
-                                </View>
-                            )}
-                        </View>
+                            </View>
+                        </TouchableOpacity>
 
-                        <LinearGradient
-                            colors={colors.primaryGradient}
-                            style={styles.joinButton}
-                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                        >
-                            <Text style={styles.joinButtonText}>Katıl</Text>
-                            <Ionicons name="arrow-forward" size={16} color="#FFF" />
-                        </LinearGradient>
+                        <TouchableOpacity onPress={() => openLuggageModal(item)} activeOpacity={0.8}>
+                            <LinearGradient
+                                colors={colors.primaryGradient}
+                                style={styles.joinButton}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                            >
+                                <Text style={styles.joinButtonText}>Katıl</Text>
+                                <Ionicons name="arrow-forward" size={16} color="#FFF" />
+                            </LinearGradient>
+                        </TouchableOpacity>
                     </View>
                 </BlurView>
             </TouchableOpacity>
@@ -275,6 +326,112 @@ export default function ActiveQueuesScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* User Profile Modal */}
+            <Modal
+                visible={isProfileModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setProfileModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
+
+                    <View style={styles.modalContent}>
+                        {selectedQueue && (
+                            <>
+                                <View style={styles.profileModalHeader}>
+                                    {selectedQueue.firstUserPhoto ? (
+                                        <Image source={{ uri: selectedQueue.firstUserPhoto }} style={styles.profileModalAvatar} />
+                                    ) : (
+                                        <View style={styles.profileModalFallbackAvatar}>
+                                            <Ionicons name="person" size={32} color={colors.textSecondary} />
+                                        </View>
+                                    )}
+                                    <Text style={styles.profileModalName}>{selectedQueue.firstUserName || 'Yolcu'}</Text>
+                                    <View style={styles.profileModalStats}>
+                                        <View style={styles.statBox}>
+                                            <Ionicons name="star" size={16} color="#F59E0B" />
+                                            <Text style={styles.statBoxText}>{selectedQueue.firstUserRating?.toFixed(1) || '5.0'}</Text>
+                                        </View>
+                                        <View style={styles.statDivider} />
+                                        <View style={styles.statBox}>
+                                            <Ionicons name="car-outline" size={16} color={colors.primaryLight} />
+                                            <Text style={styles.statBoxText}>{selectedQueue.firstUserTrips || 0} Yolculuk</Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                {/* Trust Badges */}
+                                <View style={styles.badgesWrapper}>
+                                    {selectedQueue.firstUserPhoneVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                                            <Text style={styles.trustBadgeText}>Telefon Onaylı</Text>
+                                        </View>
+                                    )}
+                                    {selectedQueue.firstUserEmailVerified && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="mail" size={14} color={colors.success} />
+                                            <Text style={styles.trustBadgeText}>E-posta Onaylı</Text>
+                                        </View>
+                                    )}
+                                    {selectedQueue.firstUserTrustBadge && (
+                                        <View style={styles.trustBadge}>
+                                            <Ionicons name="shield-checkmark" size={14} color={colors.primaryLight} />
+                                            <Text style={styles.trustBadgeText}>Güvenilir Profil</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                {/* Reviews Section */}
+                                <Text style={styles.reviewsTitle}>Son Yorumlar</Text>
+                                {isLoadingReviews ? (
+                                    <View style={styles.reviewsLoading}>
+                                        <ActivityIndicator size="small" color={colors.primary} />
+                                    </View>
+                                ) : profileReviews.length > 0 ? (
+                                    <FlatList
+                                        data={profileReviews}
+                                        keyExtractor={(r) => r.id}
+                                        style={styles.reviewsList}
+                                        renderItem={({ item }) => (
+                                            <View style={styles.reviewCard}>
+                                                <View style={styles.reviewHeader}>
+                                                    {item.reviewerPhoto ? (
+                                                        <Image source={{ uri: item.reviewerPhoto }} style={styles.reviewAvatar} />
+                                                    ) : (
+                                                        <View style={styles.reviewFallbackAvatar}>
+                                                            <Ionicons name="person" size={12} color={colors.textSecondary} />
+                                                        </View>
+                                                    )}
+                                                    <Text style={styles.reviewName}>{item.reviewerName}</Text>
+                                                    <View style={styles.reviewScoreBox}>
+                                                        <Ionicons name="star" size={10} color="#F59E0B" />
+                                                        <Text style={styles.reviewScoreText}>{item.score}</Text>
+                                                    </View>
+                                                </View>
+                                                <Text style={styles.reviewNote}>"{item.note}"</Text>
+                                            </View>
+                                        )}
+                                    />
+                                ) : (
+                                    <View style={styles.reviewsEmpty}>
+                                        <Text style={styles.reviewsEmptyText}>Henüz yazılı bir yorum bulunmuyor.</Text>
+                                    </View>
+                                )}
+
+                                <TouchableOpacity
+                                    style={styles.closeProfileButton}
+                                    onPress={() => setProfileModalVisible(false)}
+                                >
+                                    <Text style={styles.closeProfileText}>Kapat</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -335,4 +492,43 @@ const styles = StyleSheet.create({
     modalConfirmWrapper: { flex: 1 },
     modalConfirmButton: { borderRadius: 100, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
     modalConfirmText: { ...typography.button, color: '#FFF' },
+
+    /* Profile Click Area */
+    profileClickArea: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    profileTextInfo: { marginLeft: 10, flexShrink: 1 },
+    profileName: { ...typography.body, color: colors.textPrimary, fontWeight: '600' },
+    ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+    ratingText: { ...typography.caption, color: colors.textSecondary },
+
+    /* Profile Modal Styles */
+    profileModalHeader: { alignItems: 'center', marginBottom: spacing.m },
+    profileModalAvatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: colors.primary, marginBottom: spacing.s },
+    profileModalFallbackAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center', marginBottom: spacing.s, borderWidth: 3, borderColor: colors.border },
+    profileModalName: { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.xs },
+    profileModalStats: { flexDirection: 'row', alignItems: 'center', gap: spacing.m },
+    statBox: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    statBoxText: { ...typography.body, color: colors.textSecondary, fontWeight: '600' },
+    statDivider: { width: 1, height: 16, backgroundColor: colors.border },
+
+    badgesWrapper: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s, justifyContent: 'center', marginBottom: spacing.l },
+    trustBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, gap: 6, borderWidth: 1, borderColor: colors.border },
+    trustBadgeText: { ...typography.caption, color: colors.textPrimary },
+
+    reviewsTitle: { ...typography.h3, color: colors.textPrimary, marginBottom: spacing.m },
+    reviewsLoading: { padding: spacing.l, alignItems: 'center' },
+    reviewsList: { maxHeight: 300 },
+    reviewsEmpty: { padding: spacing.l, alignItems: 'center', backgroundColor: colors.background, borderRadius: 16 },
+    reviewsEmptyText: { ...typography.body, color: colors.textDisabled, fontStyle: 'italic' },
+
+    reviewCard: { backgroundColor: colors.background, padding: spacing.m, borderRadius: 16, marginBottom: spacing.m, borderWidth: 1, borderColor: colors.border },
+    reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+    reviewAvatar: { width: 24, height: 24, borderRadius: 12, marginRight: 8 },
+    reviewFallbackAvatar: { width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' },
+    reviewName: { ...typography.caption, color: colors.textPrimary, fontWeight: '600', flex: 1 },
+    reviewScoreBox: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+    reviewScoreText: { ...typography.caption, color: '#F59E0B', fontSize: 11, fontWeight: '700' },
+    reviewNote: { ...typography.body, color: colors.textSecondary, fontSize: 13, lineHeight: 18, fontStyle: 'italic' },
+
+    closeProfileButton: { marginTop: spacing.l, paddingVertical: 14, alignItems: 'center', backgroundColor: colors.surface, borderRadius: 100 },
+    closeProfileText: { ...typography.button, color: colors.textPrimary },
 });

@@ -190,13 +190,26 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     private broadcastActiveQueues() {
-        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string; firstUserLuggage?: string; firstUserTime?: string }> = [];
+        const queuesList: Array<{
+            destination: string; count: number;
+            firstUserId?: string; firstUserName?: string; firstUserPhoto?: string;
+            firstUserRating?: number; firstUserTrips?: number;
+            firstUserTrustBadge?: boolean; firstUserPhoneVerified?: boolean; firstUserEmailVerified?: boolean;
+            firstUserLuggage?: string; firstUserTime?: string;
+        }> = [];
         this.activeQueues.forEach((queue, destination) => {
             if (queue.length > 0) {
                 queuesList.push({
                     destination,
                     count: queue.length,
+                    firstUserId: queue[0].userData.id,
+                    firstUserName: queue[0].userData.name,
                     firstUserPhoto: queue[0].userData.photoUrl,
+                    firstUserRating: queue[0].userData.rating,
+                    firstUserTrips: queue[0].userData.trips,
+                    firstUserTrustBadge: queue[0].userData.trustBadge,
+                    firstUserPhoneVerified: queue[0].userData.phoneVerified,
+                    firstUserEmailVerified: queue[0].userData.emailVerified,
                     firstUserLuggage: queue[0].luggage,
                     firstUserTime: queue[0].time,
                 });
@@ -397,13 +410,26 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = this.socketUserMap.get(client.id);
         if (!userId) return;
 
-        const queuesList: Array<{ destination: string; count: number; firstUserPhoto?: string; firstUserLuggage?: string; firstUserTime?: string }> = [];
+        const queuesList: Array<{
+            destination: string; count: number;
+            firstUserId?: string; firstUserName?: string; firstUserPhoto?: string;
+            firstUserRating?: number; firstUserTrips?: number;
+            firstUserTrustBadge?: boolean; firstUserPhoneVerified?: boolean; firstUserEmailVerified?: boolean;
+            firstUserLuggage?: string; firstUserTime?: string;
+        }> = [];
         this.activeQueues.forEach((queue, destination) => {
             if (queue.length > 0) {
                 queuesList.push({
                     destination,
                     count: queue.length,
+                    firstUserId: queue[0].userData.id,
+                    firstUserName: queue[0].userData.name,
                     firstUserPhoto: queue[0].userData.photoUrl,
+                    firstUserRating: queue[0].userData.rating,
+                    firstUserTrips: queue[0].userData.trips,
+                    firstUserTrustBadge: queue[0].userData.trustBadge,
+                    firstUserPhoneVerified: queue[0].userData.phoneVerified,
+                    firstUserEmailVerified: queue[0].userData.emailVerified,
                     firstUserLuggage: queue[0].luggage,
                     firstUserTime: queue[0].time,
                 });

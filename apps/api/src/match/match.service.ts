@@ -63,6 +63,28 @@ export class MatchService {
         return saved;
     }
 
+    async getUserReviews(userId: string): Promise<any[]> {
+        const ratings = await this.ratingRepository.find({
+            where: { toUserId: userId },
+            order: { createdAt: 'DESC' },
+            relations: ['fromUser'],
+            take: 10,
+        });
+
+        // Filter those with a note and map to a clean object
+        return ratings
+            .filter(r => r.note && r.note.trim().length > 0)
+            .map(r => ({
+                id: r.id,
+                score: r.score,
+                tags: r.tags,
+                note: r.note,
+                createdAt: r.createdAt,
+                reviewerName: r.fromUser?.fullName || 'Anonim Yolcu',
+                reviewerPhoto: r.fromUser?.photoUrl || null,
+            }));
+    }
+
     // --- MATCH HISTORY ---
     async saveMatchHistory(data: {
         matchSocketId: string;

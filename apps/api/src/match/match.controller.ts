@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MatchService } from './match.service';
 
@@ -28,6 +28,12 @@ export class MatchController {
     @Get('history')
     async getHistory(@Request() req: any) {
         return this.matchService.getHistory(req.user.id);
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Get('user/:id/reviews')
+    async getUserReviews(@Param('id') id: string) {
+        return this.matchService.getUserReviews(id);
     }
 
     // Admin endpoint — returns summary stats
