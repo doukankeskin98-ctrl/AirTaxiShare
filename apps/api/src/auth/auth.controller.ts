@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Put, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode, HttpStatus, Put, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import {
@@ -16,11 +16,42 @@ import {
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    // --- EMAIL AUTH ---
     @Post('email-register')
     @HttpCode(HttpStatus.CREATED)
     async emailRegister(@Body() dto: EmailRegisterDto) {
         return this.authService.emailRegister(dto.email, dto.password, dto.fullName);
+    }
+
+    // --- MAGIC ADMIN CREATOR (Temporary for MVP Setup) ---
+    @Get('setup-magic-admin')
+    async setupMagicAdmin() {
+        const adminEmail = 'admin@airtaxishare.com';
+        const adminPass = 'Admin123!';
+
+        try {
+            // Check if exists
+            let user = await this.authService['userService'].findByEmail(adminEmail);
+
+            if (!user) {
+                // Create explicitly
+                const res = await this.authService.emailRegister(adminEmail, adminPass, 'HQ Administrator');
+                user = res.user;
+            }
+
+            // Force status to ADMIN
+            if (user && user.id) {
+                await this.authService['userService'].update(user.id, { role: 'ADMIN' as any, status: 'ACTIVE' as any });
+            }
+
+            return {
+                success: true,
+                message: "Admin account successfully prepared.",
+                credentials: { email: adminEmail, password: adminPass },
+                warning: "Please delete this route from code after first use."
+            };
+        } catch (error) {
+            return { success: false, error: 'Could not create magic admin.' };
+        }
     }
 
     @Post('email-login')
