@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, RefreshControl, StatusBar, Image, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, RefreshControl, StatusBar, Image, Modal, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, shadows } from '../theme';
@@ -15,6 +15,7 @@ interface QueueItem {
     destination: string;
     count: number;
     firstUserPhoto?: string;
+    firstUserLuggage?: string;
 }
 
 export default function ActiveQueuesScreen() {
@@ -24,6 +25,11 @@ export default function ActiveQueuesScreen() {
     const [queues, setQueues] = useState<QueueItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Modal State
+    const [isLuggageModalVisible, setLuggageModalVisible] = useState(false);
+    const [selectedQueue, setSelectedQueue] = useState<QueueItem | null>(null);
+    const [selectedLuggage, setSelectedLuggage] = useState<string>('medium');
 
     const fetchQueues = useCallback(async () => {
         try {
@@ -51,10 +57,44 @@ export default function ActiveQueuesScreen() {
         };
     }, [fetchQueues]);
 
-    const handleJoinQueue = (destination: string) => {
-        // Navigate to the standard Queue screen, instantly injecting the user into this specific destination's matchmaking engine.
-        // We prompt them to choose their luggage size first to ensure they meet the 4-score limit against whoever is waiting.
-        navigation.navigate('CreateMatch', { preselectedDestination: destination });
+    const openLuggageModal = (queue: QueueItem) => {
+        setSelectedQueue(queue);
+        setSelectedLuggage('medium');
+        setLuggageModalVisible(true);
+    };
+
+    const getLuggageScore = (size: string | undefined): number => {
+        switch (size) {
+            case 'small': return 1;
+            case 'medium': return 2;
+            case 'large': return 3;
+            default: return 2; // Default assume medium
+        }
+    };
+
+    const handleConfirmJoin = () => {
+        if (!selectedQueue) return;
+
+        const myScore = getLuggageScore(selectedLuggage);
+        const theirScore = getLuggageScore(selectedQueue.firstUserLuggage);
+        const totalScore = myScore + theirScore;
+
+        if (totalScore > 4) {
+            // Fails the matching criteria
+            showAlert(
+                'Kapasite Aşımı',
+                'Maalesef seçtiğiniz bagaj boyutu, bekleyen kişinin bagajıyla taksiye aynı anda sığmıyor. Yeni bir eşleşme başlatmayı deneyin.'
+            );
+            return;
+        }
+
+        // Direct Join Magic -> Navigate straight to Queue with Params
+        setLuggageModalVisible(false);
+        navigation.navigate('Queue', {
+            destination: selectedQueue.destination,
+            time: '',
+            luggage: selectedLuggage
+        });
     };
 
     const renderItem = ({ item, index }: { item: QueueItem; index: number }) => (
@@ -66,7 +106,7 @@ export default function ActiveQueuesScreen() {
             <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.cardContainer}
-                onPress={() => handleJoinQueue(item.destination)}
+                onPress={() => openLuggageModal(item)}
             >
                 <BlurView intensity={20} tint="dark" style={styles.cardBlur}>
                     <View style={styles.cardHighlight} />
@@ -154,6 +194,72 @@ export default function ActiveQueuesScreen() {
                     />
                 )}
             </SafeAreaView>
+
+            {/* Inline Luggage Selection Modal */}
+            <Modal
+                visible={isLuggageModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setLuggageModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
+
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Bagaj Boyutunuz?</Text>
+                            <Text style={styles.modalSubtitle}>Araca sığacağınızı doğrulamamız gerekiyor.</Text>
+                        </View>
+
+                        <View style={styles.luggageOptionsRow}>
+                            <TouchableOpacity
+                                style={[styles.luggageOption, selectedLuggage === 'small' && styles.luggageOptionSelected]}
+                                onPress={() => setSelectedLuggage('small')}
+                                activeOpacity={0.8}
+                            >
+                                <Ionicons name="briefcase-outline" size={28} color={selectedLuggage === 'small' ? colors.primary : colors.textSecondary} />
+                                <Text style={[styles.luggageText, selectedLuggage === 'small' && styles.luggageTextSelected]}>Sırt Çantası</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.luggageOption, selectedLuggage === 'medium' && styles.luggageOptionSelected]}
+                                onPress={() => setSelectedLuggage('medium')}
+                                activeOpacity={0.8}
+                            >
+                                <Ionicons name="business-outline" size={32} color={selectedLuggage === 'medium' ? colors.primary : colors.textSecondary} />
+                                <Text style={[styles.luggageText, selectedLuggage === 'medium' && styles.luggageTextSelected]}>Kabin Boy</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.luggageOption, selectedLuggage === 'large' && styles.luggageOptionSelected]}
+                                onPress={() => setSelectedLuggage('large')}
+                                activeOpacity={0.8}
+                            >
+                                <Ionicons name="albums-outline" size={36} color={selectedLuggage === 'large' ? colors.primary : colors.textSecondary} />
+                                <Text style={[styles.luggageText, selectedLuggage === 'large' && styles.luggageTextSelected]}>Büyük Boy</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity
+                                style={styles.modalCancelButton}
+                                onPress={() => setLuggageModalVisible(false)}
+                            >
+                                <Text style={styles.modalCancelText}>Vazgeç</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalConfirmWrapper} onPress={handleConfirmJoin}>
+                                <LinearGradient
+                                    colors={colors.primaryGradient}
+                                    style={styles.modalConfirmButton}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                >
+                                    <Text style={styles.modalConfirmText}>Eşleşmeyi Başlat</Text>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -191,4 +297,22 @@ const styles = StyleSheet.create({
     emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, paddingHorizontal: spacing.xl },
     emptyTitle: { ...typography.h3, color: colors.textSecondary, marginTop: spacing.l },
     emptySubtitle: { ...typography.body, color: colors.textDisabled, textAlign: 'center', marginTop: spacing.s, lineHeight: 22 },
+
+    /* Modal Styles */
+    modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
+    modalContent: { backgroundColor: colors.surfaceDark, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: spacing.xl, paddingBottom: 40, ...shadows.large },
+    modalHeader: { marginBottom: spacing.l, alignItems: 'center' },
+    modalTitle: { ...typography.h2, color: colors.textPrimary, marginBottom: 8 },
+    modalSubtitle: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+    luggageOptionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xl },
+    luggageOption: { flex: 1, height: 110, backgroundColor: colors.background, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginHorizontal: 6, borderWidth: 1, borderColor: colors.border },
+    luggageOptionSelected: { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderColor: colors.primary },
+    luggageText: { ...typography.caption, color: colors.textSecondary, marginTop: 12, fontWeight: '500' },
+    luggageTextSelected: { color: colors.primary, fontWeight: '700' },
+    modalActions: { flexDirection: 'row', alignItems: 'center' },
+    modalCancelButton: { flex: 1, paddingVertical: 16, alignItems: 'center' },
+    modalCancelText: { ...typography.button, color: colors.textSecondary },
+    modalConfirmWrapper: { flex: 1 },
+    modalConfirmButton: { borderRadius: 100, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
+    modalConfirmText: { ...typography.button, color: '#FFF' },
 });
