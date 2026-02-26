@@ -541,13 +541,15 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (confirmSet.size >= 2) {
             participants.forEach(pId => {
                 this.emitToUser(pId, 'meetup_confirmed');
+                this.userMatchMap.delete(pId);
             });
+            this.activeMatches.delete(matchId);
             this.meetupConfirmations.delete(matchId);
             this.logger.log(`[Meetup] Both confirmed for match=${matchId} ✓`);
 
             try {
                 await this.matchService.completeMatch(matchId);
-                // We keep them in activeMatches so chat continues until they leave
+                // Matched users are now cleared from active maps, allowing them to queue again.
             } catch (e) {
                 this.logger.error('[Meetup] Failed to complete in DB:', e.message);
             }

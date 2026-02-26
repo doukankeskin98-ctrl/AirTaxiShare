@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MotiView, MotiText } from 'moti';
 
 import { MatchAPI } from '../services/api';
+import SocketService from '../services/socket';
 
 export default function RatingScreen() {
     const { t } = useTranslation();
@@ -20,6 +21,13 @@ export default function RatingScreen() {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [note, setNote] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        // Safeguard: Ensure backend clears the active match session so the user can queue again
+        if (matchId) {
+            SocketService.endMatch(matchId);
+        }
+    }, [matchId]);
 
     const tags = [
         { id: 'polite', label: t('rating.tags.polite') },
