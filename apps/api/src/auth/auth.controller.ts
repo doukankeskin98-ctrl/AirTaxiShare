@@ -8,6 +8,7 @@ import {
     VerifyOtpDto,
     GoogleLoginDto,
     AppleLoginDto,
+    AdminLoginDto,
 } from './auth.dto';
 
 @Controller('auth')
@@ -27,6 +28,14 @@ export class AuthController {
     @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 attempts per 60 seconds
     async emailLogin(@Body() dto: EmailLoginDto) {
         return this.authService.emailLogin(dto.email, dto.password);
+    }
+
+    // --- ADMIN AUTH ---
+    @Post('admin-login')
+    @HttpCode(HttpStatus.OK)
+    @Throttle({ default: { limit: 5, ttl: 60000 } }) // Stricter throttle for admin attempts
+    async adminLogin(@Body() dto: AdminLoginDto) {
+        return this.authService.adminLogin(dto.email, dto.password);
     }
 
     // --- PHONE OTP ---

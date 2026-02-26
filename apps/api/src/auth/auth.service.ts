@@ -58,6 +58,39 @@ export class AuthService {
         };
     }
 
+    // --- ADMIN AUTH ---
+    async adminLogin(email: string, password: string): Promise<{ accessToken: string; user: any }> {
+        this.logger.log(`Attempting ADMIN login: ${email}`);
+        const user = await this.userService.findByEmail(email);
+
+        if (!user) {
+            this.logger.warn(`Admin login failed: User ${email} not found`);
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+
+        if (user.role !== 'ADMIN') {
+            this.logger.warn(`Admin login failed: User ${email} is not an ADMIN`);
+            throw new UnauthorizedException('Access denied: Admin privileges required');
+        }
+
+        if (!user.passwordHash) {
+            this.logger.warn(`Admin login failed: User ${email} has no password set`);
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+            this.logger.warn(`Admin login failed: Wrong password for ${email}`);
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+
+        const payload = { sub: user.id, email: user.email, role: user.role };
+        return {
+            accessToken: this.jwtService.sign(payload),
+            user: this.sanitizeUser(user),
+        };
+    }
+
     // --- PHONE OTP ---
     async requestOtp(phoneNumber: string): Promise<{ message: string }> {
         // In production, integrate Twilio Verify here:

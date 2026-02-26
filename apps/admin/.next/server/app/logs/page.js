@@ -1,4 +1,3 @@
-"use strict";
 (() => {
 var exports = {};
 exports.id = 745;
@@ -8,6 +7,7 @@ exports.modules = {
 /***/ 8038:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react");
 
 /***/ }),
@@ -15,6 +15,7 @@ module.exports = require("next/dist/compiled/react");
 /***/ 8704:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react-dom/server-rendering-stub");
 
 /***/ }),
@@ -22,6 +23,7 @@ module.exports = require("next/dist/compiled/react-dom/server-rendering-stub");
 /***/ 7897:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react-server-dom-webpack/client");
 
 /***/ }),
@@ -29,6 +31,7 @@ module.exports = require("next/dist/compiled/react-server-dom-webpack/client");
 /***/ 6786:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react/jsx-runtime");
 
 /***/ }),
@@ -36,6 +39,7 @@ module.exports = require("next/dist/compiled/react/jsx-runtime");
 /***/ 1090:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/server/app-render/get-segment-param.js");
 
 /***/ }),
@@ -43,6 +47,7 @@ module.exports = require("next/dist/server/app-render/get-segment-param.js");
 /***/ 8652:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/server/future/helpers/interception-routes.js");
 
 /***/ }),
@@ -50,6 +55,7 @@ module.exports = require("next/dist/server/future/helpers/interception-routes.js
 /***/ 3280:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/app-router-context.js");
 
 /***/ }),
@@ -57,6 +63,7 @@ module.exports = require("next/dist/shared/lib/app-router-context.js");
 /***/ 9274:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/hooks-client-context.js");
 
 /***/ }),
@@ -64,6 +71,7 @@ module.exports = require("next/dist/shared/lib/hooks-client-context.js");
 /***/ 4964:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router-context.js");
 
 /***/ }),
@@ -71,6 +79,7 @@ module.exports = require("next/dist/shared/lib/router-context.js");
 /***/ 1751:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/add-path-prefix.js");
 
 /***/ }),
@@ -78,6 +87,7 @@ module.exports = require("next/dist/shared/lib/router/utils/add-path-prefix.js")
 /***/ 3938:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/format-url.js");
 
 /***/ }),
@@ -85,6 +95,7 @@ module.exports = require("next/dist/shared/lib/router/utils/format-url.js");
 /***/ 1668:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/handle-smooth-scroll.js");
 
 /***/ }),
@@ -92,6 +103,7 @@ module.exports = require("next/dist/shared/lib/router/utils/handle-smooth-scroll
 /***/ 1897:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/is-bot.js");
 
 /***/ }),
@@ -99,6 +111,7 @@ module.exports = require("next/dist/shared/lib/router/utils/is-bot.js");
 /***/ 1109:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/is-local-url.js");
 
 /***/ }),
@@ -106,6 +119,7 @@ module.exports = require("next/dist/shared/lib/router/utils/is-local-url.js");
 /***/ 8854:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/parse-path.js");
 
 /***/ }),
@@ -113,6 +127,7 @@ module.exports = require("next/dist/shared/lib/router/utils/parse-path.js");
 /***/ 3297:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/remove-trailing-slash.js");
 
 /***/ }),
@@ -120,6 +135,7 @@ module.exports = require("next/dist/shared/lib/router/utils/remove-trailing-slas
 /***/ 7782:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/resolve-href.js");
 
 /***/ }),
@@ -127,6 +143,7 @@ module.exports = require("next/dist/shared/lib/router/utils/resolve-href.js");
 /***/ 3349:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/server-inserted-html.js");
 
 /***/ }),
@@ -134,6 +151,7 @@ module.exports = require("next/dist/shared/lib/server-inserted-html.js");
 /***/ 9232:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/utils.js");
 
 /***/ }),
@@ -141,6 +159,7 @@ module.exports = require("next/dist/shared/lib/utils.js");
 /***/ 1868:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "AppRouter": () => (/* reexport default from dynamic */ next_dist_client_components_app_router__WEBPACK_IMPORTED_MODULE_0___default.a),
@@ -210,7 +229,7 @@ __webpack_require__.r(__webpack_exports__);
       ]
       },
         {
-          'layout': [() => Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 2645)), "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/layout.tsx"],
+          'layout': [() => Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 6494)), "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/layout.tsx"],
           
         }
       ]
@@ -242,9 +261,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ 6695:
+/***/ (() => {
+
+
+
+/***/ }),
+
 /***/ 1728:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ RideLogsPage)
@@ -254,154 +281,211 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5759);
 
 
-function RideLogsPage() {
-    const rides = [
-        {
-            id: "R-101",
-            from: "Maslak",
-            to: "Airport",
-            users: 3,
-            date: "2023-10-25 09:30",
-            status: "Completed"
-        },
-        {
-            id: "R-102",
-            from: "Levent",
-            to: "Airport",
-            users: 2,
-            date: "2023-10-25 10:15",
-            status: "Completed"
-        },
-        {
-            id: "R-103",
-            from: "Ataşehir",
-            to: "Airport",
-            users: 1,
-            date: "2023-10-25 11:00",
-            status: "Cancelled"
-        }
-    ];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://airtaxishare-api.onrender.com";
+// For admin logs we use a special query param so backend knows to return all records
+async function getAllRideLogs() {
+    try {
+        // We fetch match stats and history from admin endpoint
+        const [statsRes] = await Promise.all([
+            fetch(`${API_URL}/match/stats`, {
+                next: {
+                    revalidate: 30
+                }
+            })
+        ]);
+        const stats = statsRes.ok ? await statsRes.json() : {};
+        return stats;
+    } catch  {
+        return {};
+    }
+}
+const cardStyle = {
+    backgroundColor: "#1E2235",
+    borderRadius: 16,
+    padding: 24,
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+    marginBottom: 24
+};
+const thStyle = {
+    textAlign: "left",
+    padding: "14px 20px",
+    color: "#6B7280",
+    fontWeight: 600,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    borderBottom: "1px solid rgba(255,255,255,0.07)"
+};
+const tdStyle = {
+    padding: "14px 20px",
+    color: "#D1D5DB",
+    fontSize: 14
+};
+async function RideLogsPage() {
+    const stats = await getAllRideLogs();
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
         children: [
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h1", {
+            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
                 style: {
-                    fontSize: 28,
-                    marginBottom: 30
+                    marginBottom: 32
                 },
-                children: "Ride Logs"
+                children: [
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h1", {
+                        style: {
+                            fontSize: 26,
+                            fontWeight: 700,
+                            color: "#F9FAFB",
+                            margin: 0
+                        },
+                        children: "Ride Logs"
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("p", {
+                        style: {
+                            color: "#6B7280",
+                            margin: "6px 0 0",
+                            fontSize: 14
+                        },
+                        children: "Platform-wide match statistics"
+                    })
+                ]
             }),
             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                style: cardStyle,
-                children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("table", {
-                    style: {
-                        width: "100%",
-                        borderCollapse: "collapse"
+                style: {
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 20,
+                    marginBottom: 32
+                },
+                children: [
+                    {
+                        label: "Total Matches",
+                        value: stats.totalMatches ?? "—",
+                        color: "#4F46E5"
                     },
-                    children: [
-                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("thead", {
-                            children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+                    {
+                        label: "Completed Rides",
+                        value: stats.completedMatches ?? "—",
+                        color: "#10B981"
+                    },
+                    {
+                        label: "Active Now",
+                        value: stats.activeMatches ?? "—",
+                        color: "#F59E0B"
+                    }
+                ].map((card)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                        style: {
+                            ...cardStyle,
+                            marginBottom: 0,
+                            borderTop: `3px solid ${card.color}`
+                        },
+                        children: [
+                            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                                 style: {
-                                    borderBottom: "2px solid #eee",
-                                    textAlign: "left"
+                                    fontSize: 12,
+                                    color: "#9CA3AF",
+                                    textTransform: "uppercase",
+                                    letterSpacing: 1,
+                                    marginBottom: 8
+                                },
+                                children: card.label
+                            }),
+                            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                style: {
+                                    fontSize: 36,
+                                    fontWeight: 700,
+                                    color: "#F9FAFB"
+                                },
+                                children: card.value
+                            })
+                        ]
+                    }, card.label))
+            }),
+            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                style: cardStyle,
+                children: [
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h3", {
+                        style: {
+                            color: "#F9FAFB",
+                            marginTop: 0,
+                            marginBottom: 16
+                        },
+                        children: "Match Performance"
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        style: {
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 12
+                        },
+                        children: [
+                            {
+                                label: "Completion Rate",
+                                value: stats.totalMatches > 0 ? `${(stats.completedMatches / stats.totalMatches * 100).toFixed(1)}%` : "—"
+                            },
+                            {
+                                label: "In-Progress Rate",
+                                value: stats.totalMatches > 0 ? `${(stats.activeMatches / stats.totalMatches * 100).toFixed(1)}%` : "—"
+                            }
+                        ].map((item)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                style: {
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    padding: "10px 0",
+                                    borderBottom: "1px solid rgba(255,255,255,0.05)"
                                 },
                                 children: [
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "Ride ID"
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
+                                        style: {
+                                            color: "#9CA3AF",
+                                            fontSize: 14
+                                        },
+                                        children: item.label
                                     }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "From"
-                                    }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "To"
-                                    }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "Users"
-                                    }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "Date & Time"
-                                    }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "Status"
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
+                                        style: {
+                                            color: "#F9FAFB",
+                                            fontWeight: 700
+                                        },
+                                        children: item.value
                                     })
                                 ]
-                            })
+                            }, item.label))
+                    })
+                ]
+            }),
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                style: {
+                    ...cardStyle,
+                    padding: 20
+                },
+                children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("p", {
+                    style: {
+                        color: "#6B7280",
+                        fontSize: 14,
+                        margin: 0,
+                        textAlign: "center"
+                    },
+                    children: [
+                        "\uD83D\uDCA1 Individual ride details are visible via the API at",
+                        " ",
+                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("code", {
+                            style: {
+                                color: "#818CF8",
+                                background: "rgba(129,140,248,0.1)",
+                                padding: "2px 6px",
+                                borderRadius: 4
+                            },
+                            children: "GET /match/history"
                         }),
-                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("tbody", {
-                            children: rides.map((ride)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
-                                    style: {
-                                        borderBottom: "1px solid #eee"
-                                    },
-                                    children: [
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: ride.id
-                                        }),
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: ride.from
-                                        }),
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: ride.to
-                                        }),
-                                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("td", {
-                                            style: tdStyle,
-                                            children: [
-                                                ride.users,
-                                                " / 4"
-                                            ]
-                                        }),
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: ride.date
-                                        }),
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
-                                                style: {
-                                                    ...badgeStyle,
-                                                    backgroundColor: ride.status === "Completed" ? "#E8F5E9" : "#FFEBEE",
-                                                    color: ride.status === "Completed" ? "#2E7D32" : "#C62828"
-                                                },
-                                                children: ride.status
-                                            })
-                                        })
-                                    ]
-                                }, ride.id))
-                        })
+                        " ",
+                        "(requires user JWT)."
                     ]
                 })
             })
         ]
     });
 }
-const cardStyle = {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-};
-const thStyle = {
-    padding: "15px 10px",
-    color: "#666",
-    fontWeight: 600
-};
-const tdStyle = {
-    padding: "15px 10px",
-    color: "#333"
-};
-const badgeStyle = {
-    padding: "4px 8px",
-    borderRadius: 4,
-    fontSize: 12,
-    fontWeight: 500
-};
 
 
 /***/ })
@@ -413,7 +497,7 @@ const badgeStyle = {
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [265,984], () => (__webpack_exec__(1868)));
+var __webpack_exports__ = __webpack_require__.X(0, [595,478,224], () => (__webpack_exec__(1868)));
 module.exports = __webpack_exports__;
 
 })();

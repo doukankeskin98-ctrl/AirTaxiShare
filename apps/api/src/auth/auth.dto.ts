@@ -27,6 +27,17 @@ export class EmailLoginDto {
     password: string;
 }
 
+export class AdminLoginDto {
+    @IsEmail()
+    @MaxLength(100)
+    email: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(100)
+    password: string;
+}
+
 export class PhoneLoginDto {
     @IsString()
     @IsNotEmpty()

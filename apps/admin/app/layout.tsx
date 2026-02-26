@@ -1,5 +1,6 @@
 import './globals.css';
 import Link from 'next/link';
+import { LogoutButton } from './components/LogoutButton';
 
 export const metadata = {
     title: 'AirTaxiShare Admin',
@@ -22,6 +23,8 @@ export default function RootLayout({
                         <Link href="/logs" style={navItemStyle}>Ride Logs</Link>
                         <Link href="/settings" style={navItemStyle}>Settings</Link>
                     </nav>
+                    <div style={{ flex: 1 }} />
+                    <LogoutButton />
                 </aside>
                 <main style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
                     {children}

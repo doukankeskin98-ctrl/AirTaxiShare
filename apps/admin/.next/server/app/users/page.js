@@ -1,4 +1,3 @@
-"use strict";
 (() => {
 var exports = {};
 exports.id = 240;
@@ -8,6 +7,7 @@ exports.modules = {
 /***/ 8038:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react");
 
 /***/ }),
@@ -15,6 +15,7 @@ module.exports = require("next/dist/compiled/react");
 /***/ 8704:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react-dom/server-rendering-stub");
 
 /***/ }),
@@ -22,6 +23,7 @@ module.exports = require("next/dist/compiled/react-dom/server-rendering-stub");
 /***/ 7897:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react-server-dom-webpack/client");
 
 /***/ }),
@@ -29,6 +31,7 @@ module.exports = require("next/dist/compiled/react-server-dom-webpack/client");
 /***/ 6786:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/compiled/react/jsx-runtime");
 
 /***/ }),
@@ -36,6 +39,7 @@ module.exports = require("next/dist/compiled/react/jsx-runtime");
 /***/ 1090:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/server/app-render/get-segment-param.js");
 
 /***/ }),
@@ -43,6 +47,7 @@ module.exports = require("next/dist/server/app-render/get-segment-param.js");
 /***/ 8652:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/server/future/helpers/interception-routes.js");
 
 /***/ }),
@@ -50,6 +55,7 @@ module.exports = require("next/dist/server/future/helpers/interception-routes.js
 /***/ 3280:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/app-router-context.js");
 
 /***/ }),
@@ -57,6 +63,7 @@ module.exports = require("next/dist/shared/lib/app-router-context.js");
 /***/ 9274:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/hooks-client-context.js");
 
 /***/ }),
@@ -64,6 +71,7 @@ module.exports = require("next/dist/shared/lib/hooks-client-context.js");
 /***/ 4964:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router-context.js");
 
 /***/ }),
@@ -71,6 +79,7 @@ module.exports = require("next/dist/shared/lib/router-context.js");
 /***/ 1751:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/add-path-prefix.js");
 
 /***/ }),
@@ -78,6 +87,7 @@ module.exports = require("next/dist/shared/lib/router/utils/add-path-prefix.js")
 /***/ 3938:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/format-url.js");
 
 /***/ }),
@@ -85,6 +95,7 @@ module.exports = require("next/dist/shared/lib/router/utils/format-url.js");
 /***/ 1668:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/handle-smooth-scroll.js");
 
 /***/ }),
@@ -92,6 +103,7 @@ module.exports = require("next/dist/shared/lib/router/utils/handle-smooth-scroll
 /***/ 1897:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/is-bot.js");
 
 /***/ }),
@@ -99,6 +111,7 @@ module.exports = require("next/dist/shared/lib/router/utils/is-bot.js");
 /***/ 1109:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/is-local-url.js");
 
 /***/ }),
@@ -106,6 +119,7 @@ module.exports = require("next/dist/shared/lib/router/utils/is-local-url.js");
 /***/ 8854:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/parse-path.js");
 
 /***/ }),
@@ -113,6 +127,7 @@ module.exports = require("next/dist/shared/lib/router/utils/parse-path.js");
 /***/ 3297:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/remove-trailing-slash.js");
 
 /***/ }),
@@ -120,6 +135,7 @@ module.exports = require("next/dist/shared/lib/router/utils/remove-trailing-slas
 /***/ 7782:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/router/utils/resolve-href.js");
 
 /***/ }),
@@ -127,6 +143,7 @@ module.exports = require("next/dist/shared/lib/router/utils/resolve-href.js");
 /***/ 3349:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/server-inserted-html.js");
 
 /***/ }),
@@ -134,6 +151,7 @@ module.exports = require("next/dist/shared/lib/server-inserted-html.js");
 /***/ 9232:
 /***/ ((module) => {
 
+"use strict";
 module.exports = require("next/dist/shared/lib/utils.js");
 
 /***/ }),
@@ -141,6 +159,7 @@ module.exports = require("next/dist/shared/lib/utils.js");
 /***/ 3777:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "AppRouter": () => (/* reexport default from dynamic */ next_dist_client_components_app_router__WEBPACK_IMPORTED_MODULE_0___default.a),
@@ -210,7 +229,7 @@ __webpack_require__.r(__webpack_exports__);
       ]
       },
         {
-          'layout': [() => Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 2645)), "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/layout.tsx"],
+          'layout': [() => Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 6494)), "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/layout.tsx"],
           
         }
       ]
@@ -242,9 +261,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ 6695:
+/***/ (() => {
+
+
+
+/***/ }),
+
 /***/ 3038:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ UsersPage)
@@ -254,51 +281,78 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5759);
 
 
-function UsersPage() {
-    const users = [
-        {
-            id: "1",
-            name: "John Doe",
-            email: "john@example.com",
-            status: "Active",
-            joined: "2023-10-01"
-        },
-        {
-            id: "2",
-            name: "Jane Smith",
-            email: "jane@example.com",
-            status: "Active",
-            joined: "2023-10-02"
-        },
-        {
-            id: "3",
-            name: "Mehmet Y.",
-            email: "mehmet@example.com",
-            status: "Suspended",
-            joined: "2023-10-05"
-        }
-    ];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://airtaxishare-api.onrender.com";
+async function getUsers() {
+    try {
+        const res = await fetch(`${API_URL}/user/all`, {
+            next: {
+                revalidate: 30
+            }
+        });
+        if (!res.ok) return [];
+        return await res.json();
+    } catch  {
+        return [];
+    }
+}
+const cardStyle = {
+    backgroundColor: "#1E2235",
+    borderRadius: 16,
+    padding: "0",
+    overflow: "hidden",
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.25)"
+};
+const thStyle = {
+    textAlign: "left",
+    padding: "14px 20px",
+    color: "#6B7280",
+    fontWeight: 600,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    borderBottom: "1px solid rgba(255,255,255,0.07)"
+};
+const tdStyle = {
+    padding: "14px 20px",
+    color: "#D1D5DB",
+    fontSize: 14
+};
+async function UsersPage() {
+    const users = await getUsers();
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
         children: [
-            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                 style: {
+                    marginBottom: 32,
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 30
+                    alignItems: "center"
                 },
-                children: [
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h1", {
-                        style: {
-                            fontSize: 28
-                        },
-                        children: "User Management"
-                    }),
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("button", {
-                        style: btnStyle,
-                        children: "Export CSV"
-                    })
-                ]
+                children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                    children: [
+                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h1", {
+                            style: {
+                                fontSize: 26,
+                                fontWeight: 700,
+                                color: "#F9FAFB",
+                                margin: 0
+                            },
+                            children: "User Management"
+                        }),
+                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("p", {
+                            style: {
+                                color: "#6B7280",
+                                margin: "6px 0 0",
+                                fontSize: 14
+                            },
+                            children: [
+                                users.length,
+                                " registered users"
+                            ]
+                        })
+                    ]
+                })
             }),
             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                 style: cardStyle,
@@ -311,21 +365,28 @@ function UsersPage() {
                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("thead", {
                             children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
                                 style: {
-                                    borderBottom: "2px solid #eee",
-                                    textAlign: "left"
+                                    backgroundColor: "rgba(255,255,255,0.02)"
                                 },
                                 children: [
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
-                                        children: "ID"
+                                        children: "User"
                                     }),
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
-                                        children: "Name"
+                                        children: "Email / Phone"
                                     }),
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
-                                        children: "Email"
+                                        children: "Rating"
+                                    }),
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
+                                        style: thStyle,
+                                        children: "Trips"
+                                    }),
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
+                                        style: thStyle,
+                                        children: "Verified"
                                     }),
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
@@ -334,53 +395,130 @@ function UsersPage() {
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
                                         children: "Joined"
-                                    }),
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
-                                        style: thStyle,
-                                        children: "Actions"
                                     })
                                 ]
                             })
                         }),
                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("tbody", {
-                            children: users.map((user)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+                            children: users.length === 0 ? /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("tr", {
+                                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
+                                    colSpan: 7,
                                     style: {
-                                        borderBottom: "1px solid #eee"
+                                        ...tdStyle,
+                                        textAlign: "center",
+                                        padding: 40,
+                                        color: "#6B7280"
+                                    },
+                                    children: "No users found"
+                                })
+                            }) : users.map((user)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+                                    style: {
+                                        borderBottom: "1px solid rgba(255,255,255,0.04)"
                                     },
                                     children: [
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
+                                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("td", {
                                             style: tdStyle,
-                                            children: user.id
+                                            children: [
+                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                    style: {
+                                                        fontWeight: 600,
+                                                        color: "#F9FAFB"
+                                                    },
+                                                    children: user.fullName || "—"
+                                                }),
+                                                /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                    style: {
+                                                        fontSize: 11,
+                                                        color: "#6B7280"
+                                                    },
+                                                    children: [
+                                                        user.id?.slice(0, 8),
+                                                        "…"
+                                                    ]
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("td", {
+                                            style: tdStyle,
+                                            children: [
+                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                    children: user.email || "—"
+                                                }),
+                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                    style: {
+                                                        color: "#6B7280"
+                                                    },
+                                                    children: user.phoneNumber || "—"
+                                                })
+                                            ]
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
-                                            children: user.name
+                                            children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("span", {
+                                                style: {
+                                                    color: "#F59E0B",
+                                                    fontWeight: 700
+                                                },
+                                                children: [
+                                                    "★ ",
+                                                    user.rating?.toFixed(1) || "—"
+                                                ]
+                                            })
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
-                                            children: user.email
+                                            children: user.tripsCompleted ?? 0
+                                        }),
+                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
+                                            style: tdStyle,
+                                            children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                style: {
+                                                    display: "flex",
+                                                    gap: 4
+                                                },
+                                                children: [
+                                                    user.emailVerified && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
+                                                        style: {
+                                                            background: "#1D4ED820",
+                                                            color: "#60A5FA",
+                                                            padding: "2px 8px",
+                                                            borderRadius: 100,
+                                                            fontSize: 11,
+                                                            fontWeight: 600
+                                                        },
+                                                        children: "Email"
+                                                    }),
+                                                    user.phoneVerified && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
+                                                        style: {
+                                                            background: "#06472020",
+                                                            color: "#34D399",
+                                                            padding: "2px 8px",
+                                                            borderRadius: 100,
+                                                            fontSize: 11,
+                                                            fontWeight: 600
+                                                        },
+                                                        children: "Phone"
+                                                    })
+                                                ]
+                                            })
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
                                             children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
                                                 style: {
-                                                    ...badgeStyle,
-                                                    backgroundColor: user.status === "Active" ? "#E8F5E9" : "#FFEBEE",
-                                                    color: user.status === "Active" ? "#2E7D32" : "#C62828"
+                                                    padding: "3px 10px",
+                                                    borderRadius: 100,
+                                                    fontSize: 12,
+                                                    fontWeight: 600,
+                                                    background: user.status === "ACTIVE" ? "#06472030" : "#7F1D1D30",
+                                                    color: user.status === "ACTIVE" ? "#34D399" : "#F87171"
                                                 },
                                                 children: user.status
                                             })
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
-                                            children: user.joined
-                                        }),
-                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                            style: tdStyle,
-                                            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("button", {
-                                                style: actionBtnStyle,
-                                                children: "Edit"
-                                            })
+                                            children: user.createdAt ? new Date(user.createdAt).toLocaleDateString("tr-TR") : "—"
                                         })
                                     ]
                                 }, user.id))
@@ -391,42 +529,6 @@ function UsersPage() {
         ]
     });
 }
-const cardStyle = {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-};
-const thStyle = {
-    padding: "15px 10px",
-    color: "#666",
-    fontWeight: 600
-};
-const tdStyle = {
-    padding: "15px 10px",
-    color: "#333"
-};
-const badgeStyle = {
-    padding: "4px 8px",
-    borderRadius: 4,
-    fontSize: 12,
-    fontWeight: 500
-};
-const btnStyle = {
-    backgroundColor: "#0A2540",
-    color: "#fff",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: 6,
-    cursor: "pointer"
-};
-const actionBtnStyle = {
-    background: "none",
-    border: "none",
-    color: "#00A3FF",
-    cursor: "pointer",
-    fontWeight: 500
-};
 
 
 /***/ })
@@ -438,7 +540,7 @@ const actionBtnStyle = {
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [265,984], () => (__webpack_exec__(3777)));
+var __webpack_exports__ = __webpack_require__.X(0, [595,478,224], () => (__webpack_exec__(3777)));
 module.exports = __webpack_exports__;
 
 })();
