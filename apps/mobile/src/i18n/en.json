@@ -319,7 +319,9 @@
         },
         "cancel": {
             "title": "Cancel Match",
-            "msg": "Are you sure you want to cancel the match? This cannot be undone."
+            "msg": "Are you sure you want to cancel the match? This cannot be undone.",
+            "yes_btn": "Yes, Cancel",
+            "no_btn": "No, Go Back"
         },
         "success": {
             "title": "Match Successful!",

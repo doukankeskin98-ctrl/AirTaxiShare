@@ -319,7 +319,9 @@
         },
         "cancel": {
             "title": "Eşleşmeyi İptal Et",
-            "msg": "Eşleşmeyi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+            "msg": "Eşleşmeyi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+            "yes_btn": "Evet, İptal Et",
+            "no_btn": "Hayır, Geri Dön"
         },
         "success": {
             "title": "Eşleşme Başarılı!",

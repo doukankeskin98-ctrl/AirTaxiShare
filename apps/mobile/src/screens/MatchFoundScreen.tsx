@@ -134,8 +134,8 @@ export default function MatchFoundScreen() {
                                 AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
                                 navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
                             },
-                            t('common.cancel_verb'),
-                            t('common.give_up'),
+                            t('match_found.cancel.yes_btn'),
+                            t('match_found.cancel.no_btn'),
                             true,
                         );
                     }}
