@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
-import { showConfirm } from '../utils/alert';
+import { showConfirm, showAlert } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -45,13 +45,13 @@ export default function MatchFoundScreen() {
                 ? t('match_found.alert.partner_left_msg', { name: safeOtherUser.name.split(' ')[0] })
                 : t('match_found.alert.ended_msg');
 
-            showConfirm(
+            showAlert(
                 t('match_found.alert.ended_title'),
                 msg,
-                () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
-                t('match_found.alert.btn_home'),
-                undefined,   // no cancel option — they must go home
-                false,
+                () => {
+                    AsyncStorage.removeItem('ACTIVE_MATCH_KEY').catch(() => { });
+                    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                }
             );
         });
 

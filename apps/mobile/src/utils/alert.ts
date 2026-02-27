@@ -4,11 +4,12 @@ import { Alert, Platform } from 'react-native';
  * Cross-platform alert that works on web, Android, and iOS.
  * On web, Alert.alert silently fails — this uses window.alert instead.
  */
-export const showAlert = (title: string, message?: string) => {
+export const showAlert = (title: string, message?: string, onClose?: () => void) => {
     if (Platform.OS === 'web') {
         window.alert(message ? `${title}: ${message}` : title);
+        if (onClose) onClose();
     } else {
-        Alert.alert(title, message || '');
+        Alert.alert(title, message || '', [{ text: 'OK', onPress: onClose }], { cancelable: false });
     }
 };
 
