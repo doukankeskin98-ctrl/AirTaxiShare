@@ -279,7 +279,9 @@
             "ended_title": "Eşleşme Sona Erdi",
             "ended_msg": "Taraflardan biri eşleşmeyi sonlandırdı veya zaman aşımı gerçekleşti.",
             "failed_title": "Eşleşme Kurulamadı",
-            "failed_msg": "Bir hata oluştu. Lütfen tekrar arama yapın."
+            "failed_msg": "Bir hata oluştu. Lütfen tekrar arama yapın.",
+            "partner_left_msg": "{{name}} eşleşmeden ayrıldı.",
+            "btn_home": "Ana Sayfaya Dön"
         },
         "labels": {
             "destination": "Gidilecek Yer",
@@ -300,7 +302,34 @@
             "instruction": "Buluşunca bu kodu karşılıklı doğrulayın."
         },
         "btn_chat": "Sohbeti Aç",
-        "btn_confirm": "Buluşmaya Geç"
+        "btn_confirm": "Buluşmaya Geç",
+        "points": {
+            "exitA": {
+                "label": "Çıkış A",
+                "desc": "Metro önü"
+            },
+            "exitB": {
+                "label": "Çıkış B",
+                "desc": "Otobüs durakları"
+            },
+            "taxiQueue": {
+                "label": "Taksi Kuyruğu",
+                "desc": "Ana taksi bekleme alanı"
+            }
+        },
+        "cancel": {
+            "title": "Eşleşmeyi İptal Et",
+            "msg": "Eşleşmeyi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        },
+        "success": {
+            "title": "Eşleşme Başarılı!",
+            "subtitle": "{{name}} ile eşleştin. Şimdi buluşma noktasını seçebilirsin."
+        },
+        "meeting_point": "Buluşma Noktası",
+        "warning_sync": "Lütfen aynı buluşma noktasını seçtiğinizden emin olun.",
+        "code_label": "Buluşma Kodu",
+        "code_hint": "Birbirinizi bulduğunuzda kodu gösterin",
+        "btn_met": "Buluştuk"
     },
     "active_queues": {
         "header_title": "Mevcutlara Katıl",

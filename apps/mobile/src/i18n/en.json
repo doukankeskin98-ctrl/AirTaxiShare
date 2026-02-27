@@ -279,7 +279,9 @@
             "ended_title": "Match Ended",
             "ended_msg": "One of the parties ended the match or a timeout occurred.",
             "failed_title": "Match Failed",
-            "failed_msg": "An error occurred. Please search again."
+            "failed_msg": "An error occurred. Please search again.",
+            "partner_left_msg": "{{name}} left the match.",
+            "btn_home": "Back to Home"
         },
         "labels": {
             "destination": "Destination",
@@ -300,7 +302,34 @@
             "instruction": "Confirm this code with each other when you meet."
         },
         "btn_chat": "Open Chat",
-        "btn_confirm": "Proceed to Meetup"
+        "btn_confirm": "Proceed to Meetup",
+        "points": {
+            "exitA": {
+                "label": "Exit A",
+                "desc": "In front of Subway"
+            },
+            "exitB": {
+                "label": "Exit B",
+                "desc": "Bus stops"
+            },
+            "taxiQueue": {
+                "label": "Taxi Queue",
+                "desc": "Main taxi waiting area"
+            }
+        },
+        "cancel": {
+            "title": "Cancel Match",
+            "msg": "Are you sure you want to cancel the match? This cannot be undone."
+        },
+        "success": {
+            "title": "Match Successful!",
+            "subtitle": "You matched with {{name}}. You can now select a meeting point."
+        },
+        "meeting_point": "Meeting Point",
+        "warning_sync": "Please make sure you select the same meeting point.",
+        "code_label": "Meeting Code",
+        "code_hint": "Show this code when you find each other",
+        "btn_met": "We Met"
     },
     "active_queues": {
         "header_title": "Join Actives",
