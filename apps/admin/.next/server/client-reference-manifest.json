@@ -742,28 +742,28 @@
         "async": false
       }
     },
-    "(app-client)/./app/login/page.tsx": {
+    "(app-client)/./app/components/AnalyticsChart.tsx": {
       "*": {
-        "id": "(sc_client)/./app/login/page.tsx",
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
         "name": "*",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       },
       "": {
-        "id": "(sc_client)/./app/login/page.tsx",
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
         "name": "",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       },
-      "default": {
-        "id": "(sc_client)/./app/login/page.tsx",
-        "name": "default",
+      "AnalyticsChart": {
+        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
+        "name": "AnalyticsChart",
         "chunks": [
-          "app/login/page:static/chunks/app/login/page.js"
+          "app/page:static/chunks/app/page.js"
         ],
         "async": false
       }
@@ -846,28 +846,54 @@
         "async": false
       }
     },
-    "(app-client)/./app/components/AnalyticsChart.tsx": {
+    "(app-client)/./app/users/UsersTableClient.tsx": {
       "*": {
-        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
+        "id": "(sc_client)/./app/users/UsersTableClient.tsx",
         "name": "*",
         "chunks": [
-          "app/page:static/chunks/app/page.js"
+          "app/users/page:static/chunks/app/users/page.js"
         ],
         "async": false
       },
       "": {
-        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
+        "id": "(sc_client)/./app/users/UsersTableClient.tsx",
         "name": "",
         "chunks": [
-          "app/page:static/chunks/app/page.js"
+          "app/users/page:static/chunks/app/users/page.js"
         ],
         "async": false
       },
-      "AnalyticsChart": {
-        "id": "(sc_client)/./app/components/AnalyticsChart.tsx",
-        "name": "AnalyticsChart",
+      "UsersTableClient": {
+        "id": "(sc_client)/./app/users/UsersTableClient.tsx",
+        "name": "UsersTableClient",
         "chunks": [
-          "app/page:static/chunks/app/page.js"
+          "app/users/page:static/chunks/app/users/page.js"
+        ],
+        "async": false
+      }
+    },
+    "(app-client)/./app/logs/LogsTableClient.tsx": {
+      "*": {
+        "id": "(sc_client)/./app/logs/LogsTableClient.tsx",
+        "name": "*",
+        "chunks": [
+          "app/logs/page:static/chunks/app/logs/page.js"
+        ],
+        "async": false
+      },
+      "": {
+        "id": "(sc_client)/./app/logs/LogsTableClient.tsx",
+        "name": "",
+        "chunks": [
+          "app/logs/page:static/chunks/app/logs/page.js"
+        ],
+        "async": false
+      },
+      "LogsTableClient": {
+        "id": "(sc_client)/./app/logs/LogsTableClient.tsx",
+        "name": "LogsTableClient",
+        "chunks": [
+          "app/logs/page:static/chunks/app/logs/page.js"
         ],
         "async": false
       }
@@ -2576,27 +2602,27 @@
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx": {
-      "id": "(app-client)/./app/login/page.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
       "name": "*",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#": {
-      "id": "(app-client)/./app/login/page.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
       "name": "",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page.tsx#default": {
-      "id": "(app-client)/./app/login/page.tsx",
-      "name": "default",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#AnalyticsChart": {
+      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
+      "name": "AnalyticsChart",
       "chunks": [
-        "app/login/page:static/chunks/app/login/page.js"
+        "app/page:static/chunks/app/page.js"
       ],
       "async": false
     },
@@ -2703,27 +2729,51 @@
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx": {
-      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/users/UsersTableClient.tsx": {
+      "id": "(app-client)/./app/users/UsersTableClient.tsx",
       "name": "*",
       "chunks": [
-        "app/page:static/chunks/app/page.js"
+        "app/users/page:static/chunks/app/users/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#": {
-      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/users/UsersTableClient.tsx#": {
+      "id": "(app-client)/./app/users/UsersTableClient.tsx",
       "name": "",
       "chunks": [
-        "app/page:static/chunks/app/page.js"
+        "app/users/page:static/chunks/app/users/page.js"
       ],
       "async": false
     },
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/components/AnalyticsChart.tsx#AnalyticsChart": {
-      "id": "(app-client)/./app/components/AnalyticsChart.tsx",
-      "name": "AnalyticsChart",
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/users/UsersTableClient.tsx#UsersTableClient": {
+      "id": "(app-client)/./app/users/UsersTableClient.tsx",
+      "name": "UsersTableClient",
       "chunks": [
-        "app/page:static/chunks/app/page.js"
+        "app/users/page:static/chunks/app/users/page.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/logs/LogsTableClient.tsx": {
+      "id": "(app-client)/./app/logs/LogsTableClient.tsx",
+      "name": "*",
+      "chunks": [
+        "app/logs/page:static/chunks/app/logs/page.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/logs/LogsTableClient.tsx#": {
+      "id": "(app-client)/./app/logs/LogsTableClient.tsx",
+      "name": "",
+      "chunks": [
+        "app/logs/page:static/chunks/app/logs/page.js"
+      ],
+      "async": false
+    },
+    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/logs/LogsTableClient.tsx#LogsTableClient": {
+      "id": "(app-client)/./app/logs/LogsTableClient.tsx",
+      "name": "LogsTableClient",
+      "chunks": [
+        "app/logs/page:static/chunks/app/logs/page.js"
       ],
       "async": false
     }

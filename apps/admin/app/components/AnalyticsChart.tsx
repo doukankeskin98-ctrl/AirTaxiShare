@@ -3,8 +3,8 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function AnalyticsChart({ data = [] }: { data: any[] }) {
-    if (data.length === 0) return <div style={{ color: '#6B7280', fontSize: 13, marginTop: 20 }}>Görselleştirilecek sistem verisi bulunamadı.</div>;
+export function AnalyticsChart({ data = [], dict }: { data: any[], dict: any }) {
+    if (data.length === 0) return <div style={{ color: '#6B7280', fontSize: 13, marginTop: 20 }}>{dict.noData}</div>;
     return (
         <div style={{ width: '100%', height: 350, marginTop: 20 }}>
             <ResponsiveContainer width="100%" height="100%">

@@ -16,8 +16,11 @@ import { JwtStrategy } from './jwt.strategy';
             useFactory: async (configService: ConfigService) => {
                 let secret = configService.get<string>('JWT_SECRET');
                 if (!secret) {
-                    console.error('CRITICAL SECURITY WARNING: JWT_SECRET environment variable is missing. Using fallback for Render deployment. PLEASE UPDATE RENDER DASHBOARD.');
-                    secret = 'airtaxishare-render-fallback-secret-2026-c8f9q2!';
+                    if (process.env.NODE_ENV === 'production') {
+                        throw new Error('FATAL SECURITY ERROR: JWT_SECRET is missing in production environment. Refusing to boot to prevent zero-day vulnerability. PLEASE UPDATE RENDER DASHBOARD.');
+                    }
+                    console.warn('SECURITY WARNING: JWT_SECRET missing in development. Using unsafe local fallback.');
+                    secret = 'dev-fallback-secret-unsafe';
                 }
                 return {
                     secret,

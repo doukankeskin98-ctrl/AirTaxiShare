@@ -2,17 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Clock, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, LogOut, Globe } from 'lucide-react';
 import { LogoutButton } from './LogoutButton';
+import { getDictionary } from '../dictionaries';
 
-export function Sidebar() {
+export function Sidebar({ currentLang }: { currentLang: string }) {
     const pathname = usePathname();
+    const t = getDictionary(currentLang);
 
     const links = [
-        { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/users', label: 'User Management', icon: Users },
-        { href: '/logs', label: 'Ride Logs', icon: Clock },
+        { href: '/', label: t.dashboard, icon: LayoutDashboard },
+        { href: '/users', label: t.users, icon: Users },
+        { href: '/logs', label: t.logs, icon: Clock },
     ];
+
+    const toggleLang = () => {
+        const nextLang = currentLang === 'en' ? 'tr' : 'en';
+        document.cookie = `admin_lang=${nextLang}; path=/; max-age=31536000`;
+        window.location.reload();
+    };
 
     return (
         <aside style={{
@@ -57,7 +65,19 @@ export function Sidebar() {
 
             <div style={{ flex: 1 }} />
 
-            <div style={{ paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <button
+                    onClick={toggleLang}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderRadius: 8,
+                        backgroundColor: 'rgba(255,255,255,0.05)', color: '#F9FAFB', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer',
+                        transition: 'background-color 0.2s', fontWeight: 500
+                    }}
+                    className="sidebar-link"
+                >
+                    <Globe size={18} />
+                    {currentLang === 'en' ? 'Türkçe\'ye Geç' : 'Switch to English'}
+                </button>
                 <LogoutButton />
             </div>
         </aside>

@@ -5,9 +5,6 @@ self.__RSC_CSS_MANIFEST={
     ]
   },
   "cssModules": {
-    "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/login/page": [
-      "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/globals.css"
-    ],
     "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/page": [
       "/Users/dogukankeskin/.gemini/antigravity/scratch/AirTaxiShare/apps/admin/app/globals.css"
     ],

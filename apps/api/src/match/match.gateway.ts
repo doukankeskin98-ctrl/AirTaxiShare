@@ -349,16 +349,11 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             }
 
             if (partnerFoundIndex !== -1) {
-                const partner = queue.splice(partnerFoundIndex, 1)[0];
+                // Peek partner to establish locks without removing from queue yet
+                const partner = queue[partnerFoundIndex];
                 const matchId = `match-${userId.substring(0, 5)}-${partner.userId.substring(0, 5)}-${Date.now()}`;
 
-                this.activeMatches.set(matchId, [userId, partner.userId]);
-                this.userMatchMap.set(userId, matchId);
-                this.userMatchMap.set(partner.userId, matchId);
-
-                this.logger.log(`[Match] ${userId} + ${partner.userId} → ${matchId}`);
-
-                // Save to DB
+                // 1. Transactional DB Write FIRST (Locking)
                 try {
                     await this.matchService.saveMatchHistory({
                         matchSocketId: matchId,
@@ -366,9 +361,19 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                         user2Id: partner.userId,
                         destination,
                     });
-                } catch (e) {
-                    this.logger.error('[Match] Failed to save history:', e.message);
+
+                    this.logger.log(`[Match] SECURE DB LOCK ESTABLISHED: ${userId} + ${partner.userId} → ${matchId}`);
+                } catch (dbError: any) {
+                    this.logger.error('[Match] FATAL: DB Write failed. Aborting match to prevent Ghost State.', dbError.message);
+                    client.emit('error', { message: 'Sunucuda yoğunluk var, eşleşme lock edilemedi. Lütfen tekrar deneyin.' });
+                    return; // Abort RAM mutation and event emission
                 }
+
+                // 2. RAM State Mutation (Only executed if DB save passes)
+                queue.splice(partnerFoundIndex, 1); // Extract partner from queue
+                this.activeMatches.set(matchId, [userId, partner.userId]);
+                this.userMatchMap.set(userId, matchId);
+                this.userMatchMap.set(partner.userId, matchId);
 
                 // Emit match events with full user data
                 const newUserPayload = { matchId, partnerId: partner.userId, userData: { ...partner.userData } };

@@ -1,11 +1,12 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { navigationRef } from '../navigation/RootNavigation';
 
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 const FALLBACK_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 const BASE_URL = ENV_URL || FALLBACK_URL;
 
-const TIMEOUT_MS = 10000;        // 10 second request timeout
+const TIMEOUT_MS = 50000;        // 50 second request timeout (to allow Render Cold Starts)
 const MAX_RETRIES = 3;           // Retry up to 3 times on network failures
 const RETRY_DELAY_BASE_MS = 800; // Exponential backoff: 0.8s, 1.6s, 3.2s
 
@@ -87,7 +88,18 @@ const request = async (
         try { data = JSON.parse(text); } catch { data = text; }
 
         if (!response.ok) {
-            // Don't retry 4xx client errors — only 5xx server errors and network timeouts
+            // --- Unhandled Session Expiry Protection (Global Interceptor) ---
+            if (response.status === 401) {
+                console.warn('[API Interceptor] 401 Unauthorized detected. Forcing global logout.');
+                await clearUserProfile();
+                authToken = '';
+                if (navigationRef.isReady()) {
+                    navigationRef.reset({ index: 0, routes: [{ name: 'Welcome' as never }] });
+                }
+                throw new Error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
+            }
+
+            // Don't retry 4xx client errors (except captured 401) — only 5xx server errors and network timeouts
             const isClientError = response.status >= 400 && response.status < 500;
             if (isClientError) {
                 throw new Error(data?.message || `HTTP ${response.status}`);

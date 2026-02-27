@@ -1,8 +1,8 @@
 import React from 'react';
 import { Zap, UserPlus, CheckCircle, MessageSquare, Ticket } from 'lucide-react';
 
-export function RecentActivity({ activities = [] }: { activities: any[] }) {
-    if (activities.length === 0) return <div style={{ color: '#6B7280', fontSize: 13, marginTop: 20 }}>Sisteminizde henüz aktivite gerçekleşmedi.</div>;
+export function RecentActivity({ activities = [], dict }: { activities: any[], dict: any }) {
+    if (activities.length === 0) return <div style={{ color: '#6B7280', fontSize: 13, marginTop: 20 }}>{dict.noActivity}</div>;
 
     const getIconInfo = (type: string) => {
         if (type === 'signup') return { icon: UserPlus, color: '#10B981' };
@@ -13,10 +13,10 @@ export function RecentActivity({ activities = [] }: { activities: any[] }) {
 
     const timeAgo = (dateStr: string) => {
         const seconds = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 1000);
-        if (seconds < 60) return `Just now`;
-        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-        return `${Math.floor(seconds / 86400)}d ago`;
+        if (seconds < 60) return dict.justNow;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}${dict.mins} ${dict.ago}`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}${dict.hours} ${dict.ago}`;
+        return `${Math.floor(seconds / 86400)}${dict.days} ${dict.ago}`;
     };
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 16 }}>

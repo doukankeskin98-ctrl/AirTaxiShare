@@ -1,5 +1,6 @@
 import './globals.css';
 import { Sidebar } from './components/Sidebar';
+import { cookies } from 'next/headers';
 
 export const metadata = {
     title: 'AirTaxiShare Admin',
@@ -11,10 +12,11 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    const lang = cookies().get('admin_lang')?.value || 'tr';
     return (
-        <html lang="en">
+        <html lang={lang}>
             <body style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0B0F19' }}>
-                <Sidebar />
+                <Sidebar currentLang={lang} />
                 <main style={{ flex: 1, padding: '40px 50px', overflowY: 'auto' }}>
                     {children}
                 </main>
