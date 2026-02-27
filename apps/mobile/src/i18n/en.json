@@ -18,7 +18,8 @@
         "min": "min",
         "anytime": "Anytime",
         "no": "No",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "someone": "Someone"
     },
     "login": {
         "title": "Welcome Back",
@@ -46,7 +47,8 @@
         "signin": "Sign in",
         "signup": "Create account",
         "or": "or",
-        "back": "Back"
+        "back": "Back",
+        "use_email": "Continue with Email"
     },
     "profile": {
         "title": "Create your profile",
@@ -202,7 +204,9 @@
         "waitingOther": "Waiting for the other user to confirm…",
         "dispute": {
             "title": "Report an issue",
-            "body": "Report if you could not meet or had an issue."
+            "body": "Report if you could not meet or had an issue.",
+            "msg": "The other party claims you didn't meet. Do you want to dispute this?",
+            "yes": "Yes, Dispute"
         },
         "cancel": {
             "title": "Cancel Meetup",
@@ -212,7 +216,10 @@
         },
         "status": {
             "success_title": "Meetup Successful",
-            "success_msg": "Great! We hope you have a nice trip. You contributed to nature and your budget by sharing a taxi."
+            "success_msg": "Great! We hope you have a nice trip. You contributed to nature and your budget by sharing a taxi.",
+            "waiting_title": "Waiting for Confirmation",
+            "waiting_msg": "Waiting for the other party to confirm the meetup...",
+            "pending_msg": "Meetup not confirmed yet."
         }
     },
     "rating": {
@@ -355,6 +362,9 @@
     "badges": {
         "phone_verified": "Phone Verified",
         "email_verified": "Email Verified",
-        "trusted_profile": "Trusted Profile"
+        "trusted_profile": "Trusted Profile",
+        "phone": "Phone Verified",
+        "email": "Email Verified",
+        "ats_trust": "Trusted Profile"
     }
 }

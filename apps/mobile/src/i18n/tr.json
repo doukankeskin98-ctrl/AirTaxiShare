@@ -18,7 +18,8 @@
         "min": "dk",
         "anytime": "Farketmez",
         "no": "Hayır",
-        "cancel": "Vazgeç"
+        "cancel": "Vazgeç",
+        "someone": "Biri"
     },
     "login": {
         "title": "Tekrar Hoş Geldin",
@@ -46,7 +47,8 @@
         "signin": "Giriş yap",
         "signup": "Hesap oluştur",
         "or": "veya",
-        "back": "Geri"
+        "back": "Geri",
+        "use_email": "E-posta ile Devam Et"
     },
     "profile": {
         "title": "Profilini oluştur",
@@ -202,7 +204,9 @@
         "waitingOther": "Diğer kullanıcının onayı bekleniyor…",
         "dispute": {
             "title": "Sorun bildir",
-            "body": "Buluşamadıysan veya sorun yaşadıysan bildir."
+            "body": "Buluşamadıysan veya sorun yaşadıysan bildir.",
+            "msg": "Karşı taraf buluşmadığınızı iddia ediyor. İtiraz etmek ister misiniz?",
+            "yes": "Evet, İtiraz Et"
         },
         "cancel": {
             "title": "İptal Et",
@@ -212,7 +216,10 @@
         },
         "status": {
             "success_title": "Buluşma Başarılı",
-            "success_msg": "Harika! Umarız yolculuğunuz iyi geçer. Taksiyi paylaşarak doğaya ve bütçenize katkı sağladınız."
+            "success_msg": "Harika! Umarız yolculuğunuz iyi geçer. Taksiyi paylaşarak doğaya ve bütçenize katkı sağladınız.",
+            "waiting_title": "Onay Bekleniyor",
+            "waiting_msg": "Karşı tarafın buluşmayı onaylaması bekleniyor...",
+            "pending_msg": "Buluşma henüz onaylanmadı."
         }
     },
     "rating": {
@@ -355,6 +362,9 @@
     "badges": {
         "phone_verified": "Telefon Onaylı",
         "email_verified": "E-posta Onaylı",
-        "trusted_profile": "Güvenilir Profil"
+        "trusted_profile": "Güvenilir Profil",
+        "phone": "Telefon Onaylı",
+        "email": "E-posta Onaylı",
+        "ats_trust": "Güvenilir Profil"
     }
 }
