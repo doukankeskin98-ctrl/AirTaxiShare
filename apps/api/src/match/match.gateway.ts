@@ -279,8 +279,15 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         // Fallback: If memory was cleared (e.g., server restart or multi-pod scale), check database
         if (userMatch !== matchId) {
-            const dbMatch = await this.matchService.findActiveMatchByMatchId(matchId);
+            const dbMatch = await this.matchService.findMatchBySocketId(matchId);
             if (dbMatch && (dbMatch.user1Id === userId || dbMatch.user2Id === userId)) {
+                if (dbMatch.status !== 'ACTIVE') {
+                    // Match is completed or cancelled. The client is likely sending 'end_match'
+                    // right after 'confirm_meetup' due to screen transitions.
+                    // We shouldn't log a scary unauthorized warning, just silently drop it.
+                    return null;
+                }
+
                 this.userMatchMap.set(dbMatch.user1Id, matchId);
                 this.userMatchMap.set(dbMatch.user2Id, matchId);
                 this.activeMatches.set(matchId, [dbMatch.user1Id, dbMatch.user2Id]);
