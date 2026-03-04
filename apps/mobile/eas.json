@@ -6,7 +6,8 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -21,10 +22,12 @@
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "924538806953-0m1j0ali85tev8j0osm2idni6jmid3cs.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "924538806953-on9j4p082n62bcsk68eok54oirt8f9t5.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "924538806953-4ertude2pn7n0mh690f4oshjdji8lic0.apps.googleusercontent.com"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
   "submit": {
