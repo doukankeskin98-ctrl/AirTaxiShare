@@ -16,7 +16,8 @@ export class HealthController {
     @HealthCheck()
     check() {
         return this.health.check([
-            () => this.db.pingCheck('database'),
+            // 5s timeout to handle cross-region latency (API: Frankfurt, DB: Oregon)
+            () => this.db.pingCheck('database', { timeout: 5000 }),
         ]);
     }
 }
