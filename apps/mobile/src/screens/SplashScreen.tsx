@@ -27,26 +27,33 @@ export default function SplashScreen() {
             const token = await initAuthToken();
 
             if (token) {
-                // Token exists → Validate it by fetching profile
-                try {
-                    const response = await UserService.getProfile();
-                    await saveUserProfile(response.data);
-
-                    // Check if there was an active match before app was killed
-                    const activeMatchRaw = await AsyncStorage.getItem(ACTIVE_MATCH_KEY);
-                    if (activeMatchRaw) {
-                        try {
-                            const activeMatch = JSON.parse(activeMatchRaw);
+                // PRIORITY 1: Check for active match BEFORE hitting the API.
+                // This prevents a cold-start timeout from killing a live match session on web refresh.
+                const activeMatchRaw = await AsyncStorage.getItem(ACTIVE_MATCH_KEY);
+                if (activeMatchRaw) {
+                    try {
+                        const activeMatch = JSON.parse(activeMatchRaw);
+                        if (activeMatch.matchId) {
                             setTimeout(() => {
                                 navigation.replace('MatchFound', {
                                     matchId: activeMatch.matchId,
                                     otherUser: activeMatch.otherUser,
                                     luggage: activeMatch.luggage,
                                 });
-                            }, 1000);
-                            return; // Skip default Home navigation
-                        } catch { /* Invalid JSON, ignore and go Home */ }
-                    }
+                            }, 800);
+                            // Fire-and-forget profile refresh in background
+                            UserService.getProfile()
+                                .then(res => saveUserProfile(res.data))
+                                .catch(() => { /* non-blocking */ });
+                            return; // Skip everything else — match takes priority
+                        }
+                    } catch { /* Invalid JSON, fall through to normal flow */ }
+                }
+
+                // PRIORITY 2: No active match — validate token by fetching profile
+                try {
+                    const response = await UserService.getProfile();
+                    await saveUserProfile(response.data);
 
                     setTimeout(() => {
                         navigation.replace('Home');

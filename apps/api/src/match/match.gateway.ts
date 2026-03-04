@@ -86,6 +86,10 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private userCache: Map<string, UserCacheEntry> = new Map();
     private readonly CACHE_TTL_MS = 5 * 60 * 1000;
 
+    // Grace period timers for reconnection (prevents instant partner_offline on page refresh)
+    private disconnectTimers: Map<string, NodeJS.Timeout> = new Map();
+    private readonly DISCONNECT_GRACE_MS = 15_000; // 15 seconds
+
     /** Helper to emit to all sockets of a user */
     private emitToUser(userId: string, event: string, payload?: any) {
         const sockets = this.userSockets.get(userId);
@@ -111,6 +115,14 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
                     this.userSockets.get(userId)!.add(client.id);
 
                     this.logger.debug(`[Auth] Socket ${client.id} → bound to user ${userId}`);
+
+                    // Cancel any pending offline timer (user reconnected within grace period)
+                    const pendingTimer = this.disconnectTimers.get(userId);
+                    if (pendingTimer) {
+                        clearTimeout(pendingTimer);
+                        this.disconnectTimers.delete(userId);
+                        this.logger.log(`[Reconnect] User ${userId} reconnected within grace period — offline cancelled`);
+                    }
 
                     // Restore match session if returning
                     const matchId = this.userMatchMap.get(userId);
@@ -139,10 +151,19 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const sockets = this.userSockets.get(userId);
             if (sockets) {
                 sockets.delete(client.id);
-                // If user has no more active sockets, consider them offline
+                // If user has no more active sockets, start grace period before going offline
                 if (sockets.size === 0) {
                     this.userSockets.delete(userId);
-                    this.handleUserOffline(userId);
+
+                    // Don't fire offline immediately — give a grace period for page refreshes
+                    const timer = setTimeout(() => {
+                        this.disconnectTimers.delete(userId);
+                        // Double-check they haven't reconnected during grace period
+                        if (!this.userSockets.has(userId) || this.userSockets.get(userId)!.size === 0) {
+                            this.handleUserOffline(userId);
+                        }
+                    }, this.DISCONNECT_GRACE_MS);
+                    this.disconnectTimers.set(userId, timer);
                 }
             }
         }
