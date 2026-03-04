@@ -37,18 +37,18 @@ export class AuthService {
 
         if (!user) {
             this.logger.warn(`Login failed: User ${email} not found`);
-            throw new UnauthorizedException('Invalid email or password');
+            throw new UnauthorizedException('Invalid email or password (user not found)');
         }
 
         if (!user.passwordHash) {
             this.logger.warn(`Login failed: User ${email} has no password (social account)`);
-            throw new UnauthorizedException('Invalid email or password');
+            throw new UnauthorizedException('Invalid email or password (no password hash found)');
         }
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
-            this.logger.warn(`Login failed: Wrong password for ${email}`);
-            throw new UnauthorizedException('Invalid email or password');
+            this.logger.warn(`Login failed: Wrong password for ${email}. Provided: ${password} | Expected Hash: ${user.passwordHash}`);
+            throw new UnauthorizedException(`Invalid email or password (password mismatch: ${password})`);
         }
 
         const payload = { sub: user.id, email: user.email };
