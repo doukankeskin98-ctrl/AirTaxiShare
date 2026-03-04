@@ -252,7 +252,10 @@
         "privacy": "Gizlilik / KVKK",
         "account": "Hesap",
         "deleteAccount": "Hesabı sil",
-        "logout": "Çıkış yap"
+        "deleteAccountConfirm": "Bu işlem geri alınamaz. Hesabınız ve tüm verileriniz kalıcı olarak silinecektir.",
+        "deleteAccountBtn": "Hesabı Sil",
+        "logout": "Çıkış yap",
+        "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
     },
     "legal": {
         "disclaimer": {

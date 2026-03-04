@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, SafeAreaView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -10,6 +10,7 @@ import { MotiView, MotiText } from 'moti';
 
 import { MatchAPI } from '../services/api';
 import SocketService from '../services/socket';
+import { showAlert } from '../utils/alert';
 
 export default function RatingScreen() {
     const { t } = useTranslation();
@@ -57,7 +58,7 @@ export default function RatingScreen() {
                 note: note,
             });
         } catch (error: any) {
-            Alert.alert(t('common.error'), t('rating.submit_error'));
+            showAlert(t('common.error'), t('rating.submit_error'));
             // Don't block navigation on rating failure
         } finally {
             setIsSubmitting(false);

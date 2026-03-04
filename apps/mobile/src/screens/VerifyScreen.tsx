@@ -17,23 +17,18 @@ export default function VerifyScreen({ route, navigation }: any) {
 
     const handleVerify = async () => {
         if (code.length < 6) {
-            showAlert('Error', 'Please enter a valid 6-digit code');
+            showAlert('Hata', 'Lütfen geçerli bir 6 haneli kod girin.');
             return;
         }
         setIsLoading(true);
         try {
-            // Mock verify for now if API fails or for demo
-            // const response = await AuthService.verify(phoneNumber, code);
-            // const { accessToken } = response.data;
-            // await setAuthToken(accessToken);
-
-            // For smoother demo if backend isn't ready:
-            setTimeout(() => {
-                navigation.replace('ProfileSetup'); // Navigate to setup instead of Home mostly
-            }, 1000);
-
-        } catch (error) {
-            showAlert('Error', 'Invalid Code');
+            const response = await AuthService.verify(phoneNumber, code);
+            const { accessToken } = response.data;
+            await setAuthToken(accessToken);
+            navigation.replace('ProfileSetup');
+        } catch (error: any) {
+            const msg = error?.message || 'Geçersiz doğrulama kodu.';
+            showAlert('Doğrulama Başarısız', msg);
         } finally {
             setIsLoading(false);
         }

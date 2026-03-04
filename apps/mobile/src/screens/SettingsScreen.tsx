@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, Alert, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors, typography, spacing } from '../theme';
@@ -9,8 +9,8 @@ import { ATSButton } from '../components/ATS/ATSButton';
 import { ATSCard } from '../components/ATS/ATSCard';
 import { Ionicons } from '@expo/vector-icons';
 import i18n from '../i18n';
-import { setAuthToken, clearUserProfile, loadUserProfile } from '../services/api';
-import { showConfirm } from '../utils/alert';
+import { setAuthToken, clearUserProfile, loadUserProfile, api } from '../services/api';
+import { showConfirm, showAlert } from '../utils/alert';
 
 export default function SettingsScreen() {
     const { t } = useTranslation();
@@ -38,7 +38,7 @@ export default function SettingsScreen() {
     const handleLogout = () => {
         showConfirm(
             t('settings.logout'),
-            'Çıkış yapmak istediğinizden emin misiniz?',
+            t('settings.logoutConfirm'),
             async () => {
                 await setAuthToken('');
                 await clearUserProfile();
@@ -48,7 +48,7 @@ export default function SettingsScreen() {
                 });
             },
             t('settings.logout'),
-            'Vazgeç',
+            t('common.cancel'),
             true
         );
     };
@@ -56,8 +56,13 @@ export default function SettingsScreen() {
     const handleDeleteAccount = () => {
         showConfirm(
             t('settings.deleteAccount'),
-            'Bu işlem geri alınamaz. Hesabınız ve tüm verileriniz silinecek.',
+            t('settings.deleteAccountConfirm'),
             async () => {
+                try {
+                    await api.delete('/user/me');
+                } catch (err: any) {
+                    // Even if the API call fails, clean up local state
+                }
                 await setAuthToken('');
                 await clearUserProfile();
                 navigation.reset({
@@ -65,8 +70,8 @@ export default function SettingsScreen() {
                     routes: [{ name: 'Welcome' }],
                 });
             },
-            'Hesabı Sil',
-            'Vazgeç',
+            t('settings.deleteAccountBtn'),
+            t('common.cancel'),
             true
         );
     };

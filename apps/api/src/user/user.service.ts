@@ -101,6 +101,12 @@ export class UserService {
         });
     }
 
+    // App Store / Play Store compliance: Full account deletion
+    async deleteUser(userId: string): Promise<void> {
+        this.logger.log(`Deleting user account: ${userId}`);
+        await this.userRepository.delete(userId);
+    }
+
     async findAll(): Promise<Partial<User>[]> {
         const users = await this.userRepository.find({
             order: { createdAt: 'DESC' },

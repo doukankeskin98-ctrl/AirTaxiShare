@@ -252,7 +252,10 @@
         "privacy": "Privacy",
         "account": "Account",
         "deleteAccount": "Delete account",
-        "logout": "Log out"
+        "deleteAccountConfirm": "This action cannot be undone. Your account and all data will be permanently deleted.",
+        "deleteAccountBtn": "Delete Account",
+        "logout": "Log out",
+        "logoutConfirm": "Are you sure you want to log out?"
     },
     "legal": {
         "disclaimer": {

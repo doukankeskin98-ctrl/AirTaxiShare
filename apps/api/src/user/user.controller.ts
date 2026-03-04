@@ -1,7 +1,7 @@
-import { Controller, Get, Put, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Put, Post, Delete, Body, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
-import { IsOptional, IsString, IsUrl, Length, MaxLength } from 'class-validator';
+import { IsOptional, IsString, Length, MaxLength } from 'class-validator';
 import { Role } from './user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -57,14 +57,24 @@ export class UserController {
         return { success: true };
     }
 
-    // Admin endpoint — returns all users (no sensitive fields)
+    // App Store / Google Play Compliance: Users must be able to delete their account
+    @Delete('me')
+    @UseGuards(AuthGuard('jwt'))
+    @HttpCode(200)
+    async deleteAccount(@Request() req: any) {
+        await this.userService.deleteUser(req.user.id);
+        return { success: true, message: 'Account deleted' };
+    }
+
+    // Admin endpoint — DB debug status
     @Get('debug-db-status')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN)
     async debugDbStatus() {
         const users = await this.userService.findAll();
         return {
             totalUsers: users.length,
             emails: users.map(u => u.email).filter(e => e),
-            message: "If this is 0, the DB is empty. Registration via the mobile app is required."
         };
     }
 
@@ -78,6 +88,8 @@ export class UserController {
 
     // Admin endpoint — returns aggregate stats
     @Get('stats')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN)
     async getStats() {
         return this.userService.getStats();
     }
