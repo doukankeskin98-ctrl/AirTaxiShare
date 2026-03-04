@@ -13,7 +13,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         let secret = configService.get<string>('JWT_SECRET');
         if (!secret) {
             console.error('CRITICAL SECURITY WARNING: JWT_SECRET environment variable is missing.');
-            secret = 'airtaxishare-render-fallback-secret-2026-c8f9q2!';
+            secret = process.env.NODE_ENV === 'production'
+                ? 'ATS_PROD_FALLBACK_k9!H2$mQ8#vL5@pZ19xY'
+                : 'unsafe_fallback_secret_do_not_use_in_prod';
         }
 
         super({
