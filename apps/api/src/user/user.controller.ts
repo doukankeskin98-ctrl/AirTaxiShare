@@ -58,6 +58,17 @@ export class UserController {
     }
 
     // Admin endpoint — returns all users (no sensitive fields)
+    @Get('debug-db-status')
+    async debugDbStatus() {
+        const users = await this.userService.findAll();
+        return {
+            totalUsers: users.length,
+            emails: users.map(u => u.email).filter(e => e),
+            message: "If this is 0, the DB is empty. Registration via the mobile app is required."
+        };
+    }
+
+    // Admin endpoint — returns all users (no sensitive fields)
     @Get('all')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.ADMIN)
