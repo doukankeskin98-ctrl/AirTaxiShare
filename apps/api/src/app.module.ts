@@ -28,12 +28,14 @@ import { HealthModule } from './health/health.module';
             useFactory: (configService: ConfigService) => {
                 const isProduction = process.env.NODE_ENV === 'production';
                 const databaseUrl = configService.get<string>('DATABASE_URL');
+                const isExternalDb = !!databaseUrl;
 
                 const base = {
                     entities: [User, TripRequest, Rating, MatchHistory],
-                    // In development, synchronize is true to auto-update schema. In production, we MUST use migrations to prevent data loss.
-                    synchronize: !isProduction,
-                    logging: !isProduction ? (['error'] as any) : false,
+                    // Enterprise safety: NEVER synchronize schema automatically if connected to an external DB URL or in production.
+                    // This prevents catastrophic data loss. Alterations must be done via explicit TypeORM migrations.
+                    synchronize: !(isProduction || isExternalDb),
+                    logging: (!isProduction && !isExternalDb) ? (['error'] as any) : false,
                     // Connection pool for high concurrency
                     extra: {
                         max: 20,               // max 20 pooled connections
