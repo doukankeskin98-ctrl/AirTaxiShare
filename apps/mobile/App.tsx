@@ -5,6 +5,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { setupForegroundNotificationListener, setupNotificationResponseListener } from './src/services/notifications';
 import { navigationRef } from './src/navigation/RootNavigation';
 import { ChatProvider } from './src/context/ChatContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 export default function App() {
     useEffect(() => {
@@ -18,8 +19,10 @@ export default function App() {
     }, []);
 
     return (
-        <ChatProvider>
-            <AppNavigator />
-        </ChatProvider>
+        <ErrorBoundary>
+            <ChatProvider>
+                <AppNavigator />
+            </ChatProvider>
+        </ErrorBoundary>
     );
 }

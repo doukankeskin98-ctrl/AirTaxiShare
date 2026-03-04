@@ -58,9 +58,9 @@ export default function ActiveQueuesScreen() {
             await SocketService.connect();
             SocketService.emit('get_active_queues');
         } catch (error) {
-            console.warn('[ActiveQueues] Socket connection failed', error);
             setIsLoading(false);
             setRefreshing(false);
+            showAlert('Connection Error', 'Could not load active queues. Please check your internet connection and try again.');
         }
     }, []);
 
@@ -96,8 +96,8 @@ export default function ActiveQueuesScreen() {
             try {
                 const res = await MatchAPI.getUserReviews(queue.firstUserId);
                 setProfileReviews(res.data);
-            } catch (err) {
-                console.warn('Failed to fetch reviews', err);
+            } catch (err: any) {
+                showAlert('Error', err.response?.data?.message || err.message || 'Failed to load user reviews.');
             } finally {
                 setIsLoadingReviews(false);
             }

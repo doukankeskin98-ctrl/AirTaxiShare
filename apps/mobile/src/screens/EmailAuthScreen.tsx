@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing } from '../theme';
@@ -58,7 +58,7 @@ export default function EmailAuthScreen() {
         } catch (error: any) {
             showAlert(
                 'Error',
-                error.message || (mode === 'signin' ? 'Invalid email or password' : 'Registration failed')
+                error.response?.data?.message || error.message || (mode === 'signin' ? 'Invalid email or password' : 'Registration failed')
             );
         } finally {
             setIsLoading(false);
@@ -72,86 +72,88 @@ export default function EmailAuthScreen() {
                 style={styles.background}
             />
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardView}
-            >
-                <ScrollView contentContainerStyle={styles.content}>
-                    <MotiView
-                        from={{ opacity: 0, translateY: -20 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 200 }}
-                        style={styles.header}
-                    >
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                            <Ionicons name="arrow-back" size={24} color={colors.textInverse} />
-                        </TouchableOpacity>
-                        <Text style={styles.title}>
-                            {mode === 'signin' ? t('auth.signin') : t('auth.signup')}
-                        </Text>
-                        <Text style={styles.subtitle}>
-                            {mode === 'signin' ? 'Welcome back to AirTaxiShare' : 'Create an account to start flying'}
-                        </Text>
-                    </MotiView>
-
-                    <PremiumCard variant="elevated" animate delay={400} style={styles.formCard}>
-                        <View style={styles.tabs}>
-                            <TouchableOpacity
-                                style={[styles.tab, mode === 'signin' && styles.activeTab]}
-                                onPress={() => setMode('signin')}
-                            >
-                                <Text style={[styles.tabText, mode === 'signin' && styles.activeTabText]}>
-                                    {t('auth.signin')}
-                                </Text>
+            <SafeAreaView style={{ flex: 1 }}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.keyboardView}
+                >
+                    <ScrollView contentContainerStyle={styles.content}>
+                        <MotiView
+                            from={{ opacity: 0, translateY: -20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 200 }}
+                            style={styles.header}
+                        >
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                                <Ionicons name="arrow-back" size={24} color={colors.textInverse} />
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.tab, mode === 'signup' && styles.activeTab]}
-                                onPress={() => setMode('signup')}
-                            >
-                                <Text style={[styles.tabText, mode === 'signup' && styles.activeTabText]}>
-                                    {t('auth.signup')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                            <Text style={styles.title}>
+                                {mode === 'signin' ? t('auth.signin') : t('auth.signup')}
+                            </Text>
+                            <Text style={styles.subtitle}>
+                                {mode === 'signin' ? 'Welcome back to AirTaxiShare' : 'Create an account to start flying'}
+                            </Text>
+                        </MotiView>
 
-                        <View style={styles.inputs}>
-                            <PremiumInput
-                                label={t('auth.label')}
-                                placeholder="name@example.com"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textSecondary} />}
-                            />
-
-                            <PremiumInput
-                                label={t('auth.password')}
-                                placeholder="••••••"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                                leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} />}
-                            />
-
-                            {mode === 'signin' && (
-                                <TouchableOpacity style={styles.forgotBtn}>
-                                    <Text style={styles.forgotText}>{t('auth.forgot')}</Text>
+                        <PremiumCard variant="elevated" animate delay={400} style={styles.formCard}>
+                            <View style={styles.tabs}>
+                                <TouchableOpacity
+                                    style={[styles.tab, mode === 'signin' && styles.activeTab]}
+                                    onPress={() => setMode('signin')}
+                                >
+                                    <Text style={[styles.tabText, mode === 'signin' && styles.activeTabText]}>
+                                        {t('auth.signin')}
+                                    </Text>
                                 </TouchableOpacity>
-                            )}
+                                <TouchableOpacity
+                                    style={[styles.tab, mode === 'signup' && styles.activeTab]}
+                                    onPress={() => setMode('signup')}
+                                >
+                                    <Text style={[styles.tabText, mode === 'signup' && styles.activeTabText]}>
+                                        {t('auth.signup')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
 
-                            <View style={styles.spacer} />
+                            <View style={styles.inputs}>
+                                <PremiumInput
+                                    label={t('auth.label')}
+                                    placeholder="name@example.com"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textSecondary} />}
+                                />
 
-                            <PremiumButton
-                                title={mode === 'signin' ? t('auth.signin') : t('auth.signup')}
-                                onPress={handleAuth}
-                                loading={isLoading}
-                                icon={<Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
-                            />
-                        </View>
-                    </PremiumCard>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                                <PremiumInput
+                                    label={t('auth.password')}
+                                    placeholder="••••••"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry
+                                    leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} />}
+                                />
+
+                                {mode === 'signin' && (
+                                    <TouchableOpacity style={styles.forgotBtn}>
+                                        <Text style={styles.forgotText}>{t('auth.forgot')}</Text>
+                                    </TouchableOpacity>
+                                )}
+
+                                <View style={styles.spacer} />
+
+                                <PremiumButton
+                                    title={mode === 'signin' ? t('auth.signin') : t('auth.signup')}
+                                    onPress={handleAuth}
+                                    loading={isLoading}
+                                    icon={<Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
+                                />
+                            </View>
+                        </PremiumCard>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
         </View>
     );
 }

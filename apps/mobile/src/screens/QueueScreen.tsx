@@ -50,7 +50,6 @@ export default function QueueScreen() {
                     setLiveCount(count);
                 });
             } catch (err: any) {
-                console.error('[Queue] Search start failed:', err);
                 setIsFinding(false);
                 setError(err.message || t('queue.error.server'));
                 showAlert(

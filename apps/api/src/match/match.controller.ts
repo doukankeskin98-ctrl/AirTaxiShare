@@ -16,7 +16,6 @@ export class MatchController {
     @UseGuards(AuthGuard('jwt'))
     @Post('rating')
     async submitRating(@Request() req: any, @Body() dto: SubmitRatingDto) {
-        console.log('[MatchController] Incoming rating payload:', dto, 'from user:', req.user.id);
         return this.matchService.saveRating(req.user.id, {
             toUserId: dto.toUserId,
             matchId: dto.matchId,
@@ -41,26 +40,5 @@ export class MatchController {
     @Get('stats')
     async getStats() {
         return this.matchService.getAdminStats();
-    }
-
-    // Temporary Debug Endpoint for submitting ratings without JWT
-    @Post('debug/submit-rating')
-    async debugSubmitRating(@Body() dto: SubmitRatingDto) {
-        console.log('[MatchController DEBUG] Incoming rating payload:', dto);
-        const fallbackUserId = 'db5cef57-1a85-43c7-a16e-32f519f769f7'; // A known user ID from the database
-        return this.matchService.saveRating(fallbackUserId, {
-            toUserId: dto.toUserId,
-            matchId: dto.matchId,
-            score: dto.score,
-            tags: dto.tags,
-            note: dto.note,
-        });
-    }
-
-    // Temporary Debug Endpoint for diagnosing empty reviews
-    @Get('debug/ratings')
-    async debugRatings() {
-        const repo = this.matchService['ratingRepository'];
-        return repo.find({ order: { createdAt: 'DESC' }, take: 10, relations: ['toUser', 'fromUser'] });
     }
 }

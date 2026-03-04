@@ -14,16 +14,7 @@ import { JwtStrategy } from './jwt.strategy';
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => {
-                let secret = configService.get<string>('JWT_SECRET');
-                if (!secret) {
-                    if (process.env.NODE_ENV === 'production') {
-                        Logger.warn('[Warning] JWT_SECRET is missing in production. Using a persistent fallback secret to prevent deploy failure.', 'AuthModule');
-                        secret = 'ATS_PROD_FALLBACK_k9!H2$mQ8#vL5@pZ19xY';
-                    } else {
-                        Logger.warn('[Warning] JWT_SECRET missing in development. Using local fallback.', 'AuthModule');
-                        secret = 'unsafe_fallback_secret_do_not_use_in_prod';
-                    }
-                }
+                const secret = configService.get<string>('JWT_SECRET');
                 return {
                     secret,
                     signOptions: { expiresIn: '7d' },

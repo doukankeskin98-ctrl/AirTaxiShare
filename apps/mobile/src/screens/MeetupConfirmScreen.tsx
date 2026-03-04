@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { showConfirm } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -80,126 +80,128 @@ export default function MeetupConfirmScreen() {
                 style={StyleSheet.absoluteFillObject}
             />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => {
-                        showConfirm(
-                            t('meetup.cancel.title'),
-                            t('meetup.cancel.msg'),
-                            () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
-                            t('meetup.cancel.yes'),
-                            t('common.no'),
-                            true,
-                        );
-                    }}
-                >
-                    <BlurView intensity={30} tint="dark" style={styles.backBlur}>
-                        <Ionicons name="close" size={24} color={colors.textPrimary} />
-                    </BlurView>
-                </TouchableOpacity>
-                <MotiText
-                    from={{ opacity: 0, translateY: -10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    style={styles.headerTitle}
-                >
-                    {t('meetup.title')}
-                </MotiText>
-                <View style={{ width: 44 }} />
-            </View>
+            <SafeAreaView style={{ flex: 1 }}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => {
+                            showConfirm(
+                                t('meetup.cancel.title'),
+                                t('meetup.cancel.msg'),
+                                () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }),
+                                t('meetup.cancel.yes'),
+                                t('common.no'),
+                                true,
+                            );
+                        }}
+                    >
+                        <BlurView intensity={30} tint="dark" style={styles.backBlur}>
+                            <Ionicons name="close" size={24} color={colors.textPrimary} />
+                        </BlurView>
+                    </TouchableOpacity>
+                    <MotiText
+                        from={{ opacity: 0, translateY: -10 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        style={styles.headerTitle}
+                    >
+                        {t('meetup.title')}
+                    </MotiText>
+                    <View style={{ width: 44 }} />
+                </View>
 
-            <View style={styles.content}>
+                <View style={styles.content}>
 
-                {/* Central icon animation */}
-                <MotiView
-                    from={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', damping: 14 } as any}
-                    style={styles.iconWrapper}
-                >
-                    {status === 'success' ? (
-                        <View style={[styles.iconCircle, { backgroundColor: colors.success }]}>
-                            <Ionicons name="checkmark" size={64} color="#FFF" />
-                        </View>
-                    ) : (
-                        <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20', borderWidth: 2, borderColor: colors.primary + '40' }]}>
-                            <Ionicons name="people-circle" size={72} color={colors.primary} />
-                        </View>
+                    {/* Central icon animation */}
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'spring', damping: 14 } as any}
+                        style={styles.iconWrapper}
+                    >
+                        {status === 'success' ? (
+                            <View style={[styles.iconCircle, { backgroundColor: colors.success }]}>
+                                <Ionicons name="checkmark" size={64} color="#FFF" />
+                            </View>
+                        ) : (
+                            <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20', borderWidth: 2, borderColor: colors.primary + '40' }]}>
+                                <Ionicons name="people-circle" size={72} color={colors.primary} />
+                            </View>
+                        )}
+                    </MotiView>
+
+                    <MotiView
+                        from={{ opacity: 0, translateY: 10 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 200 } as any}
+                        style={styles.textBlock}
+                    >
+                        <Text style={styles.title}>
+                            {status === 'success'
+                                ? t('meetup.status.success_title')
+                                : status === 'waiting_partner'
+                                    ? t('meetup.status.waiting_title')
+                                    : t('meetup.subtitle')}
+                        </Text>
+                        <Text style={styles.subtitle}>
+                            {status === 'success'
+                                ? t('meetup.status.success_msg')
+                                : status === 'waiting_partner'
+                                    ? t('meetup.status.waiting_msg', { name: otherUser?.name || t('common.passenger') })
+                                    : t('meetup.status.pending_msg')}
+                        </Text>
+                    </MotiView>
+
+                    {status === 'waiting_partner' && (
+                        <MotiView
+                            from={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            style={styles.waitingRow}
+                        >
+                            {[0, 1, 2].map(i => (
+                                <MotiView
+                                    key={i}
+                                    from={{ opacity: 0.2, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: 'timing', duration: 700, delay: i * 200, loop: true, repeatReverse: true } as any}
+                                    style={styles.waitingDot}
+                                />
+                            ))}
+                        </MotiView>
                     )}
-                </MotiView>
 
-                <MotiView
-                    from={{ opacity: 0, translateY: 10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 200 } as any}
-                    style={styles.textBlock}
-                >
-                    <Text style={styles.title}>
-                        {status === 'success'
-                            ? t('meetup.status.success_title')
-                            : status === 'waiting_partner'
-                                ? t('meetup.status.waiting_title')
-                                : t('meetup.subtitle')}
-                    </Text>
-                    <Text style={styles.subtitle}>
-                        {status === 'success'
-                            ? t('meetup.status.success_msg')
-                            : status === 'waiting_partner'
-                                ? t('meetup.status.waiting_msg', { name: otherUser?.name || t('common.passenger') })
-                                : t('meetup.status.pending_msg')}
-                    </Text>
-                </MotiView>
+                    <View style={styles.spacer} />
 
-                {status === 'waiting_partner' && (
+                    {status === 'pending' && (
+                        <MotiView
+                            from={{ opacity: 0, translateY: 20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 400 } as any}
+                        >
+                            <PremiumButton
+                                title={t('meetup.cta.met')}
+                                onPress={handleConfirm}
+                                icon={<Ionicons name="checkmark-circle-outline" size={22} color="#FFF" />}
+                                style={styles.confirmButton}
+                            />
+                        </MotiView>
+                    )}
+
                     <MotiView
                         from={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={styles.waitingRow}
-                    >
-                        {[0, 1, 2].map(i => (
-                            <MotiView
-                                key={i}
-                                from={{ opacity: 0.2, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ type: 'timing', duration: 700, delay: i * 200, loop: true, repeatReverse: true } as any}
-                                style={styles.waitingDot}
-                            />
-                        ))}
-                    </MotiView>
-                )}
-
-                <View style={styles.spacer} />
-
-                {status === 'pending' && (
-                    <MotiView
-                        from={{ opacity: 0, translateY: 20 }}
-                        animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 400 } as any}
+                        animate={{ opacity: status === 'success' ? 0 : 1 }}
+                        delay={600}
                     >
                         <PremiumButton
-                            title={t('meetup.cta.met')}
-                            onPress={handleConfirm}
-                            icon={<Ionicons name="checkmark-circle-outline" size={22} color="#FFF" />}
-                            style={styles.confirmButton}
+                            title={t('meetup.dispute.title')}
+                            onPress={handleDispute}
+                            variant="secondary"
+                            style={styles.disputeButton}
+                            textStyle={{ color: colors.textSecondary }}
                         />
                     </MotiView>
-                )}
-
-                <MotiView
-                    from={{ opacity: 0 }}
-                    animate={{ opacity: status === 'success' ? 0 : 1 }}
-                    delay={600}
-                >
-                    <PremiumButton
-                        title={t('meetup.dispute.title')}
-                        onPress={handleDispute}
-                        variant="secondary"
-                        style={styles.disputeButton}
-                        textStyle={{ color: colors.textSecondary }}
-                    />
-                </MotiView>
-            </View>
+                </View>
+            </SafeAreaView>
         </View>
     );
 }
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: spacing.m,
-        paddingTop: 60,
+        paddingTop: spacing.m,
         paddingBottom: spacing.m,
     },
     backButton: {

@@ -27,7 +27,6 @@ export const registerForPushNotificationsAsync = async (): Promise<string | null
     }
 
     if (finalStatus !== 'granted') {
-        console.warn('[Notifications] Permission not granted');
         return null;
     }
 
@@ -35,13 +34,11 @@ export const registerForPushNotificationsAsync = async (): Promise<string | null
         projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
     });
     const token = tokenData.data;
-    console.log('[Notifications] Push token:', token);
 
     // Upload to backend (non-blocking — don't fail if this fails)
     try {
         await UserService.updatePushToken(token);
     } catch (e) {
-        console.warn('[Notifications] Failed to upload token to backend:', e);
     }
 
     // Android: create a default notification channel
@@ -83,7 +80,6 @@ export const setupNotificationResponseListener = (
  */
 export const setupForegroundNotificationListener = (): (() => void) => {
     const subscription = Notifications.addNotificationReceivedListener(notification => {
-        console.log('[Notifications] Received foreground notification:', notification.request.identifier);
     });
     return () => subscription.remove();
 };

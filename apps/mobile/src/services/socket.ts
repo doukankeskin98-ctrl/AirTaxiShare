@@ -72,7 +72,6 @@ class SocketService {
                 try {
                     authToken = (await AsyncStorage.getItem('@auth_token')) || undefined;
                 } catch (e) {
-                    console.warn('[Socket] Could not read auth token');
                 }
             }
 
@@ -96,18 +95,15 @@ class SocketService {
             };
 
             this.socket.on('connect', () => {
-                console.log('[Socket] Connected:', this.socket?.id);
                 this.flushPendingCallbacks(); // Replay any listeners registered before connect
                 cleanup();
                 resolve();
             });
 
             this.socket.on('disconnect', (reason) => {
-                console.warn('[Socket] Disconnected:', reason);
             });
 
             this.socket.on('connect_error', (err) => {
-                console.error('[Socket] Connection error:', err.message);
                 cleanup();
                 // Reject with meaningful error — callers can display it to user
                 reject(new Error(`Sunucuya bağlanılamadı: ${err.message}`));
@@ -177,7 +173,6 @@ class SocketService {
             const trimmed = existing.slice(-200);
             await AsyncStorage.setItem(SocketService.chatKey(matchId), JSON.stringify(trimmed));
         } catch (e) {
-            console.warn('[Socket] Failed to persist message:', e);
         }
     }
 
@@ -193,7 +188,6 @@ class SocketService {
 
     public sendMessage(matchId: string, text: string) {
         if (!this.socket?.connected) {
-            console.warn('[Socket] Cannot send message — not connected');
             return false;
         }
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

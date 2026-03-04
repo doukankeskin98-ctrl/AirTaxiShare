@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, SafeAreaView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors, typography, spacing, layout } from '../theme';
@@ -57,7 +57,6 @@ export default function RatingScreen() {
                 note: note,
             });
         } catch (error: any) {
-            console.log('Rating submit error (non-critical):', error.message);
             Alert.alert(t('common.error'), t('rating.submit_error'));
             // Don't block navigation on rating failure
         } finally {
@@ -71,110 +70,112 @@ export default function RatingScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Minimal Header */}
-            <View style={styles.headerSpacer} />
-            <MotiText
-                from={{ opacity: 0, translateY: -10 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                style={styles.headerTitle}
-            >
-                {t('rating.title')}
-            </MotiText>
-
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
+            <SafeAreaView style={{ flex: 1 }}>
+                {/* Minimal Header */}
+                <View style={styles.headerSpacer} />
+                <MotiText
+                    from={{ opacity: 0, translateY: -10 }}
                     animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 100 } as any}
+                    style={styles.headerTitle}
                 >
-                    <PremiumCard style={styles.card}>
-                        <View style={styles.starContainer}>
-                            <Text style={styles.subtitle}>{t('rating.subtitle')}</Text>
-                            <View style={styles.stars}>
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <TouchableOpacity
-                                        key={star}
-                                        onPress={() => setRating(star)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <MotiView
-                                            animate={{ scale: star <= rating ? 1.2 : 1 }}
-                                            transition={{ type: 'spring' } as any}
-                                        >
-                                            <Ionicons
-                                                name={star <= rating ? "star" : "star-outline"}
-                                                size={40}
-                                                color={star <= rating ? colors.warning : colors.textDisabled}
-                                            />
-                                        </MotiView>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-                    </PremiumCard>
-                </MotiView>
+                    {t('rating.title')}
+                </MotiText>
 
-                {rating > 0 && (
+                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
                     <MotiView
-                        from={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        transition={{ type: 'spring' } as any}
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 100 } as any}
                     >
                         <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>{t('rating.section_good')}</Text>
-                            <View style={styles.tagContainer}>
-                                {tags.map((tag) => {
-                                    const isSelected = selectedTags.includes(tag.id);
-                                    return (
+                            <View style={styles.starContainer}>
+                                <Text style={styles.subtitle}>{t('rating.subtitle')}</Text>
+                                <View style={styles.stars}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
                                         <TouchableOpacity
-                                            key={tag.id}
-                                            style={[
-                                                styles.tag,
-                                                isSelected && styles.tagSelected
-                                            ]}
-                                            onPress={() => toggleTag(tag.id)}
+                                            key={star}
+                                            onPress={() => setRating(star)}
+                                            activeOpacity={0.7}
                                         >
-                                            <Text style={[
-                                                styles.tagText,
-                                                isSelected && styles.tagTextSelected
-                                            ]}>{tag.label}</Text>
+                                            <MotiView
+                                                animate={{ scale: star <= rating ? 1.2 : 1 }}
+                                                transition={{ type: 'spring' } as any}
+                                            >
+                                                <Ionicons
+                                                    name={star <= rating ? "star" : "star-outline"}
+                                                    size={40}
+                                                    color={star <= rating ? colors.warning : colors.textDisabled}
+                                                />
+                                            </MotiView>
                                         </TouchableOpacity>
-                                    );
-                                })}
+                                    ))}
+                                </View>
                             </View>
                         </PremiumCard>
-
-                        <PremiumCard style={styles.card}>
-                            <Text style={styles.sectionLabel}>{t('rating.section_note')}</Text>
-                            <TextInput
-                                placeholder={t('rating.placeholder')}
-                                placeholderTextColor={colors.textDisabled}
-                                value={note}
-                                onChangeText={setNote}
-                                multiline
-                                style={styles.input}
-                            />
-                        </PremiumCard>
                     </MotiView>
-                )}
 
-                <MotiView
-                    style={styles.footer}
-                    animate={{
-                        opacity: rating > 0 ? 1 : 0.5,
-                        translateY: rating > 0 ? 0 : 20
-                    }}
-                >
-                    <PremiumButton
-                        title={t('rating.cta.submit')}
-                        onPress={handleSubmit}
-                        disabled={rating === 0}
-                        loading={isSubmitting}
-                        icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
-                        style={styles.submitButton}
-                    />
-                </MotiView>
-            </ScrollView>
+                    {rating > 0 && (
+                        <MotiView
+                            from={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            transition={{ type: 'spring' } as any}
+                        >
+                            <PremiumCard style={styles.card}>
+                                <Text style={styles.sectionLabel}>{t('rating.section_good')}</Text>
+                                <View style={styles.tagContainer}>
+                                    {tags.map((tag) => {
+                                        const isSelected = selectedTags.includes(tag.id);
+                                        return (
+                                            <TouchableOpacity
+                                                key={tag.id}
+                                                style={[
+                                                    styles.tag,
+                                                    isSelected && styles.tagSelected
+                                                ]}
+                                                onPress={() => toggleTag(tag.id)}
+                                            >
+                                                <Text style={[
+                                                    styles.tagText,
+                                                    isSelected && styles.tagTextSelected
+                                                ]}>{tag.label}</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </PremiumCard>
+
+                            <PremiumCard style={styles.card}>
+                                <Text style={styles.sectionLabel}>{t('rating.section_note')}</Text>
+                                <TextInput
+                                    placeholder={t('rating.placeholder')}
+                                    placeholderTextColor={colors.textDisabled}
+                                    value={note}
+                                    onChangeText={setNote}
+                                    multiline
+                                    style={styles.input}
+                                />
+                            </PremiumCard>
+                        </MotiView>
+                    )}
+
+                    <MotiView
+                        style={styles.footer}
+                        animate={{
+                            opacity: rating > 0 ? 1 : 0.5,
+                            translateY: rating > 0 ? 0 : 20
+                        }}
+                    >
+                        <PremiumButton
+                            title={t('rating.cta.submit')}
+                            onPress={handleSubmit}
+                            disabled={rating === 0}
+                            loading={isSubmitting}
+                            icon={<Ionicons name="checkmark" size={20} color="#FFF" />}
+                            style={styles.submitButton}
+                        />
+                    </MotiView>
+                </ScrollView>
+            </SafeAreaView>
         </View>
     );
 }
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     headerSpacer: {
-        height: 60,
+        height: spacing.m,
     },
     headerTitle: {
         ...typography.h3,

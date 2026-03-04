@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, SafeAreaView } from 'react-native';
 import { showConfirm, showAlert } from '../utils/alert';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -49,7 +49,7 @@ export default function MatchFoundScreen() {
                 t('match_found.alert.ended_title'),
                 msg,
                 () => {
-                    AsyncStorage.removeItem('ACTIVE_MATCH_KEY').catch(() => { });
+                    AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
                     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
                 }
             );
@@ -119,242 +119,244 @@ export default function MatchFoundScreen() {
                 style={[styles.orb, { bottom: 100, left: -150, backgroundColor: colors.primary }]}
             />
 
-            {/* Header with Cancel Button */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => {
-                        showConfirm(
-                            t('match_found.cancel.title'),
-                            t('match_found.cancel.msg'),
-                            () => {
-                                if (matchId && matchId !== 'mock-id') {
-                                    SocketService.endMatch(matchId);
-                                }
-                                AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
-                                navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-                            },
-                            t('match_found.cancel.yes_btn'),
-                            t('match_found.cancel.no_btn'),
-                            true,
-                        );
-                    }}
-                >
-                    <BlurView intensity={30} tint="dark" style={styles.backBlur}>
-                        <Ionicons name="close" size={24} color={colors.textPrimary} />
-                    </BlurView>
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-
-                {/* Success Animation Header */}
-                <MotiView
-                    from={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', damping: 15 } as any}
-                    style={styles.successHeader}
-                >
-                    <View style={styles.successIconWrapper}>
-                        <LinearGradient
-                            colors={[colors.success, '#059669']}
-                            style={styles.successIcon}
-                        >
-                            <Ionicons name="checkmark" size={44} color="#FFF" />
-                        </LinearGradient>
-                    </View>
-                    <Text style={styles.successTitle}>{t('match_found.success.title')}</Text>
-                    <Text style={styles.successSubtitle}>
-                        {t('match_found.success.subtitle', { name: safeOtherUser.name.split(' ')[0] || t('common.someone') })}
-                    </Text>
-                </MotiView>
-
-                {/* User Card */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 300 } as any}
-                >
-                    <BlurView intensity={40} tint="dark" style={styles.glassCard}>
-                        <View style={styles.cardHighlight} />
-                        <View style={styles.userRow}>
-                            <View style={styles.avatarContainer}>
-                                {safeOtherUser.photoUrl ? (
-                                    <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
-                                ) : (
-                                    <View style={styles.avatar}>
-                                        <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
-                                    </View>
-                                )}
-                                <View style={styles.badge}>
-                                    <Ionicons name="shield-checkmark" size={14} color="#FFF" />
-                                </View>
-                            </View>
-
-                            <View style={styles.userInfo}>
-                                <Text style={styles.userName}>{safeOtherUser.name}</Text>
-                                <View style={styles.ratingRow}>
-                                    <View style={styles.starPill}>
-                                        <Ionicons name="star" size={12} color="#FFF" />
-                                        <Text style={styles.ratingText}>{safeOtherUser.rating}</Text>
-                                    </View>
-                                    <View style={styles.luggagePill}>
-                                        <Ionicons name="briefcase" size={12} color="#FFF" />
-                                        <Text style={styles.ratingText}>{luggage === 'small' ? t('common.luggage_small') : luggage === 'large' ? t('common.luggage_large') : t('common.luggage_medium')}</Text>
-                                    </View>
-                                    <Text style={styles.tripsText}>{safeOtherUser.trips} {t('common.trips')}</Text>
-                                </View>
-
-                                {/* Trust badges row */}
-                                <View style={styles.trustRow}>
-                                    {safeOtherUser.phoneVerified && (
-                                        <View style={styles.trustBadge}>
-                                            <Ionicons name="call" size={10} color={colors.success} />
-                                            <Text style={styles.trustBadgeText}>{t('badges.phone')}</Text>
-                                        </View>
-                                    )}
-                                    {safeOtherUser.emailVerified && (
-                                        <View style={styles.trustBadge}>
-                                            <Ionicons name="mail" size={10} color={colors.secondary} />
-                                            <Text style={styles.trustBadgeText}>{t('badges.email')}</Text>
-                                        </View>
-                                    )}
-                                    {safeOtherUser.trustBadge && (
-                                        <View style={[styles.trustBadge, styles.trustBadgeGold]}>
-                                            <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
-                                            <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>{t('badges.ats_trust')}</Text>
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-
-                            {/* Chat button with unread badge */}
-                            <TouchableOpacity style={styles.chatBtn} onPress={handleOpenChat} activeOpacity={0.8}>
-                                <Ionicons name="chatbubble-ellipses" size={24} color="#FFF" />
-                                {unreadCount > 0 && (
-                                    <View style={styles.unreadBadge}>
-                                        <Text style={styles.unreadText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </BlurView>
-                </MotiView>
-
-                {/* Meeting Point Selection — real-time synced */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 500 } as any}
-                >
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>{t('match_found.meeting_point')}</Text>
-                        {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
-                            <View style={styles.partnerBadge}>
-                                <Ionicons name="person" size={11} color={colors.primary} />
-                                <Text style={styles.partnerBadgeText}>
-                                    {t('common.passenger')}: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-
-                    <View style={styles.meetingPointsContainer}>
-                        {meetingPoints.map((point) => {
-                            const isSelected = meetingPoint === point.value;
-                            const partnerSelected = partnerMeetingPoint === point.value;
-                            return (
-                                <TouchableOpacity
-                                    key={point.value}
-                                    onPress={() => handleSelectMeetingPoint(point.value)}
-                                    activeOpacity={0.8}
-                                >
-                                    <BlurView
-                                        intensity={isSelected ? 40 : 20}
-                                        tint={isSelected ? 'light' : 'dark'}
-                                        style={[
-                                            styles.meetingPointCard,
-                                            isSelected && styles.meetingPointCardSelected,
-                                            partnerSelected && !isSelected && styles.meetingPointCardPartner,
-                                        ]}
-                                    >
-                                        {isSelected && <View style={styles.meetingHighlight} />}
-                                        <View style={styles.meetingPointRow}>
-                                            <View style={[styles.iconBox, isSelected && { backgroundColor: colors.primary }]}>
-                                                <Ionicons
-                                                    name={point.icon as any}
-                                                    size={20}
-                                                    color={isSelected ? '#FFF' : colors.textSecondary}
-                                                />
-                                            </View>
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={[styles.meetingPointLabel, isSelected && styles.meetingPointLabelSelected]}>
-                                                    {point.label}
-                                                </Text>
-                                                <Text style={styles.meetingPointDescription}>{point.description}</Text>
-                                            </View>
-                                            {isSelected && <Ionicons name="checkmark-circle" size={26} color={colors.primary} />}
-                                            {partnerSelected && !isSelected && (
-                                                <View style={styles.partnerIndicator}>
-                                                    <Ionicons name="person" size={12} color={colors.primary} />
-                                                </View>
-                                            )}
-                                        </View>
-                                    </BlurView>
-                                </TouchableOpacity>
+            <SafeAreaView style={{ flex: 1 }}>
+                {/* Header with Cancel Button */}
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => {
+                            showConfirm(
+                                t('match_found.cancel.title'),
+                                t('match_found.cancel.msg'),
+                                () => {
+                                    if (matchId && matchId !== 'mock-id') {
+                                        SocketService.endMatch(matchId);
+                                    }
+                                    AsyncStorage.removeItem(ACTIVE_MATCH_KEY).catch(() => { });
+                                    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                                },
+                                t('match_found.cancel.yes_btn'),
+                                t('match_found.cancel.no_btn'),
+                                true,
                             );
-                        })}
-                    </View>
+                        }}
+                    >
+                        <BlurView intensity={30} tint="dark" style={styles.backBlur}>
+                            <Ionicons name="close" size={24} color={colors.textPrimary} />
+                        </BlurView>
+                    </TouchableOpacity>
+                </View>
 
-                    {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
-                        <MotiView
-                            from={{ opacity: 0, translateY: -4 }}
-                            animate={{ opacity: 1, translateY: 0 }}
-                            style={styles.warningBox}
-                        >
-                            <Ionicons name="warning-outline" size={16} color="#F59E0B" />
-                            <Text style={styles.warningText}>
-                                {t('match_found.warning_sync')}
-                            </Text>
-                        </MotiView>
-                    )}
-                </MotiView>
+                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-                {/* Match Code */}
-                <MotiView
-                    from={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 700 } as any}
-                >
-                    <BlurView intensity={30} tint="dark" style={styles.codeCard}>
-                        <View style={styles.cardHighlight} />
-                        <Text style={styles.codeLabel}>{t('match_found.code_label')}</Text>
-                        <View style={styles.codeBox}>
-                            <Text style={styles.codeText}>{meetupCode}</Text>
+                    {/* Success Animation Header */}
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'spring', damping: 15 } as any}
+                        style={styles.successHeader}
+                    >
+                        <View style={styles.successIconWrapper}>
+                            <LinearGradient
+                                colors={[colors.success, '#059669']}
+                                style={styles.successIcon}
+                            >
+                                <Ionicons name="checkmark" size={44} color="#FFF" />
+                            </LinearGradient>
                         </View>
-                        <Text style={styles.codeHint}>{t('match_found.code_hint')}</Text>
+                        <Text style={styles.successTitle}>{t('match_found.success.title')}</Text>
+                        <Text style={styles.successSubtitle}>
+                            {t('match_found.success.subtitle', { name: safeOtherUser.name.split(' ')[0] || t('common.someone') })}
+                        </Text>
+                    </MotiView>
+
+                    {/* User Card */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 300 } as any}
+                    >
+                        <BlurView intensity={40} tint="dark" style={styles.glassCard}>
+                            <View style={styles.cardHighlight} />
+                            <View style={styles.userRow}>
+                                <View style={styles.avatarContainer}>
+                                    {safeOtherUser.photoUrl ? (
+                                        <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
+                                    ) : (
+                                        <View style={styles.avatar}>
+                                            <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
+                                        </View>
+                                    )}
+                                    <View style={styles.badge}>
+                                        <Ionicons name="shield-checkmark" size={14} color="#FFF" />
+                                    </View>
+                                </View>
+
+                                <View style={styles.userInfo}>
+                                    <Text style={styles.userName}>{safeOtherUser.name}</Text>
+                                    <View style={styles.ratingRow}>
+                                        <View style={styles.starPill}>
+                                            <Ionicons name="star" size={12} color="#FFF" />
+                                            <Text style={styles.ratingText}>{safeOtherUser.rating}</Text>
+                                        </View>
+                                        <View style={styles.luggagePill}>
+                                            <Ionicons name="briefcase" size={12} color="#FFF" />
+                                            <Text style={styles.ratingText}>{luggage === 'small' ? t('common.luggage_small') : luggage === 'large' ? t('common.luggage_large') : t('common.luggage_medium')}</Text>
+                                        </View>
+                                        <Text style={styles.tripsText}>{safeOtherUser.trips} {t('common.trips')}</Text>
+                                    </View>
+
+                                    {/* Trust badges row */}
+                                    <View style={styles.trustRow}>
+                                        {safeOtherUser.phoneVerified && (
+                                            <View style={styles.trustBadge}>
+                                                <Ionicons name="call" size={10} color={colors.success} />
+                                                <Text style={styles.trustBadgeText}>{t('badges.phone')}</Text>
+                                            </View>
+                                        )}
+                                        {safeOtherUser.emailVerified && (
+                                            <View style={styles.trustBadge}>
+                                                <Ionicons name="mail" size={10} color={colors.secondary} />
+                                                <Text style={styles.trustBadgeText}>{t('badges.email')}</Text>
+                                            </View>
+                                        )}
+                                        {safeOtherUser.trustBadge && (
+                                            <View style={[styles.trustBadge, styles.trustBadgeGold]}>
+                                                <Ionicons name="shield-checkmark" size={10} color="#F59E0B" />
+                                                <Text style={[styles.trustBadgeText, { color: '#F59E0B' }]}>{t('badges.ats_trust')}</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+
+                                {/* Chat button with unread badge */}
+                                <TouchableOpacity style={styles.chatBtn} onPress={handleOpenChat} activeOpacity={0.8}>
+                                    <Ionicons name="chatbubble-ellipses" size={24} color="#FFF" />
+                                    {unreadCount > 0 && (
+                                        <View style={styles.unreadBadge}>
+                                            <Text style={styles.unreadText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </BlurView>
+                    </MotiView>
+
+                    {/* Meeting Point Selection — real-time synced */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 500 } as any}
+                    >
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>{t('match_found.meeting_point')}</Text>
+                            {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
+                                <View style={styles.partnerBadge}>
+                                    <Ionicons name="person" size={11} color={colors.primary} />
+                                    <Text style={styles.partnerBadgeText}>
+                                        {t('common.passenger')}: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={styles.meetingPointsContainer}>
+                            {meetingPoints.map((point) => {
+                                const isSelected = meetingPoint === point.value;
+                                const partnerSelected = partnerMeetingPoint === point.value;
+                                return (
+                                    <TouchableOpacity
+                                        key={point.value}
+                                        onPress={() => handleSelectMeetingPoint(point.value)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <BlurView
+                                            intensity={isSelected ? 40 : 20}
+                                            tint={isSelected ? 'light' : 'dark'}
+                                            style={[
+                                                styles.meetingPointCard,
+                                                isSelected && styles.meetingPointCardSelected,
+                                                partnerSelected && !isSelected && styles.meetingPointCardPartner,
+                                            ]}
+                                        >
+                                            {isSelected && <View style={styles.meetingHighlight} />}
+                                            <View style={styles.meetingPointRow}>
+                                                <View style={[styles.iconBox, isSelected && { backgroundColor: colors.primary }]}>
+                                                    <Ionicons
+                                                        name={point.icon as any}
+                                                        size={20}
+                                                        color={isSelected ? '#FFF' : colors.textSecondary}
+                                                    />
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={[styles.meetingPointLabel, isSelected && styles.meetingPointLabelSelected]}>
+                                                        {point.label}
+                                                    </Text>
+                                                    <Text style={styles.meetingPointDescription}>{point.description}</Text>
+                                                </View>
+                                                {isSelected && <Ionicons name="checkmark-circle" size={26} color={colors.primary} />}
+                                                {partnerSelected && !isSelected && (
+                                                    <View style={styles.partnerIndicator}>
+                                                        <Ionicons name="person" size={12} color={colors.primary} />
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </BlurView>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+
+                        {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
+                            <MotiView
+                                from={{ opacity: 0, translateY: -4 }}
+                                animate={{ opacity: 1, translateY: 0 }}
+                                style={styles.warningBox}
+                            >
+                                <Ionicons name="warning-outline" size={16} color="#F59E0B" />
+                                <Text style={styles.warningText}>
+                                    {t('match_found.warning_sync')}
+                                </Text>
+                            </MotiView>
+                        )}
+                    </MotiView>
+
+                    {/* Match Code */}
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 700 } as any}
+                    >
+                        <BlurView intensity={30} tint="dark" style={styles.codeCard}>
+                            <View style={styles.cardHighlight} />
+                            <Text style={styles.codeLabel}>{t('match_found.code_label')}</Text>
+                            <View style={styles.codeBox}>
+                                <Text style={styles.codeText}>{meetupCode}</Text>
+                            </View>
+                            <Text style={styles.codeHint}>{t('match_found.code_hint')}</Text>
+                        </BlurView>
+                    </MotiView>
+
+                    <View style={{ height: 140 }} />
+                </ScrollView>
+
+                <MotiView
+                    style={styles.footer}
+                    from={{ translateY: 150 }}
+                    animate={{ translateY: 0 }}
+                    transition={{ delay: 900, type: 'spring' } as any}
+                >
+                    <BlurView intensity={60} tint="dark" style={styles.footerBlur}>
+                        <PremiumButton
+                            title={t('match_found.btn_met')}
+                            onPress={handleMet}
+                            variant="primary"
+                            icon={<Ionicons name="people" size={24} color="#FFF" />}
+                            style={{ width: '100%' }}
+                        />
                     </BlurView>
                 </MotiView>
-
-                <View style={{ height: 140 }} />
-            </ScrollView>
-
-            <MotiView
-                style={styles.footer}
-                from={{ translateY: 150 }}
-                animate={{ translateY: 0 }}
-                transition={{ delay: 900, type: 'spring' } as any}
-            >
-                <BlurView intensity={60} tint="dark" style={styles.footerBlur}>
-                    <PremiumButton
-                        title={t('match_found.btn_met')}
-                        onPress={handleMet}
-                        variant="primary"
-                        icon={<Ionicons name="people" size={24} color="#FFF" />}
-                        style={{ width: '100%' }}
-                    />
-                </BlurView>
-            </MotiView>
+            </SafeAreaView>
         </View>
     );
 }
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
         transform: [{ scale: 1.5 }],
         ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
     },
-    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.m, paddingTop: 60, zIndex: 10 },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.m, paddingTop: spacing.m, zIndex: 10 },
     backButton: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden' },
     backBlur: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)' },
     content: { padding: spacing.xl, paddingTop: 20 },

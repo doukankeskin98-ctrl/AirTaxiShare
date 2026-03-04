@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, Platform, SafeAreaView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing } from '../theme';
@@ -79,7 +79,7 @@ export default function ProfileSetupScreen() {
                 routes: [{ name: 'Home' }],
             });
         } catch (error: any) {
-            showAlert('Error', error.message || 'Failed to save profile');
+            showAlert('Error', error.response?.data?.message || error.message || 'Failed to save profile');
         } finally {
             setIsLoading(false);
         }
@@ -91,92 +91,94 @@ export default function ProfileSetupScreen() {
                 colors={[colors.backgroundLight, colors.background]}
                 style={styles.background}
             />
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-            </View>
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>{t('profile.title')}</Text>
+                </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 100 } as any}
-                    style={styles.introSection}
-                >
-                    <Text style={styles.subtitle}>{t('profile.subtitle')}</Text>
-                </MotiView>
+                <ScrollView contentContainerStyle={styles.content}>
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 100 } as any}
+                        style={styles.introSection}
+                    >
+                        <Text style={styles.subtitle}>{t('profile.subtitle')}</Text>
+                    </MotiView>
 
-                <MotiView
-                    from={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 200 } as any}
-                    style={styles.avatarSection}
-                >
-                    <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
-                        {image ? (
-                            <Image source={{ uri: image }} style={styles.avatarImage} />
-                        ) : (
-                            <View style={styles.avatarPlaceholder}>
-                                <Ionicons name="camera" size={32} color={colors.textSecondary} />
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 200 } as any}
+                        style={styles.avatarSection}
+                    >
+                        <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
+                            {image ? (
+                                <Image source={{ uri: image }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <Ionicons name="camera" size={32} color={colors.textSecondary} />
+                                </View>
+                            )}
+                            <View style={styles.editIcon}>
+                                <Ionicons name="add" size={20} color={colors.textInverse} />
                             </View>
-                        )}
-                        <View style={styles.editIcon}>
-                            <Ionicons name="add" size={20} color={colors.textInverse} />
+                        </TouchableOpacity>
+                        <Text style={styles.photoLabel}>{t('profile.photo.label')}</Text>
+                    </MotiView>
+
+                    <PremiumCard variant="elevated" animate delay={300} style={styles.formCard}>
+                        <PremiumInput
+                            label={t('profile.name.label')}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="John Doe"
+                            leftIcon={<Ionicons name="person-outline" size={20} color={colors.textSecondary} />}
+                        />
+
+                        <PremiumInput
+                            label={t('profile.phone.label')}
+                            helper={t('profile.phone.helper')}
+                            value={phone}
+                            onChangeText={setPhone}
+                            keyboardType="phone-pad"
+                            placeholder="+90 5XX XXX XX XX"
+                            leftIcon={<Ionicons name="call-outline" size={20} color={colors.textSecondary} />}
+                        />
+                    </PremiumCard>
+
+                    <PremiumCard variant="default" animate delay={400} style={styles.consentCard}>
+                        <Text style={styles.consentTitle}>{t('profile.consent.title')}</Text>
+                        <View style={styles.checkboxContainer}>
+                            <Checkbox
+                                label={t('profile.consent.tos')}
+                                value={tosAccepted}
+                                onChange={setTosAccepted}
+                            />
+                            <Checkbox
+                                label={t('profile.consent.privacy')}
+                                value={privacyAccepted}
+                                onChange={setPrivacyAccepted}
+                            />
+                            <Checkbox
+                                label={t('profile.consent.marketing.optional')}
+                                value={marketingAccepted}
+                                onChange={setMarketingAccepted}
+                            />
                         </View>
-                    </TouchableOpacity>
-                    <Text style={styles.photoLabel}>{t('profile.photo.label')}</Text>
-                </MotiView>
+                    </PremiumCard>
 
-                <PremiumCard variant="elevated" animate delay={300} style={styles.formCard}>
-                    <PremiumInput
-                        label={t('profile.name.label')}
-                        value={name}
-                        onChangeText={setName}
-                        placeholder="John Doe"
-                        leftIcon={<Ionicons name="person-outline" size={20} color={colors.textSecondary} />}
+                    <View style={styles.spacer} />
+
+                    <PremiumButton
+                        title={t('profile.continue')}
+                        onPress={handleContinue}
+                        loading={isLoading}
+                        icon={<Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
                     />
-
-                    <PremiumInput
-                        label={t('profile.phone.label')}
-                        helper={t('profile.phone.helper')}
-                        value={phone}
-                        onChangeText={setPhone}
-                        keyboardType="phone-pad"
-                        placeholder="+90 5XX XXX XX XX"
-                        leftIcon={<Ionicons name="call-outline" size={20} color={colors.textSecondary} />}
-                    />
-                </PremiumCard>
-
-                <PremiumCard variant="default" animate delay={400} style={styles.consentCard}>
-                    <Text style={styles.consentTitle}>{t('profile.consent.title')}</Text>
-                    <View style={styles.checkboxContainer}>
-                        <Checkbox
-                            label={t('profile.consent.tos')}
-                            value={tosAccepted}
-                            onChange={setTosAccepted}
-                        />
-                        <Checkbox
-                            label={t('profile.consent.privacy')}
-                            value={privacyAccepted}
-                            onChange={setPrivacyAccepted}
-                        />
-                        <Checkbox
-                            label={t('profile.consent.marketing.optional')}
-                            value={marketingAccepted}
-                            onChange={setMarketingAccepted}
-                        />
-                    </View>
-                </PremiumCard>
-
-                <View style={styles.spacer} />
-
-                <PremiumButton
-                    title={t('profile.continue')}
-                    onPress={handleContinue}
-                    loading={isLoading}
-                    icon={<Ionicons name="arrow-forward" size={20} color={colors.textInverse} />}
-                />
-                <View style={styles.bottomSpacer} />
-            </ScrollView>
+                    <View style={styles.bottomSpacer} />
+                </ScrollView>
+            </SafeAreaView>
         </View>
     );
 }
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     },
     header: {
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+        paddingTop: spacing.m,
         paddingHorizontal: spacing.l,
         paddingBottom: spacing.m,
         backgroundColor: 'transparent',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, SafeAreaView } from 'react-native';
 
 import { useTranslation } from 'react-i18next';
 import { showAlert } from '../utils/alert';
@@ -71,149 +71,151 @@ export default function CreateMatchScreen() {
                 style={[styles.orb, { top: 300, left: -200, backgroundColor: colors.secondary }]}
             />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <BlurView intensity={30} tint="dark" style={styles.backBlur}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-                    </BlurView>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('create.title')}</Text>
-                <View style={{ width: 44 }} />
-            </View>
+            <SafeAreaView style={styles.safeArea}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <BlurView intensity={30} tint="dark" style={styles.backBlur}>
+                            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        </BlurView>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>{t('create.title')}</Text>
+                    <View style={{ width: 44 }} />
+                </View>
 
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <MotiText
-                    from={{ opacity: 0, translateY: 10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    style={styles.pageTitle}
-                >
-                    Nereye gidiyorsun?
-                </MotiText>
+                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                    <MotiText
+                        from={{ opacity: 0, translateY: 10 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        style={styles.pageTitle}
+                    >
+                        Nereye gidiyorsun?
+                    </MotiText>
 
-                {/* Destination Selection */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 100 } as any}
-                >
-                    <View style={styles.sectionWrapper}>
-                        <Text style={styles.sectionTitle}>{t('create.step.destination')}</Text>
-                        <View style={styles.optionsGrid}>
-                            {destinationOptions.map((option) => {
-                                const isSelected = destination === option.value;
-                                return (
-                                    <TouchableOpacity
-                                        key={option.value}
-                                        onPress={() => setDestination(option.value)}
-                                        activeOpacity={0.8}
-                                        style={styles.optionWrapper}
-                                    >
-                                        <BlurView intensity={20} tint="dark" style={[
-                                            styles.optionCard,
-                                            isSelected && styles.optionCardSelected
-                                        ]}>
+                    {/* Destination Selection */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 100 } as any}
+                    >
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.sectionTitle}>{t('create.step.destination')}</Text>
+                            <View style={styles.optionsGrid}>
+                                {destinationOptions.map((option) => {
+                                    const isSelected = destination === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            onPress={() => setDestination(option.value)}
+                                            activeOpacity={0.8}
+                                            style={styles.optionWrapper}
+                                        >
+                                            <BlurView intensity={20} tint="dark" style={[
+                                                styles.optionCard,
+                                                isSelected && styles.optionCardSelected
+                                            ]}>
+                                                {isSelected && (
+                                                    <LinearGradient
+                                                        colors={[colors.primary, 'transparent']}
+                                                        style={styles.selectedOverlay}
+                                                        start={{ x: 0, y: 0 }}
+                                                        end={{ x: 0, y: 1 }}
+                                                    />
+                                                )}
+                                                <View style={[styles.iconBox, isSelected && { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                                                    <Ionicons
+                                                        name={option.icon as any}
+                                                        size={28}
+                                                        color={isSelected ? colors.textPrimary : colors.primaryLight}
+                                                    />
+                                                </View>
+                                                <Text style={[styles.optionLabel, isSelected && { color: colors.textPrimary }]}>{option.label}</Text>
+                                                <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+                                            </BlurView>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </MotiView>
+
+                    {/* Time Selection */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 200 } as any}
+                    >
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.sectionTitle}>{t('create.step.time')}</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
+                                {timeOptions.map((option) => {
+                                    const isSelected = time === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            onPress={() => setTime(option.value)}
+                                            style={[styles.chip, isSelected && styles.chipSelected]}
+                                        >
                                             {isSelected && (
                                                 <LinearGradient
-                                                    colors={[colors.primary, 'transparent']}
-                                                    style={styles.selectedOverlay}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 0, y: 1 }}
+                                                    colors={colors.primaryGradient}
+                                                    style={StyleSheet.absoluteFillObject}
                                                 />
                                             )}
-                                            <View style={[styles.iconBox, isSelected && { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-                                                <Ionicons
-                                                    name={option.icon as any}
-                                                    size={28}
-                                                    color={isSelected ? colors.textPrimary : colors.primaryLight}
-                                                />
-                                            </View>
-                                            <Text style={[styles.optionLabel, isSelected && { color: colors.textPrimary }]}>{option.label}</Text>
-                                            <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
-                                        </BlurView>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-                    </View>
-                </MotiView>
-
-                {/* Time Selection */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 200 } as any}
-                >
-                    <View style={styles.sectionWrapper}>
-                        <Text style={styles.sectionTitle}>{t('create.step.time')}</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
-                            {timeOptions.map((option) => {
-                                const isSelected = time === option.value;
-                                return (
-                                    <TouchableOpacity
-                                        key={option.value}
-                                        onPress={() => setTime(option.value)}
-                                        style={[styles.chip, isSelected && styles.chipSelected]}
-                                    >
-                                        {isSelected && (
-                                            <LinearGradient
-                                                colors={colors.primaryGradient}
-                                                style={StyleSheet.absoluteFillObject}
-                                            />
-                                        )}
-                                        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                            {option.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
-                    </View>
-                </MotiView>
-
-                {/* Luggage Selection */}
-                <MotiView
-                    from={{ opacity: 0, translateY: 20 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ delay: 300 } as any}
-                >
-                    <View style={styles.sectionWrapper}>
-                        <Text style={styles.sectionTitle}>{t('create.step.luggage')}</Text>
-                        <View style={styles.luggageGrid}>
-                            {luggageOptions.map((option) => {
-                                const isSelected = luggage === option.value;
-                                return (
-                                    <TouchableOpacity
-                                        key={option.value}
-                                        onPress={() => setLuggage(option.value)}
-                                        activeOpacity={0.8}
-                                        style={styles.luggageOptionWrapper}
-                                    >
-                                        <BlurView intensity={20} tint="dark" style={[styles.luggageOptionCard, isSelected && styles.luggageOptionSelected]}>
-                                            <View style={[styles.luggageIconBox, isSelected && { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-                                                <Ionicons
-                                                    name={option.icon as any}
-                                                    size={24}
-                                                    color={isSelected ? colors.textPrimary : colors.textSecondary}
-                                                />
-                                            </View>
-                                            <Text style={[styles.luggageText, isSelected && { color: colors.textPrimary, fontWeight: '700' }]}>
+                                            <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                                                 {option.label}
                                             </Text>
-                                            <Text style={styles.luggageSubtitle}>
-                                                {option.subtitle}
-                                            </Text>
-                                        </BlurView>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
                         </View>
-                    </View>
-                </MotiView>
+                    </MotiView>
 
-                {/* Footer Action */}
-                <View style={styles.footerSpacer} />
-            </ScrollView>
+                    {/* Luggage Selection */}
+                    <MotiView
+                        from={{ opacity: 0, translateY: 20 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        transition={{ delay: 300 } as any}
+                    >
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.sectionTitle}>{t('create.step.luggage')}</Text>
+                            <View style={styles.luggageGrid}>
+                                {luggageOptions.map((option) => {
+                                    const isSelected = luggage === option.value;
+                                    return (
+                                        <TouchableOpacity
+                                            key={option.value}
+                                            onPress={() => setLuggage(option.value)}
+                                            activeOpacity={0.8}
+                                            style={styles.luggageOptionWrapper}
+                                        >
+                                            <BlurView intensity={20} tint="dark" style={[styles.luggageOptionCard, isSelected && styles.luggageOptionSelected]}>
+                                                <View style={[styles.luggageIconBox, isSelected && { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                                                    <Ionicons
+                                                        name={option.icon as any}
+                                                        size={24}
+                                                        color={isSelected ? colors.textPrimary : colors.textSecondary}
+                                                    />
+                                                </View>
+                                                <Text style={[styles.luggageText, isSelected && { color: colors.textPrimary, fontWeight: '700' }]}>
+                                                    {option.label}
+                                                </Text>
+                                                <Text style={styles.luggageSubtitle}>
+                                                    {option.subtitle}
+                                                </Text>
+                                            </BlurView>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </MotiView>
+
+                    {/* Footer Action */}
+                    <View style={styles.footerSpacer} />
+                </ScrollView>
+            </SafeAreaView>
 
             <MotiView
                 style={styles.footer}
@@ -250,12 +252,15 @@ const styles = StyleSheet.create({
         transform: [{ scale: 1.5 }],
         ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
     },
+    safeArea: {
+        flex: 1,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: spacing.m,
-        paddingTop: 60,
+        paddingTop: spacing.m,
         paddingBottom: spacing.m,
         zIndex: 10,
     },

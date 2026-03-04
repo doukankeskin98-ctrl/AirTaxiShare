@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { User } from './user/user.entity';
@@ -14,7 +15,24 @@ import { HealthModule } from './health/health.module';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+            validationSchema: Joi.object({
+                NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+                PORT: Joi.number().default(10000),
+                JWT_SECRET: Joi.string().required(),
+                JWT_EXPIRATION: Joi.string().default('7d'),
+                DATABASE_URL: Joi.string().optional(),
+                DB_HOST: Joi.string().optional(),
+                DB_PORT: Joi.number().optional(),
+                DB_USER: Joi.string().optional(),
+                DB_PASS: Joi.string().optional(),
+                DB_NAME: Joi.string().optional(),
+                REDIS_URL: Joi.string().optional(),
+                ALLOWED_ORIGINS: Joi.string().optional(),
+                FIREBASE_SERVICE_ACCOUNT_JSON: Joi.string().optional(),
+            }),
+        }),
 
         // ─── Rate Limiting ───────────────────────────────────────────
         ThrottlerModule.forRoot([{

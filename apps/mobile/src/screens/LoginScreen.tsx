@@ -31,8 +31,8 @@ export default function LoginScreen({ navigation }: any) {
         try {
             await AuthService.login(phoneNumber);
             navigation.navigate('Verify', { phoneNumber });
-        } catch (error) {
-            showAlert(t('common.error'), 'Failed to send OTP');
+        } catch (error: any) {
+            showAlert(t('common.error'), error.response?.data?.message || 'Failed to send OTP. Please check your network connection and try again.');
         } finally {
             setIsLoading(false);
         }

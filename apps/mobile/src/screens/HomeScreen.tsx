@@ -31,8 +31,8 @@ export default function HomeScreen() {
         try {
             const response = await MatchAPI.getHistory();
             setMatchHistory(response.data || []);
-        } catch (e) {
-            // Silently fail - history is not critical
+        } catch (e: any) {
+            setMatchHistory([]);
         } finally {
             setLoadingHistory(false);
         }

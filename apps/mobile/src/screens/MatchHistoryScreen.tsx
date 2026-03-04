@@ -23,8 +23,9 @@ export default function MatchHistoryScreen() {
         try {
             const response = await MatchAPI.getHistory();
             setHistory(response.data || []);
-        } catch (error) {
-            console.warn('[MatchHistory] Failed to fetch', error);
+        } catch (error: any) {
+            showAlert('Hata', error.response?.data?.message || error.message || 'Geçmiş yüklenemedi.');
+            setHistory([]);
         } finally {
             setIsLoading(false);
             setRefreshing(false);

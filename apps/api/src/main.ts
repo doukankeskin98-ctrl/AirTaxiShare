@@ -1,7 +1,8 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './match/redis-io.adapter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 // Use require for CJS middlewares to ensure runtime compatibility on Render/Linux
 const helmet = require('helmet');
 const compression = require('compression');
@@ -58,6 +59,9 @@ async function bootstrap() {
             transformOptions: { enableImplicitConversion: true },
         }),
     );
+
+    // Global exception filter for standardized error responses
+    app.useGlobalFilters(new AllExceptionsFilter());
 
     // Graceful shutdown
     app.enableShutdownHooks();

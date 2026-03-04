@@ -38,7 +38,6 @@ export const saveUserProfile = async (user: any) => {
     try {
         await AsyncStorage.setItem('@user_profile', JSON.stringify(user));
     } catch (e) {
-        console.error('Failed to save user profile:', e);
     }
 };
 
@@ -55,7 +54,6 @@ export const clearUserProfile = async () => {
     try {
         await AsyncStorage.multiRemove(['@user_profile', '@auth_token']);
     } catch (e) {
-        console.error('Failed to clear profile:', e);
     }
 };
 
@@ -90,35 +88,35 @@ const request = async (
         if (!response.ok) {
             // --- Unhandled Session Expiry Protection (Global Interceptor) ---
             if (response.status === 401) {
-                console.warn(`[API Interceptor] 401 Unauthorized detected on ${method} ${endpoint}. Forcing global logout.`);
-
-                // Keep the token in memory briefly to log it or track the bug
-                console.log(`[API Interceptor Debug] Failed Token length: ${authToken?.length}, Starts with: ${authToken?.substring(0, 10)}`);
-
                 await clearUserProfile();
                 authToken = '';
                 if (navigationRef.isReady()) {
                     navigationRef.reset({ index: 0, routes: [{ name: 'Welcome' as never }] });
                 }
-                throw new Error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
+                const err: any = new Error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
+                err.status = 401;
+                throw err;
             }
 
             // Don't retry 4xx client errors (except captured 401) — only 5xx server errors and network timeouts
             const isClientError = response.status >= 400 && response.status < 500;
-            if (isClientError) {
-                throw new Error(data?.message || `HTTP ${response.status}`);
+            if (isClientError && response.status !== 429) {
+                const err: any = new Error(data?.message || `HTTP ${response.status}`);
+                err.status = response.status;
+                throw err;
             }
-            throw new Error(data?.message || `Server error ${response.status}`);
+            const err: any = new Error(data?.message || `Server error ${response.status}`);
+            err.status = response.status;
+            throw err;
         }
         return { data };
     } catch (error: any) {
         const isAborted = error.name === 'AbortError';
-        const isServerError = !isAborted && error.message?.includes('Server error');
-        const canRetry = (isAborted || !isServerError) && attempt < MAX_RETRIES;
+        const isClientError = error.status >= 400 && error.status < 500 && error.status !== 429;
+        const canRetry = (isAborted || (!isClientError && error.status)) && attempt < MAX_RETRIES;
 
         if (canRetry) {
             const delay = RETRY_DELAY_BASE_MS * Math.pow(2, attempt - 1);
-            console.warn(`[API] Retry ${attempt} for ${endpoint} in ${delay}ms (${error.message})`);
             await sleep(delay);
             return request(endpoint, method, body, attempt + 1);
         }
