@@ -37,7 +37,7 @@ import { HealthModule } from './health/health.module';
         // ─── Rate Limiting ───────────────────────────────────────────
         ThrottlerModule.forRoot([{
             ttl: 60000,  // 60 seconds window
-            limit: 60,   // global: 60 requests per window
+            limit: 300,  // global: 300 requests per window (app makes many calls on startup)
         }]),
 
         // ─── Database ────────────────────────────────────────────────
