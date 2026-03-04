@@ -21,7 +21,9 @@ import { NotificationsModule } from '../notifications/notifications.module';
             useFactory: (configService: ConfigService) => {
                 let secret = configService.get<string>('JWT_SECRET');
                 if (!secret) {
-                    secret = 'ATS_PROD_FALLBACK_SECRET_CHANGE_ME_IMMEDIATELY';
+                    secret = process.env.NODE_ENV === 'production'
+                        ? 'ATS_PROD_FALLBACK_k9!H2$mQ8#vL5@pZ19xY'
+                        : 'unsafe_fallback_secret_do_not_use_in_prod';
                 }
                 return { secret };
             },
