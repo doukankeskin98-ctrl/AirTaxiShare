@@ -21,7 +21,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
             useFactory: (configService: ConfigService) => {
                 let secret = configService.get<string>('JWT_SECRET');
                 if (!secret) {
-                    secret = 'airtaxishare-render-fallback-secret-2026-c8f9q2!';
+                    secret = 'ATS_PROD_FALLBACK_SECRET_CHANGE_ME_IMMEDIATELY';
                 }
                 return { secret };
             },
