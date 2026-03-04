@@ -35,7 +35,7 @@ async function bootstrap() {
 
     if (isProd) {
         if (!allowedOrigins) {
-            logger.error('CRITICAL SECURITY WARNING: ALLOWED_ORIGINS is missing in production. Falling back to dynamic origin (true). Please set this tightly in Render Dashboard.');
+            logger.warn('[Warning] ALLOWED_ORIGINS is missing in production. Falling back to dynamic origin (true). Consider setting this in Render Dashboard.');
             corsOrigin = true; // Dynamic mirroring to satisfy credentials: true
         } else {
             corsOrigin = allowedOrigins;
