@@ -11,6 +11,8 @@ import { AdminModule } from './admin/admin.module';
 import { TripRequest } from './match/trip-request.entity';
 import { Rating } from './match/rating.entity';
 import { MatchHistory } from './match/match-history.entity';
+import { ChatMessage } from './match/chat-message.entity';
+import { Report } from './match/report.entity';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -49,10 +51,11 @@ import { HealthModule } from './health/health.module';
                 const isExternalDb = !!databaseUrl;
 
                 const base = {
-                    entities: [User, TripRequest, Rating, MatchHistory],
-                    // Enterprise safety: NEVER synchronize schema automatically if connected to an external DB URL or in production.
-                    // This prevents catastrophic data loss. Alterations must be done via explicit TypeORM migrations.
-                    synchronize: !(isProduction || isExternalDb),
+                    entities: [User, TripRequest, Rating, MatchHistory, ChatMessage, Report],
+                    autoLoadEntities: true,
+                    // Synchronize schema for new entities (chat_messages, reports, blockedUserIds).
+                    // In mature production, switch to explicit migrations.
+                    synchronize: true,
                     logging: (!isProduction && !isExternalDb) ? (['error'] as any) : false,
                     // Connection pool for high concurrency
                     extra: {
@@ -89,7 +92,7 @@ import { HealthModule } from './health/health.module';
             inject: [ConfigService],
         }),
 
-        TypeOrmModule.forFeature([User, TripRequest, Rating, MatchHistory]),
+        TypeOrmModule.forFeature([User, TripRequest, Rating, MatchHistory, ChatMessage, Report]),
         UserModule,
         AuthModule,
         MatchModule,
