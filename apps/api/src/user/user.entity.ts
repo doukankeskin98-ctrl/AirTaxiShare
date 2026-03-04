@@ -73,6 +73,9 @@ export class User {
     })
     status: UserStatus;
 
+    @Column('simple-json', { default: '[]' })
+    blockedUserIds: string[];
+
     @CreateDateColumn()
     createdAt: Date;
 

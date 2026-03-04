@@ -248,6 +248,30 @@ class SocketService {
         };
     }
 
+    // --- CHAT HISTORY (Server-Side Persistence) ---
+
+    public getChatHistory(matchId: string) {
+        this.socket?.emit('get_chat_history', { matchId });
+    }
+
+    public onChatHistory(callback: (data: { matchId: string; messages: any[] }) => void) {
+        return this.on('chat_history', callback);
+    }
+
+    // --- REPORT & BLOCK ---
+
+    public reportUser(matchId: string, reportedUserId: string, reason: string, details?: string) {
+        this.socket?.emit('report_user', { matchId, reportedUserId, reason, details });
+    }
+
+    public blockUser(matchId: string, blockedUserId: string) {
+        this.socket?.emit('block_user', { matchId, blockedUserId });
+    }
+
+    public onReportSubmitted(callback: (data: { success: boolean }) => void) {
+        return this.on('report_submitted', callback);
+    }
+
     /** Helper to emit any ad-hoc event safely */
     public emit(event: string, payload?: any) {
         if (this.socket?.connected) {

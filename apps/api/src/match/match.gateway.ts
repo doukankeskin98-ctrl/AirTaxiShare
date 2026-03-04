@@ -8,9 +8,13 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { MatchService } from './match.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ChatMessage } from './chat-message.entity';
+import { Report } from './report.entity';
 
 interface UserCacheEntry {
     id: string;
@@ -63,6 +67,8 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
         private userService: UserService,
         private matchService: MatchService,
         private notificationsService: NotificationsService,
+        @InjectRepository(ChatMessage) private chatMessageRepo: Repository<ChatMessage>,
+        @InjectRepository(Report) private reportRepo: Repository<Report>,
     ) { }
 
     // State mapped by userId prevents ghost sessions
@@ -503,10 +509,14 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.emitToUser(partnerId, 'receive_message', {
                 id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
                 text,
-                senderId: userId, // client sends their user ID instead of socketId
+                senderId: userId,
                 time,
                 matchId,
             });
+
+            // Persist message to DB (fire-and-forget)
+            this.chatMessageRepo.save({ matchId, senderId: userId, text })
+                .catch(e => this.logger.warn(`[Chat] DB persist error: ${e.message}`));
 
             const partnerData = await this.getOrFetchUser(partnerId);
             const senderData = await this.getOrFetchUser(userId);
@@ -522,6 +532,83 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             }
         } catch (err: any) {
             this.logger.error(`[Chat] Error: ${err.message}`);
+        }
+    }
+
+    // ─── Chat History ─────────────────────────────────────────────────
+    @SubscribeMessage('get_chat_history')
+    async handleGetChatHistory(client: Socket, payload: { matchId: string }) {
+        try {
+            if (!payload?.matchId) return;
+            const userId = await this.validateMatchAccess(client, payload.matchId);
+            if (!userId) return;
+
+            const messages = await this.chatMessageRepo.find({
+                where: { matchId: payload.matchId },
+                order: { createdAt: 'ASC' },
+                take: 100,
+            });
+
+            this.emitToUser(userId, 'chat_history', {
+                matchId: payload.matchId,
+                messages: messages.map(m => ({
+                    id: m.id,
+                    text: m.text,
+                    senderId: m.senderId,
+                    time: m.createdAt.toISOString(),
+                })),
+            });
+        } catch (err: any) {
+            this.logger.error(`[ChatHistory] Error: ${err.message}`);
+        }
+    }
+
+    // ─── Report User ──────────────────────────────────────────────────
+    @SubscribeMessage('report_user')
+    async handleReportUser(client: Socket, payload: { matchId: string; reportedUserId: string; reason: string; details?: string }) {
+        try {
+            if (!payload?.matchId || !payload?.reportedUserId) return;
+            const userId = await this.validateMatchAccess(client, payload.matchId);
+            if (!userId) return;
+
+            await this.reportRepo.save({
+                reporterId: userId,
+                reportedUserId: payload.reportedUserId,
+                matchId: payload.matchId,
+                reason: payload.reason as any,
+                details: payload.details,
+            });
+
+            this.emitToUser(userId, 'report_submitted', { success: true });
+            this.logger.log(`[Report] User ${userId} reported ${payload.reportedUserId} for ${payload.reason}`);
+        } catch (err: any) {
+            this.logger.error(`[Report] Error: ${err.message}`);
+        }
+    }
+
+    // ─── Block User ───────────────────────────────────────────────────
+    @SubscribeMessage('block_user')
+    async handleBlockUser(client: Socket, payload: { matchId: string; blockedUserId: string }) {
+        try {
+            if (!payload?.matchId || !payload?.blockedUserId) return;
+            const userId = await this.validateMatchAccess(client, payload.matchId);
+            if (!userId) return;
+
+            // Add to blocked list
+            const user = await this.userService.findById(userId);
+            if (user) {
+                const blockedList = user.blockedUserIds || [];
+                if (!blockedList.includes(payload.blockedUserId)) {
+                    blockedList.push(payload.blockedUserId);
+                    await this.userService.updateBlockedUsers(userId, blockedList);
+                }
+            }
+
+            // End the match
+            this.handleEndMatch(client, { matchId: payload.matchId });
+            this.logger.log(`[Block] User ${userId} blocked ${payload.blockedUserId}`);
+        } catch (err: any) {
+            this.logger.error(`[Block] Error: ${err.message}`);
         }
     }
 

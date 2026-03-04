@@ -181,6 +181,18 @@ export default function ActiveQueuesScreen() {
                                 {item.firstUserLuggage === 'small' ? t('common.luggage_small') : item.firstUserLuggage === 'large' ? t('common.luggage_large') : t('common.luggage_medium')}
                             </Text>
                         </View>
+                        {item.firstUserLuggage === 'large' && (
+                            <View style={[styles.constraintBadge, styles.capacityBadgeWarn]}>
+                                <Ionicons name="alert-circle-outline" size={14} color="#F59E0B" />
+                                <Text style={styles.capacityWarnText}>{t('active_queues.capacity.small_only')}</Text>
+                            </View>
+                        )}
+                        {item.firstUserLuggage === 'small' && (
+                            <View style={[styles.constraintBadge, styles.capacityBadgeOk]}>
+                                <Ionicons name="checkmark-circle-outline" size={14} color={colors.success} />
+                                <Text style={styles.capacityOkText}>{t('active_queues.capacity.all_ok')}</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Middle Row: Avatars & Action */}
@@ -535,4 +547,9 @@ const styles = StyleSheet.create({
 
     closeProfileButton: { marginTop: spacing.l, paddingVertical: 14, alignItems: 'center', backgroundColor: colors.surface, borderRadius: 100 },
     closeProfileText: { ...typography.button, color: colors.textPrimary },
+
+    capacityBadgeWarn: { backgroundColor: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' },
+    capacityBadgeOk: { backgroundColor: 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.3)' },
+    capacityWarnText: { ...typography.caption, color: '#F59E0B', fontSize: 11 },
+    capacityOkText: { ...typography.caption, color: colors.success, fontSize: 11 },
 });

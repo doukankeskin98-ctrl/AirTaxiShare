@@ -250,12 +250,21 @@ export default function MatchFoundScreen() {
                     >
                         <View style={styles.sectionHeader}>
                             <Text style={styles.sectionTitle}>{t('match_found.meeting_point')}</Text>
+                            {partnerMeetingPoint && partnerMeetingPoint === meetingPoint && (
+                                <MotiView
+                                    from={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: 'spring' } as any}
+                                    style={styles.syncedBadge}
+                                >
+                                    <Ionicons name="checkmark-circle" size={13} color={colors.success} />
+                                    <Text style={styles.syncedBadgeText}>{t('match_found.sync.matched')}</Text>
+                                </MotiView>
+                            )}
                             {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
                                 <View style={styles.partnerBadge}>
-                                    <Ionicons name="person" size={11} color={colors.primary} />
-                                    <Text style={styles.partnerBadgeText}>
-                                        {t('common.passenger')}: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label?.split('—')[0].trim() || partnerMeetingPoint}
-                                    </Text>
+                                    <Ionicons name="swap-horizontal" size={13} color="#F59E0B" />
+                                    <Text style={styles.partnerBadgeText}>{t('match_found.sync.different')}</Text>
                                 </View>
                             )}
                         </View>
@@ -294,10 +303,12 @@ export default function MatchFoundScreen() {
                                                     </Text>
                                                     <Text style={styles.meetingPointDescription}>{point.description}</Text>
                                                 </View>
-                                                {isSelected && <Ionicons name="checkmark-circle" size={26} color={colors.primary} />}
+                                                {isSelected && partnerSelected && <Ionicons name="checkmark-circle" size={26} color={colors.success} />}
+                                                {isSelected && !partnerSelected && <Ionicons name="checkmark-circle" size={26} color={colors.primary} />}
                                                 {partnerSelected && !isSelected && (
                                                     <View style={styles.partnerIndicator}>
                                                         <Ionicons name="person" size={12} color={colors.primary} />
+                                                        <Text style={styles.partnerIndicatorText}>{safeOtherUser.name.split(' ')[0]}</Text>
                                                     </View>
                                                 )}
                                             </View>
@@ -307,16 +318,34 @@ export default function MatchFoundScreen() {
                             })}
                         </View>
 
+                        {partnerMeetingPoint && partnerMeetingPoint === meetingPoint && (
+                            <MotiView
+                                from={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: 'spring' } as any}
+                                style={styles.syncedBox}
+                            >
+                                <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+                                <Text style={styles.syncedText}>
+                                    {t('match_found.sync.confirmed')}
+                                </Text>
+                            </MotiView>
+                        )}
                         {partnerMeetingPoint && partnerMeetingPoint !== meetingPoint && (
                             <MotiView
                                 from={{ opacity: 0, translateY: -4 }}
                                 animate={{ opacity: 1, translateY: 0 }}
                                 style={styles.warningBox}
                             >
-                                <Ionicons name="warning-outline" size={16} color="#F59E0B" />
-                                <Text style={styles.warningText}>
-                                    {t('match_found.warning_sync')}
-                                </Text>
+                                <Ionicons name="alert-circle" size={18} color="#F59E0B" />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.warningText}>
+                                        {t('match_found.sync.mismatch', { name: safeOtherUser.name.split(' ')[0] })}
+                                    </Text>
+                                    <Text style={styles.warningSubText}>
+                                        {t('match_found.sync.their_pick')}: {meetingPoints.find(p => p.value === partnerMeetingPoint)?.label || ''}
+                                    </Text>
+                                </View>
                             </MotiView>
                         )}
                     </MotiView>
@@ -417,9 +446,15 @@ const styles = StyleSheet.create({
     meetingPointLabel: { ...typography.body, color: colors.textPrimary, flex: 1, fontSize: 16, fontWeight: '600' },
     meetingPointLabelSelected: { fontWeight: '700', color: '#FFF' },
     meetingPointDescription: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-    partnerIndicator: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(79,70,229,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(79,70,229,0.4)' },
+    partnerIndicator: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(79,70,229,0.2)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(79,70,229,0.4)' },
+    partnerIndicatorText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
+    syncedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(16,185,129,0.15)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.4)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
+    syncedBadgeText: { fontSize: 11, color: colors.success, fontWeight: '600' },
+    syncedBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.3)', borderRadius: 12, padding: spacing.m, marginBottom: spacing.l },
+    syncedText: { flex: 1, fontSize: 13, color: colors.success, lineHeight: 18, fontWeight: '600' },
     warningBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)', borderRadius: 12, padding: spacing.m, marginBottom: spacing.l },
-    warningText: { flex: 1, fontSize: 13, color: '#F59E0B', lineHeight: 18 },
+    warningText: { fontSize: 13, color: '#F59E0B', lineHeight: 18, fontWeight: '600' },
+    warningSubText: { fontSize: 12, color: 'rgba(245,158,11,0.7)', marginTop: 2 },
     codeCard: { alignItems: 'center', backgroundColor: 'rgba(25, 28, 43, 0.4)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: spacing.xl, overflow: 'hidden' },
     codeLabel: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.l, textTransform: 'uppercase', letterSpacing: 2, fontWeight: '700' },
     codeBox: { backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: spacing.xxl, paddingVertical: spacing.m, borderRadius: 20, marginBottom: spacing.l, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },

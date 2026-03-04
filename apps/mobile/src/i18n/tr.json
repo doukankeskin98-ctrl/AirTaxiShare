@@ -106,6 +106,10 @@
             "with": "{{name}} ile",
             "empty": "Henüz aktif bir yolculuğun yok.",
             "btn_start_now": "Şimdi Başla"
+        },
+        "active_match": {
+            "title": "Aktif eşleşmeniz var",
+            "subtitle": "Dönmek için dokunun"
         }
     },
     "create": {
@@ -134,6 +138,10 @@
         "note": {
             "clusterLimited": "Şimdilik yalnızca Maslak, Levent, Ataşehir destekleniyor.",
             "timeLimit": "Eşleşme penceresi 15 dakikadır."
+        },
+        "alert": {
+            "title": "Eksik Bilgi",
+            "msg": "Lütfen varış noktası ve zaman seçin."
         }
     },
     "queue": {
@@ -161,6 +169,14 @@
         "nearby": "YAKINDA",
         "loading": "YÜKLENIYOR",
         "cancel_btn": "Aramayı İptal Et",
+        "timeout": {
+            "title": "Süre Doldu",
+            "msg": "15 dakikalık eşleşme süresi doldu. Süreyi uzatmak ister misiniz?",
+            "extend": "Uzat (+15 dk)",
+            "leave": "İptal Et",
+            "remaining": "Kalan süre",
+            "hurry": "Son dakikalar!"
+        },
         "error": {
             "server": "Sunucuya bağlanılamadı.",
             "title": "Bağlantı Hatası",
@@ -189,8 +205,32 @@
     "chat": {
         "title": "Sohbet",
         "placeholder": "Mesaj yaz…",
-        "report": "Bildir",
-        "block": "Engelle",
+        "online": "Çevrimiçi",
+        "offline": "Çevrimdışı",
+        "empty": "Henüz mesaj yok",
+        "empty_hint": "Merhaba deyin! 👋",
+        "partner_left": "{{name}} uygulamayı kapattı.",
+        "disconnected": "Bağlantı kesildi.",
+        "call_unavailable_title": "Numara Bulunamadı",
+        "call_unavailable_msg": "Bu kullanıcının telefon numarası doğrulanmamış.",
+        "send_error_title": "Mesaj Gönderilemedi",
+        "send_error_msg": "Lütfen internet bağlantınızı kontrol edin.",
+        "report": {
+            "btn": "Bildir",
+            "title": "Kullanıcıyı Bildir",
+            "msg": "Bu kullanıcıyı uygunsuz davranış nedeniyle bildirmek istiyor musunuz?",
+            "confirm_btn": "Evet, Bildir",
+            "success_title": "Bildirim Gönderildi",
+            "success_msg": "Bildiriminiz incelenmek üzere gönderildi."
+        },
+        "block": {
+            "btn": "Engelle",
+            "title": "Kullanıcıyı Engelle",
+            "msg": "Bu kullanıcıyı engellerseniz bir daha eşleştirilmezsiniz ve mevcut eşleşme sonlandırılır.",
+            "confirm_btn": "Evet, Engelle",
+            "success_title": "Kullanıcı Engellendi",
+            "success_msg": "Bu kullanıcıyla bir daha eşleştirilmeyeceksiniz."
+        },
         "system": {
             "autoDelete": "Bu sohbet 24 saat sonra silinir."
         }
@@ -236,6 +276,7 @@
             "submit": "Gönder"
         },
         "submit_error": "Yorum gönderilirken bir sorun oluştu.",
+        "skip": "Atla",
         "section_good": "Neler iyiydi?",
         "section_note": "Not ekle (isteğe bağlı)",
         "placeholder": "Deneyiminiz nasıldı?"
@@ -338,7 +379,13 @@
             "subtitle": "{{name}} ile eşleştin. Şimdi buluşma noktasını seçebilirsin."
         },
         "meeting_point": "Buluşma Noktası",
-        "warning_sync": "Lütfen aynı buluşma noktasını seçtiğinizden emin olun.",
+        "sync": {
+            "matched": "Eşleşti ✓",
+            "different": "Farklı seçim",
+            "confirmed": "Harika! İkiniz de aynı buluşma noktasını seçtiniz.",
+            "mismatch": "{{name}} farklı bir nokta seçti!",
+            "their_pick": "Seçimi"
+        },
         "code_label": "Buluşma Kodu",
         "code_hint": "Birbirinizi bulduğunuzda kodu gösterin",
         "btn_met": "Buluştuk"
@@ -350,7 +397,9 @@
         "btn_join": "Katıl",
         "capacity": {
             "title": "Kapasite Aşımı",
-            "msg": "Maalesef seçtiğiniz bagaj boyutu, bekleyen kişinin bagajıyla taksiye aynı anda sığmıyor. Yeni bir eşleşme başlatmayı deneyin."
+            "msg": "Maalesef seçtiğiniz bagaj boyutu, bekleyen kişinin bagajıyla taksiye aynı anda sığmıyor. Yeni bir eşleşme başlatmayı deneyin.",
+            "small_only": "Sadece küçük bagaj",
+            "all_ok": "Tüm bagajlar uyumlu"
         },
         "empty": {
             "title": "Henüz Kimse Yok",

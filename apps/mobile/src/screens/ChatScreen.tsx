@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import SocketService from '../services/socket';
 import { useChatContext } from '../context/ChatContext';
-import { showAlert } from '../utils/alert';
+import { showAlert, showConfirm } from '../utils/alert';
 
 interface Message {
     id: string;
@@ -30,6 +30,7 @@ export default function ChatScreen() {
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [partnerOnline, setPartnerOnline] = useState(true);
+    const [showMenu, setShowMenu] = useState(false);
     const flatListRef = useRef<FlatList>(null);
 
     const { markRead, setActiveChatId } = useChatContext();
@@ -44,17 +45,42 @@ export default function ChatScreen() {
         return () => setActiveChatId(null);
     }, [matchId]);
 
-    // Load persisted messages on mount
+    // Load messages: try server first, fallback to local
     useEffect(() => {
         if (!matchId) {
             setIsLoading(false);
             return;
         }
 
-        SocketService.loadMessages(matchId).then((saved) => {
-            if (saved.length > 0) setMessages(saved);
-            setIsLoading(false);
+        // Listen for server chat history
+        const unsubHistory = SocketService.onChatHistory((data) => {
+            if (data.matchId === matchId && data.messages.length > 0) {
+                const serverMsgs: Message[] = data.messages.map((m: any) => ({
+                    id: m.id,
+                    text: m.text,
+                    sender: m.senderId === route.params?.userId ? 'me' : 'them',
+                    time: new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                }));
+                setMessages(serverMsgs);
+                setIsLoading(false);
+            }
         });
+
+        // Request server history
+        SocketService.getChatHistory(matchId);
+
+        // Also load local as fallback (if server hasn't responded in 2s)
+        const localTimeout = setTimeout(() => {
+            SocketService.loadMessages(matchId).then((saved) => {
+                setMessages(prev => prev.length === 0 && saved.length > 0 ? saved : prev);
+                setIsLoading(false);
+            });
+        }, 2000);
+
+        return () => {
+            unsubHistory();
+            clearTimeout(localTimeout);
+        };
     }, [matchId]);
 
     // Register socket listeners
@@ -78,11 +104,11 @@ export default function ChatScreen() {
 
         // If partner closes the app or cancels the match while in chat
         const unsubEnded = SocketService.onMatchEnded((payload) => {
-            const name = safeOtherUser.name?.split(' ')[0] || 'Yolcu';
+            const name = safeOtherUser.name?.split(' ')[0] || t('common.passenger');
             const msg = payload?.reason === 'partner_left'
-                ? `${name} uygulamayı kapattı.`
-                : 'Bağlantı kesildi.';
-            showAlert('Eşleşme Sona Erdi', msg);
+                ? t('chat.partner_left', { name })
+                : t('chat.disconnected');
+            showAlert(t('match_found.alert.ended_title'), msg);
             setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }), 1500);
         });
 
@@ -99,8 +125,38 @@ export default function ChatScreen() {
         if (safeOtherUser?.phoneNumber) {
             Linking.openURL(`tel:${safeOtherUser.phoneNumber}`);
         } else {
-            showAlert('Numara Bulunamadı', 'Bu kullanıcının telefon numarası doğrulanmamış veya erişilemiyor.');
+            showAlert(t('chat.call_unavailable_title'), t('chat.call_unavailable_msg'));
         }
+    };
+
+    const handleReport = () => {
+        setShowMenu(false);
+        showConfirm(
+            t('chat.report.title'),
+            t('chat.report.msg'),
+            () => {
+                SocketService.reportUser(matchId, safeOtherUser.id || '', 'INAPPROPRIATE_BEHAVIOR');
+                showAlert(t('chat.report.success_title'), t('chat.report.success_msg'));
+            },
+            t('chat.report.confirm_btn'),
+            t('common.cancel'),
+        );
+    };
+
+    const handleBlock = () => {
+        setShowMenu(false);
+        showConfirm(
+            t('chat.block.title'),
+            t('chat.block.msg'),
+            () => {
+                SocketService.blockUser(matchId, safeOtherUser.id || '');
+                showAlert(t('chat.block.success_title'), t('chat.block.success_msg'));
+                setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }), 1500);
+            },
+            t('chat.block.confirm_btn'),
+            t('common.cancel'),
+            true,
+        );
     };
 
     const handleSend = useCallback(async () => {
@@ -123,8 +179,7 @@ export default function ChatScreen() {
             await SocketService.persistMessage(matchId, newMessage);
             SocketService.sendMessage(matchId, newMessage.text);
         } catch (error) {
-            showAlert('Mesaj Gönderilemedi', 'Lütfen internet bağlantınızı kontrol edin.');
-            // Optionally remove the message from UI here if strict consistency is needed
+            showAlert(t('chat.send_error_title'), t('chat.send_error_msg'));
         }
     }, [inputText, matchId]);
 
@@ -182,14 +237,36 @@ export default function ChatScreen() {
                         <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
                         <View style={styles.statusBadge}>
                             <View style={[styles.statusDot, { backgroundColor: partnerOnline ? colors.success : colors.textDisabled }]} />
-                            <Text style={styles.statusText}>{partnerOnline ? 'Çevrimiçi' : 'Çevrimdışı'}</Text>
+                            <Text style={styles.statusText}>{partnerOnline ? t('chat.online') : t('chat.offline')}</Text>
                         </View>
                     </View>
 
                     <TouchableOpacity onPress={handleCall} style={styles.callButton}>
                         <Ionicons name="call" size={20} color={colors.primary} />
                     </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setShowMenu(!showMenu)} style={styles.menuButton}>
+                        <Ionicons name="ellipsis-vertical" size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
                 </View>
+
+                {/* Report / Block Menu */}
+                {showMenu && (
+                    <MotiView
+                        from={{ opacity: 0, translateY: -8 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        style={styles.menuDropdown}
+                    >
+                        <TouchableOpacity onPress={handleReport} style={styles.menuItem}>
+                            <Ionicons name="flag-outline" size={18} color="#F59E0B" />
+                            <Text style={styles.menuItemText}>{t('chat.report.btn')}</Text>
+                        </TouchableOpacity>
+                        <View style={styles.menuDivider} />
+                        <TouchableOpacity onPress={handleBlock} style={styles.menuItem}>
+                            <Ionicons name="ban-outline" size={18} color="#EF4444" />
+                            <Text style={[styles.menuItemText, { color: '#EF4444' }]}>{t('chat.block.btn')}</Text>
+                        </TouchableOpacity>
+                    </MotiView>
+                )}
 
                 {isLoading ? (
                     <View style={styles.loadingContainer}>
@@ -200,8 +277,8 @@ export default function ChatScreen() {
                         {messages.length === 0 && (
                             <View style={styles.emptyState}>
                                 <Ionicons name="chatbubbles-outline" size={48} color={colors.textDisabled} />
-                                <Text style={styles.emptyText}>Henüz mesaj yok</Text>
-                                <Text style={styles.emptySubtext}>Merhaba deyin! 👋</Text>
+                                <Text style={styles.emptyText}>{t('chat.empty')}</Text>
+                                <Text style={styles.emptySubtext}>{t('chat.empty_hint')}</Text>
                             </View>
                         )}
 
@@ -438,5 +515,40 @@ const styles = StyleSheet.create({
     },
     sendBtnDisabled: {
         opacity: 0.45,
+    },
+    menuButton: {
+        width: 36,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    menuDropdown: {
+        position: 'absolute',
+        top: 90,
+        right: spacing.m,
+        backgroundColor: colors.surface,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        ...shadows.subtle,
+        zIndex: 100,
+        minWidth: 160,
+        overflow: 'hidden',
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.s,
+        paddingHorizontal: spacing.m,
+        paddingVertical: 12,
+    },
+    menuItemText: {
+        ...typography.body,
+        color: colors.textPrimary,
+        fontSize: 14,
+    },
+    menuDivider: {
+        height: 1,
+        backgroundColor: colors.border,
     },
 });

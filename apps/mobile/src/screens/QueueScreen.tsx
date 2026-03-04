@@ -12,6 +12,8 @@ import { BlurView } from 'expo-blur';
 import SocketService, { MatchFoundPayload } from '../services/socket';
 import { getAuthToken } from '../services/api';
 
+const QUEUE_TIMEOUT_SECONDS = 900; // 15 minutes
+
 export default function QueueScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
@@ -21,6 +23,8 @@ export default function QueueScreen() {
     const [liveCount, setLiveCount] = useState<number | null>(null);
     const [isFinding, setIsFinding] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [secondsLeft, setSecondsLeft] = useState(QUEUE_TIMEOUT_SECONDS);
+    const [isTimedOut, setIsTimedOut] = useState(false);
 
     useEffect(() => {
         let unsubMatch: (() => void) | undefined;
@@ -70,6 +74,50 @@ export default function QueueScreen() {
             setIsFinding(false);
         };
     }, [navigation, destination, time, luggage]);
+
+    // 15-minute countdown timer
+    useEffect(() => {
+        if (!isFinding || isTimedOut) return;
+        const interval = setInterval(() => {
+            setSecondsLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setIsTimedOut(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isFinding, isTimedOut]);
+
+    // Show extend/cancel dialog when timed out
+    useEffect(() => {
+        if (!isTimedOut) return;
+        showConfirm(
+            t('queue.timeout.title'),
+            t('queue.timeout.msg'),
+            () => {
+                setSecondsLeft(QUEUE_TIMEOUT_SECONDS);
+                setIsTimedOut(false);
+            },
+            t('queue.timeout.extend'),
+            t('queue.timeout.leave'),
+            true,
+        );
+        // If user dismisses (cancel button = leave)
+        // The showConfirm destructive=true makes confirm the "extend" and cancel the "leave"
+    }, [isTimedOut]);
+
+    const formatTime = (s: number) => {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    };
+
+    const isUrgent = secondsLeft <= 180; // Last 3 minutes
+    const timerColor = isUrgent ? '#FF6B6B' : colors.primaryLight;
+    const progress = secondsLeft / QUEUE_TIMEOUT_SECONDS;
 
     const handleCancel = () => {
         showConfirm(
@@ -142,6 +190,23 @@ export default function QueueScreen() {
                     >
                         {t('queue.scanning_msg')}
                     </MotiText>
+
+                    {/* Countdown Timer */}
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 600 } as any}
+                        style={styles.timerContainer}
+                    >
+                        <View style={[styles.timerRing, { borderColor: timerColor }]}>
+                            <Text style={[styles.timerText, { color: timerColor }]}>
+                                {formatTime(secondsLeft)}
+                            </Text>
+                        </View>
+                        <Text style={[styles.timerLabel, isUrgent && { color: '#FF6B6B' }]}>
+                            {isUrgent ? t('queue.timeout.hurry') : t('queue.timeout.remaining')}
+                        </Text>
+                    </MotiView>
 
                     <MotiView
                         from={{ opacity: 0, translateY: 20 }}
@@ -329,5 +394,29 @@ const styles = StyleSheet.create({
         ...typography.button,
         color: '#FF6B6B',
         fontSize: 16,
+    },
+    timerContainer: {
+        alignItems: 'center',
+        marginBottom: spacing.xl,
+    },
+    timerRing: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        marginBottom: spacing.s,
+    },
+    timerText: {
+        fontSize: 18,
+        fontWeight: '800',
+        letterSpacing: 1,
+    },
+    timerLabel: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        fontSize: 12,
     },
 });

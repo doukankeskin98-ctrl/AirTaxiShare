@@ -25,12 +25,20 @@ export default function CreateMatchScreen() {
         { label: 'Ataşehir', value: 'atasehir', subtitle: 'Anadolu Yakası', icon: 'map' },
     ];
 
-    const timeOptions = [
-        { label: 'Hemen', value: '0' },
-        { label: '+15 Dk', value: '15' },
-        { label: '+30 Dk', value: '30' },
-        { label: '+45 Dk', value: '45' },
-    ];
+    const getTimeSlots = () => {
+        const now = new Date();
+        return [
+            { label: t('common.now'), value: '0' },
+            ...([15, 30, 45] as const).map(offset => {
+                const d = new Date(now.getTime() + offset * 60000);
+                const hh = d.getHours().toString().padStart(2, '0');
+                const mm = d.getMinutes().toString().padStart(2, '0');
+                return { label: `${hh}:${mm}`, value: String(offset) };
+            }),
+        ];
+    };
+
+    const timeOptions = getTimeSlots();
 
     const luggageOptions = [
         { label: 'Küçük', value: 'small', subtitle: 'Kabin Boy', icon: 'briefcase-outline' },
@@ -40,7 +48,7 @@ export default function CreateMatchScreen() {
 
     const handleSearch = () => {
         if (!destination || !time) {
-            showAlert('Eksik Bilgi', 'Lütfen varış noktası ve zaman seçin.');
+            showAlert(t('create.alert.title'), t('create.alert.msg'));
             return;
         }
 

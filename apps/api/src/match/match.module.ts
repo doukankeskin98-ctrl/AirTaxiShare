@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TripRequest } from './trip-request.entity';
 import { Rating } from './rating.entity';
 import { MatchHistory } from './match-history.entity';
+import { ChatMessage } from './chat-message.entity';
+import { Report } from './report.entity';
 import { MatchService } from './match.service';
 import { MatchController } from './match.controller';
 import { MatchGateway } from './match.gateway';
@@ -13,7 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([TripRequest, Rating, MatchHistory]),
+        TypeOrmModule.forFeature([TripRequest, Rating, MatchHistory, ChatMessage, Report]),
         UserModule,
         NotificationsModule,
         JwtModule.registerAsync({

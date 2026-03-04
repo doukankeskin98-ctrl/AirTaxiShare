@@ -69,18 +69,30 @@ export default function RatingScreen() {
         }
     };
 
+    const handleSkip = () => {
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+        });
+    };
+
     return (
         <View style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
-                {/* Minimal Header */}
-                <View style={styles.headerSpacer} />
-                <MotiText
-                    from={{ opacity: 0, translateY: -10 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    style={styles.headerTitle}
-                >
-                    {t('rating.title')}
-                </MotiText>
+                {/* Header with Skip */}
+                <View style={styles.headerRow}>
+                    <MotiText
+                        from={{ opacity: 0, translateY: -10 }}
+                        animate={{ opacity: 1, translateY: 0 }}
+                        style={styles.headerTitle}
+                    >
+                        {t('rating.title')}
+                    </MotiText>
+                    <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipBtn}>
+                        <Text style={styles.skipText}>{t('rating.skip')}</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                </View>
 
                 <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
                     <MotiView
@@ -186,14 +198,29 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
-    headerSpacer: {
-        height: spacing.m,
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: spacing.l,
+        paddingTop: spacing.m,
+        paddingBottom: spacing.s,
     },
     headerTitle: {
         ...typography.h3,
-        textAlign: 'center',
-        marginVertical: spacing.m,
         color: colors.textPrimary,
+    },
+    skipBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.s,
+    },
+    skipText: {
+        ...typography.body,
+        color: colors.textSecondary,
+        fontSize: 14,
     },
     content: {
         padding: spacing.m,

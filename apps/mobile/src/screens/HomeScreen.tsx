@@ -11,6 +11,9 @@ import { BlurView } from 'expo-blur';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 
 import { loadUserProfile, MatchAPI } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ACTIVE_MATCH_KEY = '@active_match';
 
 export default function HomeScreen() {
     const { t } = useTranslation();
@@ -20,6 +23,7 @@ export default function HomeScreen() {
     const [matchHistory, setMatchHistory] = useState<any[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeMatch, setActiveMatch] = useState<any>(null);
 
     const loadData = async () => {
         const profile = await loadUserProfile();
@@ -41,6 +45,14 @@ export default function HomeScreen() {
     useFocusEffect(
         React.useCallback(() => {
             loadData();
+            // Check for active match
+            AsyncStorage.getItem(ACTIVE_MATCH_KEY).then(data => {
+                if (data) {
+                    try { setActiveMatch(JSON.parse(data)); } catch { setActiveMatch(null); }
+                } else {
+                    setActiveMatch(null);
+                }
+            }).catch(() => setActiveMatch(null));
         }, [])
     );
 
@@ -126,6 +138,37 @@ export default function HomeScreen() {
                         />
                     }
                 >
+
+                    {/* Active Match Banner */}
+                    {activeMatch && (
+                        <MotiView
+                            from={{ opacity: 0, translateY: -10 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ type: 'spring' } as any}
+                        >
+                            <TouchableOpacity
+                                activeOpacity={0.85}
+                                onPress={() => navigation.navigate('MatchFound', {
+                                    matchId: activeMatch.matchId,
+                                    otherUser: activeMatch.otherUser,
+                                    luggage: activeMatch.luggage,
+                                })}
+                                style={styles.activeMatchBanner}
+                            >
+                                <MotiView
+                                    from={{ opacity: 0.4 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ type: 'timing', duration: 1500, loop: true, repeatReverse: true } as any}
+                                    style={styles.activeMatchDot}
+                                />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.activeMatchTitle}>{t('home.active_match.title')}</Text>
+                                    <Text style={styles.activeMatchSub}>{t('home.active_match.subtitle')}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={colors.success} />
+                            </TouchableOpacity>
+                        </MotiView>
+                    )}
 
                     {/* Security Notification Pill */}
                     <MotiView
@@ -535,5 +578,34 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
         marginTop: spacing.m,
         textAlign: 'center',
+    },
+    activeMatchBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.m,
+        backgroundColor: 'rgba(16,185,129,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(16,185,129,0.3)',
+        borderRadius: 16,
+        padding: spacing.m,
+        marginBottom: spacing.l,
+    },
+    activeMatchDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: colors.success,
+    },
+    activeMatchTitle: {
+        ...typography.body,
+        color: colors.success,
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    activeMatchSub: {
+        ...typography.caption,
+        color: 'rgba(16,185,129,0.7)',
+        fontSize: 12,
+        marginTop: 1,
     },
 });

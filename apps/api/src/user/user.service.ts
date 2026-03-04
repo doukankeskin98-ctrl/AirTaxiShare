@@ -107,6 +107,10 @@ export class UserService {
         await this.userRepository.delete(userId);
     }
 
+    async updateBlockedUsers(userId: string, blockedUserIds: string[]): Promise<void> {
+        await this.userRepository.update(userId, { blockedUserIds });
+    }
+
     async findAll(): Promise<Partial<User>[]> {
         const users = await this.userRepository.find({
             order: { createdAt: 'DESC' },

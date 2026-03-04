@@ -106,6 +106,10 @@
             "with": "with {{name}}",
             "empty": "You have no active trips yet.",
             "btn_start_now": "Start Now"
+        },
+        "active_match": {
+            "title": "You have an active match",
+            "subtitle": "Tap to return"
         }
     },
     "create": {
@@ -134,6 +138,10 @@
         "note": {
             "clusterLimited": "Only Maslak, Levent, Ataşehir are supported for now.",
             "timeLimit": "Matching window is 15 minutes."
+        },
+        "alert": {
+            "title": "Missing Information",
+            "msg": "Please select a destination and a time."
         }
     },
     "queue": {
@@ -161,6 +169,14 @@
         "nearby": "NEARBY",
         "loading": "LOADING",
         "cancel_btn": "Cancel Search",
+        "timeout": {
+            "title": "Time's Up",
+            "msg": "The 15-minute matching window has expired. Would you like to extend?",
+            "extend": "Extend (+15 min)",
+            "leave": "Cancel",
+            "remaining": "Time remaining",
+            "hurry": "Last minutes!"
+        },
         "error": {
             "server": "Could not connect to the server.",
             "title": "Connection Error",
@@ -189,8 +205,32 @@
     "chat": {
         "title": "Chat",
         "placeholder": "Type a message…",
-        "report": "Report",
-        "block": "Block",
+        "online": "Online",
+        "offline": "Offline",
+        "empty": "No messages yet",
+        "empty_hint": "Say hello! 👋",
+        "partner_left": "{{name}} left the app.",
+        "disconnected": "Connection lost.",
+        "call_unavailable_title": "Number Unavailable",
+        "call_unavailable_msg": "This user's phone number is not verified.",
+        "send_error_title": "Message Failed",
+        "send_error_msg": "Please check your internet connection.",
+        "report": {
+            "btn": "Report",
+            "title": "Report User",
+            "msg": "Do you want to report this user for inappropriate behavior?",
+            "confirm_btn": "Yes, Report",
+            "success_title": "Report Submitted",
+            "success_msg": "Your report has been submitted for review."
+        },
+        "block": {
+            "btn": "Block",
+            "title": "Block User",
+            "msg": "If you block this user, you won't be matched again and the current match will end.",
+            "confirm_btn": "Yes, Block",
+            "success_title": "User Blocked",
+            "success_msg": "You will no longer be matched with this user."
+        },
         "system": {
             "autoDelete": "This chat will be deleted after 24 hours."
         }
@@ -236,6 +276,7 @@
             "submit": "Submit"
         },
         "submit_error": "An error occurred while submitting the review.",
+        "skip": "Skip",
         "section_good": "What was good?",
         "section_note": "Add a note (optional)",
         "placeholder": "How was your experience?"
@@ -338,7 +379,13 @@
             "subtitle": "You matched with {{name}}. You can now select a meeting point."
         },
         "meeting_point": "Meeting Point",
-        "warning_sync": "Please make sure you select the same meeting point.",
+        "sync": {
+            "matched": "Synced ✓",
+            "different": "Different pick",
+            "confirmed": "Both of you selected the same meeting point.",
+            "mismatch": "{{name}} picked a different point!",
+            "their_pick": "Their pick"
+        },
         "code_label": "Meeting Code",
         "code_hint": "Show this code when you find each other",
         "btn_met": "We Met"
@@ -350,7 +397,9 @@
         "btn_join": "Join",
         "capacity": {
             "title": "Capacity Exceeded",
-            "msg": "Unfortunately, the luggage size you selected does not fit into the taxi. Try starting a new match."
+            "msg": "Unfortunately, the luggage size you selected does not fit into the taxi. Try starting a new match.",
+            "small_only": "Small luggage only",
+            "all_ok": "All luggage compatible"
         },
         "empty": {
             "title": "No One Yet",
