@@ -90,7 +90,11 @@ const request = async (
         if (!response.ok) {
             // --- Unhandled Session Expiry Protection (Global Interceptor) ---
             if (response.status === 401) {
-                console.warn('[API Interceptor] 401 Unauthorized detected. Forcing global logout.');
+                console.warn(`[API Interceptor] 401 Unauthorized detected on ${method} ${endpoint}. Forcing global logout.`);
+
+                // Keep the token in memory briefly to log it or track the bug
+                console.log(`[API Interceptor Debug] Failed Token length: ${authToken?.length}, Starts with: ${authToken?.substring(0, 10)}`);
+
                 await clearUserProfile();
                 authToken = '';
                 if (navigationRef.isReady()) {
