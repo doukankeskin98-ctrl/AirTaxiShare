@@ -10,7 +10,7 @@
     "ios:local": "expo start --ios --localhost --clear",
     "web": "expo start --web",
     "tunnel": "expo start --tunnel",
-    "build": "expo export --platform web",
+    "build": "expo export --platform web && echo '/* /index.html 200' > dist/_redirects",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
