@@ -38,4 +38,8 @@ export function clearSentryUser() {
     Sentry.setUser(null);
 }
 
+export function hasSentryDSN(): boolean {
+    return !!SENTRY_DSN;
+}
+
 export { Sentry };

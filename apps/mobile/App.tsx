@@ -6,10 +6,13 @@ import { setupForegroundNotificationListener, setupNotificationResponseListener 
 import { navigationRef } from './src/navigation/RootNavigation';
 import { ChatProvider } from './src/context/ChatContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
-import { initSentry, Sentry } from './src/services/sentry';
+import { initSentry, Sentry, hasSentryDSN } from './src/services/sentry';
+import { applyWebPerformanceOptimizations } from './src/utils/webPerformance';
 
 // Initialize Sentry before anything else
 initSentry();
+// Apply web-only CSS performance optimizations (no-op on native)
+applyWebPerformanceOptimizations();
 
 function App() {
     useEffect(() => {
@@ -31,5 +34,5 @@ function App() {
     );
 }
 
-// Wrap with Sentry for automatic crash reporting & performance monitoring
-export default Sentry.wrap(App);
+// Only wrap with Sentry when DSN is configured, otherwise export plain App
+export default hasSentryDSN() ? Sentry.wrap(App) : App;

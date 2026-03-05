@@ -6,6 +6,7 @@ import { colors, typography, spacing, layout, shadows } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import SocketService from '../services/socket';
 import { useChatContext } from '../context/ChatContext';
@@ -45,42 +46,63 @@ export default function ChatScreen() {
         return () => setActiveChatId(null);
     }, [matchId]);
 
-    // Load messages: try server first, fallback to local
+    // Load messages: local first (instant), then server merge
     useEffect(() => {
         if (!matchId) {
             setIsLoading(false);
             return;
         }
 
-        // Listen for server chat history
-        const unsubHistory = SocketService.onChatHistory((data) => {
-            if (data.matchId === matchId && data.messages.length > 0) {
-                const serverMsgs: Message[] = data.messages.map((m: any) => ({
-                    id: m.id,
-                    text: m.text,
-                    sender: m.senderId === route.params?.userId ? 'me' : 'them',
-                    time: new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                }));
-                setMessages(serverMsgs);
-                setIsLoading(false);
+        let cancelled = false;
+
+        const loadChat = async () => {
+            // 1) Load local messages immediately for instant display
+            const saved = await SocketService.loadMessages(matchId);
+            if (!cancelled && saved.length > 0) {
+                setMessages(saved);
             }
-        });
+            setIsLoading(false);
 
-        // Request server history
-        SocketService.getChatHistory(matchId);
+            // 2) Get current user ID for sender determination
+            let myUserId: string | null = null;
+            try {
+                const profileRaw = await AsyncStorage.getItem('@user_profile');
+                if (profileRaw) {
+                    const profile = JSON.parse(profileRaw);
+                    myUserId = profile.id || profile._id || null;
+                }
+            } catch { }
 
-        // Also load local as fallback (if server hasn't responded in 2s)
-        const localTimeout = setTimeout(() => {
-            SocketService.loadMessages(matchId).then((saved) => {
-                setMessages(prev => prev.length === 0 && saved.length > 0 ? saved : prev);
-                setIsLoading(false);
-            });
-        }, 2000);
+            // 3) Try to load server chat history (if socket is connected)
+            if (myUserId) {
+                const unsubHistory = SocketService.onChatHistory((data) => {
+                    if (cancelled || data.matchId !== matchId) return;
+                    if (data.messages && data.messages.length > 0) {
+                        const serverMsgs: Message[] = data.messages.map((m: any) => ({
+                            id: String(m.id),
+                            text: m.text,
+                            sender: m.senderId === myUserId ? 'me' : 'them',
+                            time: new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        }));
+                        if (!cancelled) setMessages(serverMsgs);
+                    }
+                });
 
-        return () => {
-            unsubHistory();
-            clearTimeout(localTimeout);
+                // Only request if socket is connected
+                if (SocketService.isConnected()) {
+                    SocketService.getChatHistory(matchId);
+                }
+
+                return () => {
+                    cancelled = true;
+                    unsubHistory();
+                };
+            }
         };
+
+        loadChat();
+
+        return () => { cancelled = true; };
     }, [matchId]);
 
     // Register socket listeners
