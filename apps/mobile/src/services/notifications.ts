@@ -70,6 +70,10 @@ export const setupNotificationResponseListener = (
             navigationRef.current.navigate('Home');
         } else if (data.type === 'new_message' && data.matchId) {
             navigationRef.current.navigate('Chat', { matchId: data.matchId });
+        } else if (data.type === 'route_activity') {
+            navigationRef.current.navigate('ActiveQueues');
+        } else if (data.type === 'partner_waiting' && data.matchId) {
+            navigationRef.current.navigate('MatchFound', { matchId: data.matchId });
         }
     });
     return () => subscription.remove();

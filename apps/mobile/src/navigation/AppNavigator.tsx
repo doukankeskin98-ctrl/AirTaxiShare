@@ -15,10 +15,12 @@ import ChatScreen from '../screens/ChatScreen';
 import MeetupConfirmScreen from '../screens/MeetupConfirmScreen';
 import RatingScreen from '../screens/RatingScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import LegalScreen from '../screens/LegalScreen'; // Will implement next
+import LegalScreen from '../screens/LegalScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 export type RootStackParamList = {
     Splash: undefined;
+    Onboarding: undefined;
     Welcome: undefined;
     EmailAuth: undefined;
     ProfileSetup: undefined;
@@ -42,9 +44,23 @@ import MatchHistoryScreen from '../screens/MatchHistoryScreen';
 
 import { navigationRef } from './RootNavigation';
 
+const linking = {
+    prefixes: ['airtaxishare://', 'https://airtaxishare.com'],
+    config: {
+        screens: {
+            Home: 'home',
+            MatchFound: 'match/:matchId',
+            Chat: 'chat/:matchId',
+            ActiveQueues: 'join',
+            CreateMatch: 'create',
+            Settings: 'settings',
+        },
+    },
+};
+
 export default function AppNavigator() {
     return (
-        <NavigationContainer ref={navigationRef}>
+        <NavigationContainer ref={navigationRef} linking={linking}>
             <Stack.Navigator
                 initialRouteName="Splash"
                 screenOptions={{
@@ -53,6 +69,7 @@ export default function AppNavigator() {
                 }}
             >
                 <Stack.Screen name="Splash" component={SplashScreen} />
+                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
                 <Stack.Screen name="Welcome" component={WelcomeScreen} />
                 <Stack.Screen name="EmailAuth" component={EmailAuthScreen} />
                 <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />

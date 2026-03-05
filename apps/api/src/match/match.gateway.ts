@@ -647,6 +647,18 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const partnerId = participants.find(id => id !== userId);
             if (partnerId) {
                 this.emitToUser(partnerId, 'partner_meeting_point', { point: payload.point });
+
+                // Push notification: "Partnerin seni bekliyor!"
+                const partnerData = await this.getOrFetchUser(partnerId);
+                const senderData = await this.getOrFetchUser(userId);
+                if (partnerData.pushToken) {
+                    const partnerSockets = this.userSockets.get(partnerId);
+                    if (!partnerSockets || partnerSockets.size === 0) {
+                        this.notificationsService
+                            .sendPartnerWaitingNotification(partnerData.pushToken, senderData.name, payload.matchId)
+                            .catch(e => this.logger.error('[Push] partner waiting error:', e.message));
+                    }
+                }
             }
         }
     }

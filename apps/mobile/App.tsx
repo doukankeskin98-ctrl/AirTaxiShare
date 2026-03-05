@@ -6,8 +6,12 @@ import { setupForegroundNotificationListener, setupNotificationResponseListener 
 import { navigationRef } from './src/navigation/RootNavigation';
 import { ChatProvider } from './src/context/ChatContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { initSentry, Sentry } from './src/services/sentry';
 
-export default function App() {
+// Initialize Sentry before anything else
+initSentry();
+
+function App() {
     useEffect(() => {
         const unsubscribeForeground = setupForegroundNotificationListener();
         const unsubscribeResponse = setupNotificationResponseListener({ current: navigationRef });
@@ -26,3 +30,6 @@ export default function App() {
         </ErrorBoundary>
     );
 }
+
+// Wrap with Sentry for automatic crash reporting & performance monitoring
+export default Sentry.wrap(App);

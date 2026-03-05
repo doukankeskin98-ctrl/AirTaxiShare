@@ -3,6 +3,23 @@
         "name": "AirTaxiShare",
         "tagline": "Share a taxi with people going the same way."
     },
+    "onboarding": {
+        "page1": {
+            "title": "Match",
+            "subtitle": "Find passengers heading the same direction from the airport."
+        },
+        "page2": {
+            "title": "Meet",
+            "subtitle": "Pick a meeting point, share your code, and meet safely."
+        },
+        "page3": {
+            "title": "Share",
+            "subtitle": "Split the taxi fare, save money, and reduce your carbon footprint."
+        },
+        "skip": "Skip",
+        "next": "Next",
+        "start": "Get Started"
+    },
     "common": {
         "error": "Error",
         "passenger": "Passenger",

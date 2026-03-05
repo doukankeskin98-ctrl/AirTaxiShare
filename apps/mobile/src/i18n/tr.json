@@ -3,6 +3,23 @@
         "name": "AirTaxiShare",
         "tagline": "Havalimanında aynı yöne gidenlerle taksiyi paylaş."
     },
+    "onboarding": {
+        "page1": {
+            "title": "Eşleş",
+            "subtitle": "Havalimanında aynı yöne giden yolcuları bul ve eşleş."
+        },
+        "page2": {
+            "title": "Buluş",
+            "subtitle": "Buluşma noktasını seç, kodu paylaş, güvenle buluş."
+        },
+        "page3": {
+            "title": "Paylaş",
+            "subtitle": "Taksi masrafını paylaş, hem para biriktir hem çevreye katkıda bulun."
+        },
+        "skip": "Atla",
+        "next": "İleri",
+        "start": "Başla"
+    },
     "common": {
         "error": "Hata",
         "passenger": "Yolcu",

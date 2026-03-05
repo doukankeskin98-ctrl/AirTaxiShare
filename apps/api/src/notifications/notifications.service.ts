@@ -84,4 +84,22 @@ export class NotificationsService {
             { type: 'new_message', matchId },
         );
     }
+
+    async sendRouteActivityNotification(pushToken: string, destination: string, count: number): Promise<void> {
+        await this.sendToToken(
+            pushToken,
+            '🚕 Rotanda yolcular var!',
+            `${destination} rotasında ${count} kişi bekliyor. Hemen katıl!`,
+            { type: 'route_activity', destination },
+        );
+    }
+
+    async sendPartnerWaitingNotification(pushToken: string, partnerName: string, matchId: string): Promise<void> {
+        await this.sendToToken(
+            pushToken,
+            `⏰ ${partnerName} seni bekliyor!`,
+            'Buluşma noktasına gel, partnerin hazır!',
+            { type: 'partner_waiting', matchId },
+        );
+    }
 }

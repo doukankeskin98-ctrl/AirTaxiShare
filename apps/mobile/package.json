@@ -51,7 +51,8 @@
     "socket.io-client": "^4.8.3",
     "uuid": "^3.4.0",
     "expo-splash-screen": "~0.20.5",
-    "expo-updates": "~0.18.19"
+    "expo-updates": "~0.18.19",
+    "@sentry/react-native": "5.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

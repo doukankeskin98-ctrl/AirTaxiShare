@@ -67,9 +67,10 @@ export default function SplashScreen() {
                     }, 1500);
                 }
             } else {
-                // No token → Go to Welcome
+                // No token → Check if first-time user needs onboarding
+                const onboardingSeen = await AsyncStorage.getItem('@onboarding_seen');
                 setTimeout(() => {
-                    navigation.replace('Welcome');
+                    navigation.replace(onboardingSeen ? 'Welcome' : 'Onboarding');
                 }, 2500);
             }
         };
