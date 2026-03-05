@@ -1,1 +1,0 @@
-self.__PRERENDER_MANIFEST={"version":4,"routes":{},"dynamicRoutes":{},"notFoundRoutes":[],"preview":{"previewModeId":"d4a8dac68f8517b42b00b4f57af98e4f","previewModeSigningKey":"8f748a3a5d36eb8e0e91674b72bb6df19a8f6a5dff56e4ff1ecbcb592fb1d1a9","previewModeEncryptionKey":"7bf8ef8887ac21bef197204fc702035a2d76ffd314d2e2adcbfab0c3e738f138"}}

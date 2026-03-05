@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
  * This affects the Reanimated web polyfill which uses CSS transitions.
  */
 export function applyWebPerformanceOptimizations() {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
 
     // Inject a global CSS rule that speeds up all CSS transitions & animations
     // on Reanimated/Moti web elements, reducing perceived jank

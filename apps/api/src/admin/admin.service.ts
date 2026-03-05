@@ -96,4 +96,14 @@ export class AdminService {
             take: 100 // Limit for MVP dashboard
         });
     }
+
+    async updateUserStatus(userId: string, status: string) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        user.status = status as any;
+        await this.userRepository.save(user);
+        return { success: true, userId, status };
+    }
 }

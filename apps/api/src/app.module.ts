@@ -53,9 +53,9 @@ import { HealthModule } from './health/health.module';
                 const base = {
                     entities: [User, TripRequest, Rating, MatchHistory, ChatMessage, Report],
                     autoLoadEntities: true,
-                    // Synchronize schema for new entities (chat_messages, reports, blockedUserIds).
-                    // In mature production, switch to explicit migrations.
-                    synchronize: true,
+                    // SAFETY: Only synchronize schema in development. 
+                    // In production, use explicit TypeORM migrations to prevent data loss.
+                    synchronize: !isProduction,
                     logging: (!isProduction && !isExternalDb) ? (['error'] as any) : false,
                     // Connection pool for high concurrency
                     extra: {

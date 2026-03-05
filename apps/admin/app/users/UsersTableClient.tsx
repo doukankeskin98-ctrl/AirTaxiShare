@@ -39,10 +39,28 @@ export function UsersTableClient({ initialUsers, dict }: { initialUsers: any[], 
         const confirmMsg = action === 'suspend' ? dict.confirmSuspend : action === 'ban' ? dict.confirmBan : dict.confirmActivate;
         if (!confirm(confirmMsg)) return;
 
-        // Optimistic UI update
         const newStatus = action === 'activate' ? 'ACTIVE' : action === 'suspend' ? 'SUSPENDED' : 'BLOCKED';
+
+        // Optimistic UI update
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus } : u));
         setActiveMenu(null);
+
+        // Call local API proxy (handles httpOnly cookie auth server-side)
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (!res.ok) {
+                // Revert on failure
+                setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: users.find(uu => uu.id === userId)?.status || 'ACTIVE' } : u));
+                alert('Operation failed');
+            }
+        } catch {
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: users.find(uu => uu.id === userId)?.status || 'ACTIVE' } : u));
+            alert('Network error');
+        }
     };
 
     const exportToCSV = () => {

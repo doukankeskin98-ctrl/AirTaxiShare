@@ -323,13 +323,39 @@ function UsersTableClient({ initialUsers , dict  }) {
     const handleAction = async (userId, action)=>{
         const confirmMsg = action === "suspend" ? dict.confirmSuspend : action === "ban" ? dict.confirmBan : dict.confirmActivate;
         if (!confirm(confirmMsg)) return;
-        // Optimistic UI update
         const newStatus = action === "activate" ? "ACTIVE" : action === "suspend" ? "SUSPENDED" : "BLOCKED";
+        // Optimistic UI update
         setUsers((prev)=>prev.map((u)=>u.id === userId ? {
                     ...u,
                     status: newStatus
                 } : u));
         setActiveMenu(null);
+        // Call local API proxy (handles httpOnly cookie auth server-side)
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+            if (!res.ok) {
+                // Revert on failure
+                setUsers((prev)=>prev.map((u)=>u.id === userId ? {
+                            ...u,
+                            status: users.find((uu)=>uu.id === userId)?.status || "ACTIVE"
+                        } : u));
+                alert("Operation failed");
+            }
+        } catch  {
+            setUsers((prev)=>prev.map((u)=>u.id === userId ? {
+                        ...u,
+                        status: users.find((uu)=>uu.id === userId)?.status || "ACTIVE"
+                    } : u));
+            alert("Network error");
+        }
     };
     const exportToCSV = ()=>{
         const headers = [
@@ -861,7 +887,7 @@ async function UsersPage() {
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [534,731,482,65], () => (__webpack_exec__(33777)));
+var __webpack_exports__ = __webpack_require__.X(0, [534,731,342,65], () => (__webpack_exec__(33777)));
 module.exports = __webpack_exports__;
 
 })();

@@ -38,7 +38,7 @@ export default function MatchHistoryScreen() {
 
     const renderItem = ({ item, index }: { item: any; index: number }) => {
         const isCompleted = item.status === 'COMPLETED';
-        const partnerName = item.otherUser?.fullName || 'Bilinmeyen Yolcu';
+        const partnerName = item.otherUser?.fullName || t('common.passenger');
 
         return (
             <MotiView

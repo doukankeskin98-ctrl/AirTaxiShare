@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -24,5 +24,17 @@ export class AdminController {
     @Get('logs')
     getRideLogs() {
         return this.adminService.getRideLogs();
+    }
+
+    @Patch('users/:id/status')
+    async updateUserStatus(
+        @Param('id') userId: string,
+        @Body('status') status: string,
+    ) {
+        const validStatuses = ['ACTIVE', 'SUSPENDED', 'BLOCKED'];
+        if (!validStatuses.includes(status)) {
+            throw new BadRequestException(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+        }
+        return this.adminService.updateUserStatus(userId, status);
     }
 }

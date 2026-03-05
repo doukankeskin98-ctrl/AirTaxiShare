@@ -63,7 +63,7 @@ var node_polyfill_headers = __webpack_require__(48302);
 var app_route_module = __webpack_require__(33232);
 var module_default = /*#__PURE__*/__webpack_require__.n(app_route_module);
 // EXTERNAL MODULE: ../../node_modules/next/dist/server/web/exports/next-response.js
-var next_response = __webpack_require__(57230);
+var next_response = __webpack_require__(10274);
 ;// CONCATENATED MODULE: ./app/api/auth/route.ts
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://airtaxishare-api.onrender.com";
