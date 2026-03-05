@@ -7,7 +7,7 @@ import { colors, typography, spacing, layout, shadows } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
-import { Easing } from 'react-native-reanimated';
+import Animated, { Easing, useSharedValue, useAnimatedStyle, withRepeat, withTiming, withDelay } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import SocketService, { MatchFoundPayload } from '../services/socket';
 import { getAuthToken } from '../services/api';
@@ -25,6 +25,55 @@ export default function QueueScreen() {
     const [error, setError] = useState<string | null>(null);
     const [secondsLeft, setSecondsLeft] = useState(QUEUE_TIMEOUT_SECONDS);
     const [isTimedOut, setIsTimedOut] = useState(false);
+
+    // Reanimated Shared Values for Infinite Loops
+    const pulseScale = useSharedValue(1);
+    const textOpacity = useSharedValue(0.4);
+
+    const r1Scale = useSharedValue(1);
+    const r1Op = useSharedValue(0.6);
+    const r2Scale = useSharedValue(1);
+    const r2Op = useSharedValue(0.6);
+    const r3Scale = useSharedValue(1);
+    const r3Op = useSharedValue(0.6);
+
+    useEffect(() => {
+        // Start infinite pulsing animations safely on UI thread
+        pulseScale.value = withRepeat(
+            withTiming(1.08, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+            -1,
+            true
+        );
+
+        textOpacity.value = withRepeat(
+            withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+            -1,
+            true
+        );
+
+        const startRadar = (scaleVal: any, opVal: any, delay: number) => {
+            scaleVal.value = withDelay(delay, withRepeat(
+                withTiming(3.8, { duration: 2000, easing: Easing.out(Easing.ease) }),
+                -1,
+                false
+            ));
+            opVal.value = withDelay(delay, withRepeat(
+                withTiming(0, { duration: 2000, easing: Easing.out(Easing.ease) }),
+                -1,
+                false
+            ));
+        };
+
+        startRadar(r1Scale, r1Op, 0);
+        startRadar(r2Scale, r2Op, 400);
+        startRadar(r3Scale, r3Op, 800);
+    }, []);
+
+    const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulseScale.value }] }));
+    const textStyle = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
+    const radar1Style = useAnimatedStyle(() => ({ transform: [{ scale: r1Scale.value }], opacity: r1Op.value }));
+    const radar2Style = useAnimatedStyle(() => ({ transform: [{ scale: r2Scale.value }], opacity: r2Op.value }));
+    const radar3Style = useAnimatedStyle(() => ({ transform: [{ scale: r3Scale.value }], opacity: r3Op.value }));
 
     useEffect(() => {
         let unsubMatch: (() => void) | undefined;
@@ -162,51 +211,18 @@ export default function QueueScreen() {
                 <View style={styles.content}>
                     {/* Pulsing Radar Animation */}
                     <View style={styles.radarContainer}>
-                        {[...Array(3).keys()].map((index) => (
-                            <MotiView
-                                key={index}
-                                from={{ opacity: 0.6, scale: 1 }}
-                                animate={{ opacity: 0, scale: 3.8 }}
-                                transition={{
-                                    type: 'timing',
-                                    duration: 2000,
-                                    loop: true,
-                                    repeat: Infinity,
-                                    delay: index * 400,
-                                    easing: Easing.out(Easing.ease),
-                                } as any}
-                                style={[styles.radarCircle, { borderColor: colors.primaryLight }]}
-                            />
-                        ))}
-                        <MotiView
-                            from={{ scale: 1 }}
-                            animate={{ scale: 1.08 }}
-                            transition={{
-                                type: 'timing',
-                                duration: 800,
-                                loop: true,
-                                repeatReverse: true,
-                                easing: Easing.inOut(Easing.ease),
-                            } as any}
-                            style={styles.centerIconBox}
-                        >
+                        <Animated.View style={[styles.radarCircle, { borderColor: colors.primaryLight }, radar1Style]} />
+                        <Animated.View style={[styles.radarCircle, { borderColor: colors.primaryLight }, radar2Style]} />
+                        <Animated.View style={[styles.radarCircle, { borderColor: colors.primaryLight }, radar3Style]} />
+
+                        <Animated.View style={[styles.centerIconBox, pulseStyle]}>
                             <Ionicons name="search" size={32} color={colors.textPrimary} />
-                        </MotiView>
+                        </Animated.View>
                     </View>
 
-                    <MotiText
-                        from={{ opacity: 0.4 }}
-                        animate={{ opacity: 1 }}
-                        transition={{
-                            type: 'timing',
-                            duration: 1000,
-                            loop: true,
-                            repeatReverse: true
-                        } as any}
-                        style={styles.statusText}
-                    >
+                    <Animated.Text style={[styles.statusText, textStyle]}>
                         {t('queue.scanning_msg')}
-                    </MotiText>
+                    </Animated.Text>
 
                     {/* Countdown Timer */}
                     <MotiView
