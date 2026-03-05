@@ -326,20 +326,25 @@
     },
     "settings": {
         "title": "Ayarlar",
+        "editProfile": "Profili Düzenle",
+        "save": "Kaydet",
+        "changePhoto": "Fotoğrafı Değiştir",
+        "success": "Profil başarıyla güncellendi",
+        "error": "Profil güncellenirken bir hata oluştu",
         "language": {
-            "title": "Dil",
+            "title": "Uygulama Dili",
             "tr": "Türkçe",
-            "en": "English"
+            "en": "İngilizce (English)"
         },
         "legal": "Yasal",
-        "tos": "Kullanım Şartları",
-        "privacy": "Gizlilik / KVKK",
+        "tos": "Kullanım Koşulları",
+        "privacy": "Gizlilik Politikası",
         "account": "Hesap",
-        "deleteAccount": "Hesabı sil",
-        "deleteAccountConfirm": "Bu işlem geri alınamaz. Hesabınız ve tüm verileriniz kalıcı olarak silinecektir.",
-        "deleteAccountBtn": "Hesabı Sil",
-        "logout": "Çıkış yap",
-        "logoutConfirm": "Çıkış yapmak istediğinize emin misiniz?"
+        "logout": "Çıkış Yap",
+        "logoutConfirm": "Hesabınızdan çıkış yapmak istediğinize emin misiniz?",
+        "deleteAccount": "Hesabımı Sil",
+        "deleteAccountBtn": "Evet, Sil",
+        "deleteAccountConfirm": "Hesabınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
     },
     "legal": {
         "disclaimer": {

@@ -17,6 +17,7 @@ import RatingScreen from '../screens/RatingScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import LegalScreen from '../screens/LegalScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 
 export type RootStackParamList = {
     Splash: undefined;
@@ -35,6 +36,7 @@ export type RootStackParamList = {
     Legal: { type: 'tos' | 'privacy' };
     ActiveQueues: undefined;
     MatchHistory: undefined;
+    EditProfile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -54,6 +56,7 @@ const linking = {
             ActiveQueues: 'join',
             CreateMatch: 'create',
             Settings: 'settings',
+            EditProfile: 'profile/edit',
         },
     },
 };
@@ -84,6 +87,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="Legal" component={LegalScreen} />
                 <Stack.Screen name="ActiveQueues" component={ActiveQueuesScreen} />
                 <Stack.Screen name="MatchHistory" component={MatchHistoryScreen} />
+                <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

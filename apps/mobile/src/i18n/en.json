@@ -326,20 +326,25 @@
     },
     "settings": {
         "title": "Settings",
+        "editProfile": "Edit Profile",
+        "save": "Save",
+        "changePhoto": "Change Photo",
+        "success": "Profile updated successfully",
+        "error": "Error updating profile",
         "language": {
-            "title": "Language",
-            "tr": "Türkçe",
+            "title": "App Language",
+            "tr": "Turkish (Türkçe)",
             "en": "English"
         },
         "legal": "Legal",
         "tos": "Terms of Service",
-        "privacy": "Privacy",
+        "privacy": "Privacy Policy",
         "account": "Account",
-        "deleteAccount": "Delete account",
-        "deleteAccountConfirm": "This action cannot be undone. Your account and all data will be permanently deleted.",
-        "deleteAccountBtn": "Delete Account",
-        "logout": "Log out",
-        "logoutConfirm": "Are you sure you want to log out?"
+        "logout": "Log Out",
+        "logoutConfirm": "Are you sure you want to log out of your account?",
+        "deleteAccount": "Delete My Account",
+        "deleteAccountBtn": "Yes, Delete",
+        "deleteAccountConfirm": "Are you sure you want to permanently delete your account? This action cannot be undone."
     },
     "legal": {
         "disclaimer": {

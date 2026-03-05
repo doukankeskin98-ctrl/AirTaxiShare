@@ -109,6 +109,13 @@ export default function SettingsScreen() {
                                 </View>
                             </View>
                         </View>
+                        <View style={{ marginTop: spacing.s, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.s }}>
+                            <ATSButton
+                                title={t('settings.editProfile')}
+                                onPress={() => navigation.navigate('EditProfile')}
+                                variant="ghost"
+                            />
+                        </View>
                     </ATSCard>
                 )}
 
