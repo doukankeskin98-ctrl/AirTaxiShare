@@ -24,7 +24,7 @@ export default function LoginScreen({ navigation }: any) {
 
     const handleLogin = async () => {
         if (phoneNumber.length < 10) {
-            showAlert(t('common.error'), 'Please enter a valid phone number');
+            showAlert(t('common.error', { defaultValue: 'Hata' }), t('login.invalid_phone', { defaultValue: 'Lütfen geçerli bir telefon numarası girin' }));
             return;
         }
         setIsLoading(true);
@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }: any) {
             await AuthService.login(phoneNumber);
             navigation.navigate('Verify', { phoneNumber });
         } catch (error: any) {
-            showAlert(t('common.error'), error.response?.data?.message || 'Failed to send OTP. Please check your network connection and try again.');
+            showAlert(t('common.error', { defaultValue: 'Hata' }), error.response?.data?.message || t('login.failed_otp', { defaultValue: 'Bağlantı hatası, lütfen tekrar deneyin.' }));
         } finally {
             setIsLoading(false);
         }
@@ -56,7 +56,7 @@ export default function LoginScreen({ navigation }: any) {
                         navigation.replace('Home');
                     })
                     .catch(error => {
-                        showAlert('Google Login Failed', error.message || 'Unknown error');
+                        showAlert(t('login.google_failed', { defaultValue: 'Google Girişi Başarısız' }), error.message || t('common.unknown_error', { defaultValue: 'Bilinmeyen hata' }));
                     });
             }
         }
@@ -82,7 +82,7 @@ export default function LoginScreen({ navigation }: any) {
             navigation.replace('Home');
         } catch (error: any) {
             if (error.code !== 'ERR_REQUEST_CANCELED') {
-                showAlert('Apple Login Failed', error.message || 'Unknown error');
+                showAlert(t('login.apple_failed', { defaultValue: 'Apple Girişi Başarısız' }), error.message || t('common.unknown_error', { defaultValue: 'Bilinmeyen hata' }));
             }
         } finally {
             setIsSocialLoading(false);
@@ -94,7 +94,7 @@ export default function LoginScreen({ navigation }: any) {
         try {
             await promptAsync();
         } catch (error: any) {
-            showAlert('Google Login Failed', error.message || 'Unknown error');
+            showAlert(t('login.google_failed', { defaultValue: 'Google Girişi Başarısız' }), error.message || t('common.unknown_error', { defaultValue: 'Bilinmeyen hata' }));
         } finally {
             setIsSocialLoading(false);
         }
@@ -159,13 +159,13 @@ export default function LoginScreen({ navigation }: any) {
 
                     <View style={styles.dividerContainer}>
                         <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>OR</Text>
+                        <Text style={styles.dividerText}>{t('welcome.or', { defaultValue: 'ya da' })}</Text>
                         <View style={styles.dividerLine} />
                     </View>
 
                     {Platform.OS === 'ios' && (
                         <PremiumButton
-                            title="Continue with Apple"
+                            title={t('login.continue_apple', { defaultValue: 'Apple ile Devam Et' })}
                             onPress={handleAppleLogin}
                             loading={isSocialLoading}
                             variant="secondary"
@@ -175,7 +175,7 @@ export default function LoginScreen({ navigation }: any) {
                     )}
 
                     <PremiumButton
-                        title="Continue with Google"
+                        title={t('login.continue_google', { defaultValue: 'Google ile Devam Et' })}
                         onPress={handleGoogleLogin}
                         loading={isSocialLoading}
                         variant="secondary"
@@ -184,7 +184,7 @@ export default function LoginScreen({ navigation }: any) {
                 </PremiumCard>
 
                 <TouchableOpacity onPress={() => navigation.navigate('EmailAuth')} style={styles.emailLink}>
-                    <Text style={styles.emailLinkText}>{t('auth.use_email', 'Or utilize Email for Sign In')}</Text>
+                    <Text style={styles.emailLinkText}>{t('auth.use_email', { defaultValue: 'E-posta ile giriş yap' })}</Text>
                 </TouchableOpacity>
             </KeyboardAvoidingView>
         </View>
