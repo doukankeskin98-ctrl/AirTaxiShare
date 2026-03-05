@@ -42,7 +42,13 @@
         "title": "Tekrar Hoş Geldin",
         "subtitle": "Devam etmek için telefon numaranı gir.",
         "placeholder": "Telefon Numarası",
-        "button": "Devam Et"
+        "button": "Devam Et",
+        "invalid_phone": "Lütfen geçerli bir telefon numarası girin",
+        "failed_otp": "Bağlantı hatası, lütfen tekrar deneyin.",
+        "google_failed": "Google Girişi Başarısız",
+        "apple_failed": "Apple Girişi Başarısız",
+        "continue_apple": "Apple ile Devam Et",
+        "continue_google": "Google ile Devam Et"
     },
     "welcome": {
         "title": "AirTaxiShare’a hoş geldin",
@@ -50,6 +56,8 @@
         "apple": "Apple ile devam et",
         "google": "Google ile devam et",
         "email": "E-posta ile devam et",
+        "email_login": "Email ile Devam Et",
+        "or": "ya da",
         "login": "Giriş yap",
         "signup": "Kayıt ol",
         "disclaimer": "AirTaxiShare ulaşım hizmeti sunmaz, yalnızca yolcuları eşleştirir."
@@ -66,6 +74,16 @@
         "or": "veya",
         "back": "Geri",
         "use_email": "E-posta ile Devam Et"
+    },
+    "verify": {
+        "title": "Doğrulama",
+        "subtitle": "Kod şuraya gönderildi:",
+        "code_label": "Doğrulama Kodu",
+        "button": "Doğrula",
+        "wrong_number": "Yanlış numara mı?",
+        "invalid_code_error": "Lütfen geçerli bir 6 haneli kod girin.",
+        "invalid_code": "Geçersiz doğrulama kodu.",
+        "failed": "Doğrulama Başarısız"
     },
     "profile": {
         "title": "Profilini oluştur",
@@ -127,6 +145,13 @@
         "active_match": {
             "title": "Aktif eşleşmeniz var",
             "subtitle": "Dönmek için dokunun"
+        }
+    },
+    "history": {
+        "title": "Geçmiş Yolculuklarım",
+        "empty": {
+            "title": "Geçmiş Yolculuk Yok",
+            "desc": "Platformumuzda henüz bir yolculuk geçmişiniz bulunmuyor."
         }
     },
     "create": {

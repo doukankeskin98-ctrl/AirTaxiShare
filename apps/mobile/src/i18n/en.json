@@ -42,7 +42,13 @@
         "title": "Welcome Back",
         "subtitle": "Enter your phone number to continue.",
         "placeholder": "Phone Number",
-        "button": "Continue"
+        "button": "Continue",
+        "invalid_phone": "Please enter a valid phone number",
+        "failed_otp": "Connection error, please try again.",
+        "google_failed": "Google Login Failed",
+        "apple_failed": "Apple Login Failed",
+        "continue_apple": "Continue with Apple",
+        "continue_google": "Continue with Google"
     },
     "welcome": {
         "title": "Welcome to AirTaxiShare",
@@ -50,6 +56,8 @@
         "apple": "Continue with Apple",
         "google": "Continue with Google",
         "email": "Continue with Email",
+        "email_login": "Continue with Email",
+        "or": "or",
         "login": "Sign in",
         "signup": "Create account",
         "disclaimer": "AirTaxiShare does not provide transport services, it only matches passengers."
@@ -66,6 +74,16 @@
         "or": "or",
         "back": "Back",
         "use_email": "Continue with Email"
+    },
+    "verify": {
+        "title": "Verification",
+        "subtitle": "Code sent to:",
+        "code_label": "Verification Code",
+        "button": "Verify",
+        "wrong_number": "Wrong number?",
+        "invalid_code_error": "Please enter a valid 6-digit code.",
+        "invalid_code": "Invalid verification code.",
+        "failed": "Verification Failed"
     },
     "profile": {
         "title": "Create your profile",
@@ -127,6 +145,13 @@
         "active_match": {
             "title": "You have an active match",
             "subtitle": "Tap to return"
+        }
+    },
+    "history": {
+        "title": "My Past Rides",
+        "empty": {
+            "title": "No Past Rides",
+            "desc": "You do not have any ride history fully recorded on our platform yet."
         }
     },
     "create": {
