@@ -52,7 +52,20 @@ const dictionaries = {
         mins: "dk",
         hours: "sa",
         days: "g",
-        dashboardSubtitle: "Ger\xe7ek zamanlı platform metrikleri \xb7 Canlı veritabanı bağlantısı"
+        dashboardSubtitle: "Ger\xe7ek zamanlı platform metrikleri \xb7 Canlı veritabanı bağlantısı",
+        systemHealth: "Sistem Sağlığı",
+        userGrowth: "Kullanıcı B\xfcy\xfcmesi",
+        userGrowthSubtitle: "Kayıt ve eşleşme trendleri",
+        notifications: "Bildirimler",
+        markAllRead: "T\xfcm\xfcn\xfc okundu işaretle",
+        noNotifications: "Bildirim yok",
+        actions: "İşlemler",
+        suspend: "Askıya Al",
+        activate: "Aktifleştir",
+        ban: "Engelle",
+        confirmSuspend: "Bu kullanıcıyı askıya almak istediğinize emin misiniz?",
+        confirmBan: "Bu kullanıcıyı engellemek istediğinize emin misiniz?",
+        confirmActivate: "Bu kullanıcıyı aktifleştirmek istediğinize emin misiniz?"
     },
     en: {
         dashboard: "Dashboard",
@@ -95,7 +108,20 @@ const dictionaries = {
         mins: "m",
         hours: "h",
         days: "d",
-        dashboardSubtitle: "Real-time platform metrics \xb7 Live database connection"
+        dashboardSubtitle: "Real-time platform metrics \xb7 Live database connection",
+        systemHealth: "System Health",
+        userGrowth: "User Growth",
+        userGrowthSubtitle: "Registration & match trends",
+        notifications: "Notifications",
+        markAllRead: "Mark all read",
+        noNotifications: "No notifications",
+        actions: "Actions",
+        suspend: "Suspend",
+        activate: "Activate",
+        ban: "Ban",
+        confirmSuspend: "Are you sure you want to suspend this user?",
+        confirmBan: "Are you sure you want to ban this user?",
+        confirmActivate: "Are you sure you want to activate this user?"
     }
 };
 const getDictionary = (lang)=>dictionaries[lang] || dictionaries.tr;

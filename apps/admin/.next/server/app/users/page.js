@@ -293,17 +293,13 @@ __webpack_require__.r(__webpack_exports__);
 /* __next_internal_client_entry_do_not_use__ UsersTableClient auto */ 
 
 
-const cardStyle = {
-    padding: "0",
-    borderRadius: 16,
-    overflow: "hidden"
-};
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://airtaxishare-api.onrender.com";
 const thStyle = {
     textAlign: "left",
     padding: "14px 20px",
     color: "#6B7280",
     fontWeight: 600,
-    fontSize: 12,
+    fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 1,
     borderBottom: "1px solid rgba(255,255,255,0.07)"
@@ -315,13 +311,26 @@ const tdStyle = {
 };
 function UsersTableClient({ initialUsers , dict  }) {
     const [searchQuery, setSearchQuery] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)("");
-    const filteredUsers = initialUsers.filter((user)=>{
+    const [users, setUsers] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(initialUsers);
+    const [activeMenu, setActiveMenu] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null);
+    const filteredUsers = users.filter((user)=>{
         if (!searchQuery) return true;
         const s = searchQuery.toLowerCase();
         const f = user.fullName?.toLowerCase() || "";
         const e = user.email?.toLowerCase() || "";
         return f.includes(s) || e.includes(s);
     });
+    const handleAction = async (userId, action)=>{
+        const confirmMsg = action === "suspend" ? dict.confirmSuspend : action === "ban" ? dict.confirmBan : dict.confirmActivate;
+        if (!confirm(confirmMsg)) return;
+        // Optimistic UI update
+        const newStatus = action === "activate" ? "ACTIVE" : action === "suspend" ? "SUSPENDED" : "BLOCKED";
+        setUsers((prev)=>prev.map((u)=>u.id === userId ? {
+                    ...u,
+                    status: newStatus
+                } : u));
+        setActiveMenu(null);
+    };
     const exportToCSV = ()=>{
         const headers = [
             dict.user,
@@ -354,23 +363,27 @@ function UsersTableClient({ initialUsers , dict  }) {
         document.body.removeChild(link);
     };
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+        className: "animate-fade-in",
         children: [
             /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
                 style: {
                     marginBottom: 32,
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "flex-end"
+                    alignItems: "flex-end",
+                    flexWrap: "wrap",
+                    gap: 16
                 },
                 children: [
                     /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
                         children: [
                             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("h1", {
                                 style: {
-                                    fontSize: 26,
+                                    fontSize: 28,
                                     fontWeight: 700,
                                     color: "#F9FAFB",
-                                    margin: 0
+                                    margin: 0,
+                                    letterSpacing: -0.5
                                 },
                                 children: dict.users
                             }),
@@ -381,7 +394,7 @@ function UsersTableClient({ initialUsers , dict  }) {
                                     fontSize: 14
                                 },
                                 children: [
-                                    initialUsers.length,
+                                    users.length,
                                     " ",
                                     dict.registeredUsers
                                 ]
@@ -391,7 +404,8 @@ function UsersTableClient({ initialUsers , dict  }) {
                     /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
                         style: {
                             display: "flex",
-                            gap: 12
+                            gap: 12,
+                            flexWrap: "wrap"
                         },
                         children: [
                             /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
@@ -405,47 +419,39 @@ function UsersTableClient({ initialUsers , dict  }) {
                                         value: searchQuery,
                                         onChange: (e)=>setSearchQuery(e.target.value),
                                         style: {
-                                            padding: "8px 12px 8px 36px",
-                                            borderRadius: 8,
+                                            padding: "9px 12px 9px 36px",
+                                            borderRadius: 10,
                                             backgroundColor: "rgba(255,255,255,0.05)",
                                             border: "1px solid rgba(255,255,255,0.1)",
                                             color: "#F9FAFB",
                                             outline: "none",
                                             fontSize: 13,
-                                            width: 220
-                                        }
+                                            width: 240,
+                                            transition: "border-color 0.2s"
+                                        },
+                                        onFocus: (e)=>e.target.style.borderColor = "rgba(79,70,229,0.5)",
+                                        onBlur: (e)=>e.target.style.borderColor = "rgba(255,255,255,0.1)"
                                     }),
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .Search */ .olm, {
-                                        size: 16,
+                                        size: 15,
                                         color: "#9CA3AF",
                                         style: {
                                             position: "absolute",
                                             left: 12,
-                                            top: 10
+                                            top: 11
                                         }
                                     })
                                 ]
                             }),
                             /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("button", {
                                 onClick: exportToCSV,
+                                className: "action-btn",
                                 style: {
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 8,
-                                    padding: "8px 16px",
-                                    borderRadius: 8,
-                                    backgroundColor: "rgba(255,255,255,0.05)",
-                                    border: "1px solid rgba(255,255,255,0.1)",
-                                    color: "#F9FAFB",
-                                    cursor: "pointer",
-                                    fontWeight: 500,
-                                    fontSize: 13,
-                                    transition: "background-color 0.2s"
+                                    padding: "9px 16px"
                                 },
-                                className: "sidebar-link",
                                 children: [
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .Download */ .UWx, {
-                                        size: 16
+                                        size: 15
                                     }),
                                     dict.exportCSV
                                 ]
@@ -456,7 +462,10 @@ function UsersTableClient({ initialUsers , dict  }) {
             }),
             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                 className: "glass-card",
-                style: cardStyle,
+                style: {
+                    borderRadius: 16,
+                    overflow: "hidden"
+                },
                 children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("table", {
                     style: {
                         width: "100%",
@@ -496,6 +505,10 @@ function UsersTableClient({ initialUsers , dict  }) {
                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
                                         style: thStyle,
                                         children: dict.joined
+                                    }),
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("th", {
+                                        style: thStyle,
+                                        children: dict.actions
                                     })
                                 ]
                             })
@@ -503,7 +516,7 @@ function UsersTableClient({ initialUsers , dict  }) {
                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("tbody", {
                             children: filteredUsers.length === 0 ? /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("tr", {
                                 children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
-                                    colSpan: 7,
+                                    colSpan: 8,
                                     style: {
                                         ...tdStyle,
                                         textAlign: "center",
@@ -544,41 +557,63 @@ function UsersTableClient({ initialUsers , dict  }) {
                             }) : filteredUsers.map((user)=>/*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
                                     className: "table-row",
                                     children: [
-                                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("td", {
+                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
-                                            children: [
-                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                                                    style: {
-                                                        fontWeight: 600,
-                                                        color: "#F9FAFB"
-                                                    },
-                                                    children: user.fullName || "—"
-                                                }),
-                                                /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
-                                                    style: {
-                                                        fontSize: 11,
-                                                        color: "#6B7280"
-                                                    },
-                                                    children: [
-                                                        user.id?.slice(0, 8),
-                                                        "…"
-                                                    ]
-                                                })
-                                            ]
+                                            children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                style: {
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 10
+                                                },
+                                                children: [
+                                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                        style: {
+                                                            width: 34,
+                                                            height: 34,
+                                                            borderRadius: 10,
+                                                            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            color: "#fff",
+                                                            fontWeight: 700,
+                                                            fontSize: 13
+                                                        },
+                                                        children: (user.fullName || "?")[0]?.toUpperCase()
+                                                    }),
+                                                    /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                                style: {
+                                                                    fontWeight: 600,
+                                                                    color: "#F9FAFB",
+                                                                    fontSize: 14
+                                                                },
+                                                                children: user.fullName || "—"
+                                                            }),
+                                                            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                                style: {
+                                                                    fontSize: 11,
+                                                                    color: "#6B7280"
+                                                                },
+                                                                children: [
+                                                                    user.id?.slice(0, 8),
+                                                                    "…"
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
                                         }),
-                                        /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("td", {
+                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
-                                            children: [
-                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                                                    children: user.email || "—"
-                                                }),
-                                                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                                                    style: {
-                                                        color: "#6B7280"
-                                                    },
-                                                    children: user.phoneNumber || "—"
-                                                })
-                                            ]
+                                            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                                                style: {
+                                                    fontSize: 13
+                                                },
+                                                children: user.email || "—"
+                                            })
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
                                             style: tdStyle,
@@ -638,8 +673,8 @@ function UsersTableClient({ initialUsers , dict  }) {
                                                     borderRadius: 100,
                                                     fontSize: 12,
                                                     fontWeight: 600,
-                                                    background: user.status === "ACTIVE" ? "#06472030" : "#7F1D1D30",
-                                                    color: user.status === "ACTIVE" ? "#34D399" : "#F87171"
+                                                    background: user.status === "ACTIVE" ? "#06472030" : user.status === "SUSPENDED" ? "#78350F30" : "#7F1D1D30",
+                                                    color: user.status === "ACTIVE" ? "#34D399" : user.status === "SUSPENDED" ? "#FBBF24" : "#F87171"
                                                 },
                                                 children: user.status
                                             })
@@ -649,10 +684,95 @@ function UsersTableClient({ initialUsers , dict  }) {
                                             children: user.createdAt ? new Date(user.createdAt).toLocaleDateString(dict.justNow === "Just now" ? "en-US" : "tr-TR", {
                                                 day: "numeric",
                                                 month: "short",
-                                                year: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit"
+                                                year: "numeric"
                                             }) : "—"
+                                        }),
+                                        /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("td", {
+                                            style: tdStyle,
+                                            children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                style: {
+                                                    position: "relative"
+                                                },
+                                                children: [
+                                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("button", {
+                                                        onClick: ()=>setActiveMenu(activeMenu === user.id ? null : user.id),
+                                                        className: "action-btn",
+                                                        style: {
+                                                            padding: "6px 8px"
+                                                        },
+                                                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .MoreVertical */ .hlC, {
+                                                            size: 14
+                                                        })
+                                                    }),
+                                                    activeMenu === user.id && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                                                        className: "animate-fade-in",
+                                                        style: {
+                                                            position: "absolute",
+                                                            right: 0,
+                                                            top: 32,
+                                                            zIndex: 50,
+                                                            backgroundColor: "#141626",
+                                                            border: "1px solid rgba(255,255,255,0.1)",
+                                                            borderRadius: 10,
+                                                            padding: 6,
+                                                            minWidth: 150,
+                                                            boxShadow: "0 12px 40px rgba(0,0,0,0.5)"
+                                                        },
+                                                        children: [
+                                                            user.status !== "ACTIVE" && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("button", {
+                                                                onClick: ()=>handleAction(user.id, "activate"),
+                                                                className: "action-btn success",
+                                                                style: {
+                                                                    width: "100%",
+                                                                    marginBottom: 4,
+                                                                    justifyContent: "flex-start",
+                                                                    border: "none"
+                                                                },
+                                                                children: [
+                                                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .ShieldCheck */ .diB, {
+                                                                        size: 13
+                                                                    }),
+                                                                    " ",
+                                                                    dict.activate
+                                                                ]
+                                                            }),
+                                                            user.status !== "SUSPENDED" && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("button", {
+                                                                onClick: ()=>handleAction(user.id, "suspend"),
+                                                                className: "action-btn",
+                                                                style: {
+                                                                    width: "100%",
+                                                                    marginBottom: 4,
+                                                                    justifyContent: "flex-start",
+                                                                    border: "none"
+                                                                },
+                                                                children: [
+                                                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .Shield */ .WL4, {
+                                                                        size: 13
+                                                                    }),
+                                                                    " ",
+                                                                    dict.suspend
+                                                                ]
+                                                            }),
+                                                            user.status !== "BLOCKED" && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("button", {
+                                                                onClick: ()=>handleAction(user.id, "ban"),
+                                                                className: "action-btn danger",
+                                                                style: {
+                                                                    width: "100%",
+                                                                    justifyContent: "flex-start",
+                                                                    border: "none"
+                                                                },
+                                                                children: [
+                                                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .ShieldOff */ .wRj, {
+                                                                        size: 13
+                                                                    }),
+                                                                    " ",
+                                                                    dict.ban
+                                                                ]
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
                                         })
                                     ]
                                 }, user.id))
@@ -741,7 +861,7 @@ async function UsersPage() {
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [534,731,342,65], () => (__webpack_exec__(33777)));
+var __webpack_exports__ = __webpack_require__.X(0, [534,731,482,65], () => (__webpack_exec__(33777)));
 module.exports = __webpack_exports__;
 
 })();
