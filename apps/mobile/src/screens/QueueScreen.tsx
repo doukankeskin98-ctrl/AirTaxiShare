@@ -165,11 +165,11 @@ export default function QueueScreen() {
                         {[...Array(3).keys()].map((index) => (
                             <MotiView
                                 key={index}
-                                from={{ opacity: 0.5, scale: 1 }}
-                                animate={{ opacity: 0, scale: 3.5 }}
+                                from={{ opacity: 0.6, scale: 1 }}
+                                animate={{ opacity: 0, scale: 3.8 }}
                                 transition={{
                                     type: 'timing',
-                                    duration: 2500,
+                                    duration: 2000,
                                     loop: true,
                                     delay: index * 400,
                                     easing: Easing.out(Easing.ease),
@@ -177,15 +177,29 @@ export default function QueueScreen() {
                                 style={[styles.radarCircle, { borderColor: colors.primaryLight }]}
                             />
                         ))}
-                        <View style={styles.centerIconBox}>
+                        <MotiView
+                            from={{ scale: 1 }}
+                            animate={{ scale: 1.08 }}
+                            transition={{
+                                type: 'timing',
+                                duration: 800,
+                                loop: true,
+                                repeatReverse: true,
+                                easing: Easing.inOut(Easing.ease),
+                            } as any}
+                            style={styles.centerIconBox}
+                        >
                             <Ionicons name="search" size={32} color={colors.textPrimary} />
-                        </View>
+                        </MotiView>
                     </View>
 
                     <MotiText
-                        from={{ opacity: 0, translateY: 10 }}
+                        from={{ opacity: 0.4, translateY: 10 }}
                         animate={{ opacity: 1, translateY: 0 }}
-                        transition={{ delay: 500 } as any}
+                        transition={{
+                            opacity: { type: 'timing', duration: 1000, loop: true, repeatReverse: true },
+                            translateY: { type: 'timing', duration: 500 }
+                        } as any}
                         style={styles.statusText}
                     >
                         {t('queue.scanning_msg')}
