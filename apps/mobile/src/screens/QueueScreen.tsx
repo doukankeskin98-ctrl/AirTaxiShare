@@ -142,13 +142,13 @@ export default function QueueScreen() {
             />
             {/* Animated Orbs */}
             <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
+                from={{ opacity: 0.2, scale: 0.8 }}
                 animate={{ opacity: 0.4, scale: 1.2 }}
                 transition={{ type: 'timing', duration: 4000, loop: true, repeatReverse: true } as any}
                 style={[styles.orb, { top: -100, right: -150, backgroundColor: colors.primary }]}
             />
             <MotiView
-                from={{ opacity: 0, scale: 0.8 }}
+                from={{ opacity: 0.1, scale: 0.8 }}
                 animate={{ opacity: 0.3, scale: 1.1 }}
                 transition={{ type: 'timing', duration: 5000, loop: true, repeatReverse: true } as any}
                 style={[styles.orb, { bottom: -100, left: -150, backgroundColor: colors.secondary }]}
@@ -171,6 +171,7 @@ export default function QueueScreen() {
                                     type: 'timing',
                                     duration: 2000,
                                     loop: true,
+                                    repeat: Infinity,
                                     delay: index * 400,
                                     easing: Easing.out(Easing.ease),
                                 } as any}
@@ -194,11 +195,13 @@ export default function QueueScreen() {
                     </View>
 
                     <MotiText
-                        from={{ opacity: 0.4, translateY: 10 }}
-                        animate={{ opacity: 1, translateY: 0 }}
+                        from={{ opacity: 0.4 }}
+                        animate={{ opacity: 1 }}
                         transition={{
-                            opacity: { type: 'timing', duration: 1000, loop: true, repeatReverse: true },
-                            translateY: { type: 'timing', duration: 500 }
+                            type: 'timing',
+                            duration: 1000,
+                            loop: true,
+                            repeatReverse: true
                         } as any}
                         style={styles.statusText}
                     >
