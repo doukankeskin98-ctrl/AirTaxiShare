@@ -4,6 +4,7 @@ import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { colors, typography, layout, shadows } from '../theme';
+import { hapticLight } from '../utils/haptics';
 
 interface PremiumButtonProps {
     title: string;
@@ -100,6 +101,13 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
         );
     };
 
+    const handlePress = () => {
+        if (!disabled && !loading) {
+            hapticLight();
+            onPress();
+        }
+    };
+
     return (
         <MotiView
             animate={{ scale: 1, opacity: 1 }}
@@ -112,8 +120,9 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
             style={[styles.container, style]}
         >
             <Pressable
-                onPress={onPress}
+                onPress={handlePress}
                 disabled={disabled || loading}
+                accessibilityRole="button"
                 style={({ pressed }) => [
                     styles.pressable,
                     (variant === 'primary' && !disabled) && shadows.glow, // Subtle glowing aura

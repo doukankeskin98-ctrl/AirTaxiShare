@@ -21,20 +21,25 @@ export default function MeetupConfirmScreen() {
 
     // 'pending' | 'waiting_partner' | 'success'
     const [status, setStatus] = useState<'pending' | 'waiting_partner' | 'success'>('pending');
+    const mounted = React.useRef(true);
 
     useEffect(() => {
+        mounted.current = true;
         SocketService.connect().catch(() => { });
 
         // Listen for the server to confirm both sides have confirmed
         const unsubConfirm = SocketService.onMeetupConfirmed(() => {
+            if (!mounted.current) return;
             setStatus('success');
             setTimeout(() => {
+                if (!mounted.current) return;
                 AsyncStorage.removeItem('@active_match').catch(() => { });
                 navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
             }, 1500);
         });
 
         return () => {
+            mounted.current = false;
             if (unsubConfirm) unsubConfirm();
         };
     }, [matchId, navigation, otherUser]);
@@ -47,8 +52,10 @@ export default function MeetupConfirmScreen() {
         } else {
             // Demo mode: auto-complete after 2 seconds
             setTimeout(() => {
+                if (!mounted.current) return;
                 setStatus('success');
                 setTimeout(() => {
+                    if (!mounted.current) return;
                     AsyncStorage.removeItem('@active_match').catch(() => { });
                     navigation.replace('Rating', { matchId: matchId || 'mock-id', otherUser });
                 }, 1500);

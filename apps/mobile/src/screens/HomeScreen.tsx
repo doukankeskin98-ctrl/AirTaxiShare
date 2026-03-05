@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 import { BlurView } from 'expo-blur';
+import { SkeletonCard } from '../components/SkeletonLoader';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 
 import { loadUserProfile, MatchAPI } from '../services/api';

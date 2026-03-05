@@ -8,6 +8,7 @@ import { ChatProvider } from './src/context/ChatContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { initSentry, Sentry, hasSentryDSN } from './src/services/sentry';
 import { applyWebPerformanceOptimizations } from './src/utils/webPerformance';
+import { OfflineBanner } from './src/components/OfflineBanner';
 
 // Initialize Sentry before anything else
 initSentry();
@@ -28,6 +29,7 @@ function App() {
     return (
         <ErrorBoundary>
             <ChatProvider>
+                <OfflineBanner />
                 <AppNavigator />
             </ChatProvider>
         </ErrorBoundary>

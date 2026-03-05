@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthService, setAuthToken } from '../services/api';
 import { showAlert } from '../utils/alert';
 import { colors, typography, spacing } from '../theme';
@@ -11,13 +12,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText } from 'moti';
 
 export default function VerifyScreen({ route, navigation }: any) {
+    const { t } = useTranslation();
     const { phoneNumber } = route.params;
     const [code, setCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleVerify = async () => {
         if (code.length < 6) {
-            showAlert('Hata', 'Lütfen geçerli bir 6 haneli kod girin.');
+            showAlert(t('common.error', { defaultValue: 'Hata' }), t('verify.invalid_code_error', { defaultValue: 'Lütfen geçerli bir 6 haneli kod girin.' }));
             return;
         }
         setIsLoading(true);
@@ -27,8 +29,8 @@ export default function VerifyScreen({ route, navigation }: any) {
             await setAuthToken(accessToken);
             navigation.replace('ProfileSetup');
         } catch (error: any) {
-            const msg = error?.message || 'Geçersiz doğrulama kodu.';
-            showAlert('Doğrulama Başarısız', msg);
+            const msg = error?.message || t('verify.invalid_code', { defaultValue: 'Geçersiz doğrulama kodu.' });
+            showAlert(t('verify.failed', { defaultValue: 'Doğrulama Başarısız' }), msg);
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +61,7 @@ export default function VerifyScreen({ route, navigation }: any) {
                         transition={{ delay: 300 }}
                         style={styles.title}
                     >
-                        Verification
+                        {t('verify.title', { defaultValue: 'Doğrulama' })}
                     </MotiText>
                     <MotiText
                         from={{ opacity: 0, translateY: 10 }}
@@ -67,13 +69,13 @@ export default function VerifyScreen({ route, navigation }: any) {
                         transition={{ delay: 400 }}
                         style={styles.subtitle}
                     >
-                        Code sent to {phoneNumber}
+                        {t('verify.subtitle', { defaultValue: 'Kod şuraya gönderildi:' })} {phoneNumber}
                     </MotiText>
                 </MotiView>
 
                 <PremiumCard variant="elevated" animate delay={500} style={styles.formCard}>
                     <PremiumInput
-                        label="Verification Code"
+                        label={t('verify.code_label', { defaultValue: 'Doğrulama Kodu' })}
                         value={code}
                         onChangeText={setCode}
                         placeholder="123456"
@@ -85,14 +87,14 @@ export default function VerifyScreen({ route, navigation }: any) {
                     <View style={styles.spacer} />
 
                     <PremiumButton
-                        title="Verify"
+                        title={t('verify.button', { defaultValue: 'Doğrula' })}
                         onPress={handleVerify}
                         loading={isLoading}
                         icon={<Ionicons name="checkmark-circle-outline" size={20} color={colors.textInverse} />}
                     />
 
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.resendLink}>
-                        <Text style={styles.resendText}>Wrong number?</Text>
+                        <Text style={styles.resendText}>{t('verify.wrong_number', { defaultValue: 'Yanlış numara mı?' })}</Text>
                     </TouchableOpacity>
                 </PremiumCard>
             </KeyboardAvoidingView>

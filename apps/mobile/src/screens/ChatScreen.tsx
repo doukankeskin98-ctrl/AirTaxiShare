@@ -35,15 +35,20 @@ export default function ChatScreen() {
     const flatListRef = useRef<FlatList>(null);
 
     const { markRead, setActiveChatId } = useChatContext();
+    const mounted = useRef(true);
 
     // Signal to ChatContext that this chat is active + clear unread badge + ensure socket
     useEffect(() => {
+        mounted.current = true;
         SocketService.connect().catch(() => { });
         if (matchId) {
             setActiveChatId(matchId);
             markRead(matchId);
         }
-        return () => setActiveChatId(null);
+        return () => {
+            mounted.current = false;
+            setActiveChatId(null);
+        };
     }, [matchId]);
 
     // Load messages: local first (instant), then server merge
@@ -54,6 +59,7 @@ export default function ChatScreen() {
         }
 
         let cancelled = false;
+        let unsubHistory: (() => void) | null = null;
 
         const loadChat = async () => {
             // 1) Load local messages immediately for instant display
@@ -75,7 +81,7 @@ export default function ChatScreen() {
 
             // 3) Try to load server chat history (if socket is connected)
             if (myUserId) {
-                const unsubHistory = SocketService.onChatHistory((data) => {
+                unsubHistory = SocketService.onChatHistory((data) => {
                     if (cancelled || data.matchId !== matchId) return;
                     if (data.messages && data.messages.length > 0) {
                         const serverMsgs: Message[] = data.messages.map((m: any) => ({
@@ -92,17 +98,15 @@ export default function ChatScreen() {
                 if (SocketService.isConnected()) {
                     SocketService.getChatHistory(matchId);
                 }
-
-                return () => {
-                    cancelled = true;
-                    unsubHistory();
-                };
             }
         };
 
         loadChat();
 
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+            if (unsubHistory) unsubHistory();
+        };
     }, [matchId]);
 
     // Register socket listeners
@@ -173,7 +177,9 @@ export default function ChatScreen() {
             () => {
                 SocketService.blockUser(matchId, safeOtherUser.id || '');
                 showAlert(t('chat.block.success_title'), t('chat.block.success_msg'));
-                setTimeout(() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }), 1500);
+                setTimeout(() => {
+                    if (mounted.current) navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                }, 1500);
             },
             t('chat.block.confirm_btn'),
             t('common.cancel'),
@@ -284,7 +290,7 @@ export default function ChatScreen() {
                         </TouchableOpacity>
                         <View style={styles.menuDivider} />
                         <TouchableOpacity onPress={handleBlock} style={styles.menuItem}>
-                            <Ionicons name="ban-outline" size={18} color="#EF4444" />
+                            <Ionicons name="close-circle-outline" size={18} color="#EF4444" />
                             <Text style={[styles.menuItemText, { color: '#EF4444' }]}>{t('chat.block.btn')}</Text>
                         </TouchableOpacity>
                     </MotiView>

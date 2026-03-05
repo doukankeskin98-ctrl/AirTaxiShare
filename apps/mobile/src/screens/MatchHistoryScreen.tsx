@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { MatchAPI } from '../services/api';
 import { showAlert } from '../utils/alert';
+import { SkeletonRow } from '../components/SkeletonLoader';
 
 export default function MatchHistoryScreen() {
     const { t } = useTranslation();
@@ -92,13 +93,18 @@ export default function MatchHistoryScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Geçmiş Yolculuklarım</Text>
+                    <Text style={styles.headerTitle}>{t('history.title', { defaultValue: 'Geçmiş Yolculuklarım' })}</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 {isLoading && !refreshing ? (
                     <View style={styles.centerContainer}>
-                        <Text style={styles.loadingText}>Geçmişiniz Yükleniyor...</Text>
+                        <View style={{ width: '100%', paddingHorizontal: spacing.l, marginTop: spacing.l }}>
+                            <SkeletonRow />
+                            <SkeletonRow />
+                            <SkeletonRow />
+                            <SkeletonRow />
+                        </View>
                     </View>
                 ) : (
                     <FlatList
@@ -111,8 +117,8 @@ export default function MatchHistoryScreen() {
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <Ionicons name="time-outline" size={64} color={colors.textDisabled} />
-                                <Text style={styles.emptyTitle}>Geçmiş Yolculuk Yok</Text>
-                                <Text style={styles.emptySubtitle}>Platformumuzda henüz bir yolculuk geçmişin bulunmuyor. Kayıtların burada listelenecek.</Text>
+                                <Text style={styles.emptyTitle}>{t('history.empty.title', { defaultValue: 'Geçmiş Yolculuk Yok' })}</Text>
+                                <Text style={styles.emptySubtitle}>{t('history.empty.desc', { defaultValue: 'Platformumuzda henüz bir yolculuk geçmişiniz bulunmuyor.' })}</Text>
                             </View>
                         }
                     />

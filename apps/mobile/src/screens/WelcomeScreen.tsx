@@ -272,7 +272,7 @@ export default function WelcomeScreen() {
                             <View style={styles.sheetTopHighlight} />
 
                             <PremiumButton
-                                title="Email ile Devam Et"
+                                title={t('welcome.email_login')}
                                 onPress={handleEmailAuth}
                                 icon={<Ionicons name="mail" size={20} color={colors.textPrimary} />}
                                 variant="primary"
@@ -282,7 +282,7 @@ export default function WelcomeScreen() {
                             {/* Divider */}
                             <View style={styles.dividerContainer}>
                                 <View style={styles.dividerLine} />
-                                <Text style={styles.dividerText}>ya da</Text>
+                                <Text style={styles.dividerText}>{t('welcome.or')}</Text>
                                 <View style={styles.dividerLine} />
                             </View>
 
@@ -311,7 +311,7 @@ export default function WelcomeScreen() {
                             </View>
 
                             <Text style={styles.disclaimer}>
-                                Devam ederek Hizmet Şartlarımızı onaylamış olursunuz.
+                                {t('welcome.disclaimer')}
                             </Text>
                         </View>
                     ) : (
@@ -320,7 +320,7 @@ export default function WelcomeScreen() {
                             <View style={styles.sheetTopHighlight} />
 
                             <PremiumButton
-                                title="Email ile Devam Et"
+                                title={t('welcome.email_login')}
                                 onPress={handleEmailAuth}
                                 icon={<Ionicons name="mail" size={20} color={colors.textPrimary} />}
                                 variant="primary"
@@ -329,7 +329,7 @@ export default function WelcomeScreen() {
 
                             <View style={styles.dividerContainer}>
                                 <View style={styles.dividerLine} />
-                                <Text style={styles.dividerText}>ya da</Text>
+                                <Text style={styles.dividerText}>{t('welcome.or')}</Text>
                                 <View style={styles.dividerLine} />
                             </View>
 
@@ -356,7 +356,7 @@ export default function WelcomeScreen() {
                             </View>
 
                             <Text style={styles.disclaimer}>
-                                Devam ederek Hizmet Şartlarımızı onaylamış olursunuz.
+                                {t('welcome.disclaimer')}
                             </Text>
                         </BlurView>
                     )}

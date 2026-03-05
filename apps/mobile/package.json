@@ -52,7 +52,9 @@
     "uuid": "^3.4.0",
     "expo-splash-screen": "~0.20.5",
     "expo-updates": "~0.18.19",
-    "@sentry/react-native": "5.10.0"
+    "@sentry/react-native": "5.10.0",
+    "expo-haptics": "~12.4.0",
+    "@react-native-community/netinfo": "9.3.10"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
