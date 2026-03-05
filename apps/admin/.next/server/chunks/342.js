@@ -54,7 +54,8 @@ var react_ = __webpack_require__(18038);
 /* __next_internal_client_entry_do_not_use__ LogoutButton auto */ 
 
 
-function LogoutButton() {
+
+function LogoutButton({ label  }) {
     const router = (0,navigation.useRouter)();
     const handleLogout = async ()=>{
         try {
@@ -67,10 +68,13 @@ function LogoutButton() {
             console.error("Logout failed", error);
         }
     };
-    return /*#__PURE__*/ jsx_runtime_.jsx("button", {
+    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("button", {
         onClick: handleLogout,
         style: {
             width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
             padding: "10px 15px",
             borderRadius: 8,
             backgroundColor: "rgba(239, 68, 68, 0.15)",
@@ -78,10 +82,16 @@ function LogoutButton() {
             border: "1px solid rgba(239, 68, 68, 0.3)",
             cursor: "pointer",
             textAlign: "left",
-            marginTop: "auto",
-            transition: "all 0.2s"
+            transition: "all 0.2s",
+            fontSize: 14,
+            fontWeight: 500
         },
-        children: "\uD83D\uDEAA Sign Out"
+        children: [
+            /*#__PURE__*/ jsx_runtime_.jsx(lucide_react/* LogOut */.d6Z, {
+                size: 16
+            }),
+            label || "Sign Out"
+        ]
     });
 }
 
@@ -127,7 +137,8 @@ const dictionaries = {
         ago: "\xf6nce",
         mins: "dk",
         hours: "sa",
-        days: "g"
+        days: "g",
+        dashboardSubtitle: "Ger\xe7ek zamanlı platform metrikleri \xb7 Canlı veritabanı bağlantısı"
     },
     en: {
         dashboard: "Dashboard",
@@ -169,7 +180,8 @@ const dictionaries = {
         ago: "ago",
         mins: "m",
         hours: "h",
-        days: "d"
+        days: "d",
+        dashboardSubtitle: "Real-time platform metrics \xb7 Live database connection"
     }
 };
 const getDictionary = (lang)=>dictionaries[lang] || dictionaries.tr;
@@ -322,7 +334,9 @@ function Sidebar({ currentLang  }) {
                             currentLang === "en" ? "T\xfcrk\xe7e'ye Ge\xe7" : "Switch to English"
                         ]
                     }),
-                    /*#__PURE__*/ jsx_runtime_.jsx(LogoutButton, {})
+                    /*#__PURE__*/ jsx_runtime_.jsx(LogoutButton, {
+                        label: t.signOut
+                    })
                 ]
             })
         ]
@@ -377,28 +391,41 @@ const metadata = {
 };
 function RootLayout({ children  }) {
     const lang = (0,headers.cookies)().get("admin_lang")?.value || "tr";
-    return /*#__PURE__*/ jsx_runtime_.jsx("html", {
+    const token = (0,headers.cookies)().get("admin_token")?.value;
+    // Don't show sidebar on login page
+    const isLoginPage = !token;
+    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("html", {
         lang: lang,
-        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("body", {
-            style: {
-                display: "flex",
-                minHeight: "100vh",
-                backgroundColor: "#0B0F19"
-            },
-            children: [
-                /*#__PURE__*/ jsx_runtime_.jsx(e0, {
-                    currentLang: lang
-                }),
-                /*#__PURE__*/ jsx_runtime_.jsx("main", {
-                    style: {
-                        flex: 1,
-                        padding: "40px 50px",
-                        overflowY: "auto"
-                    },
-                    children: children
+        children: [
+            /*#__PURE__*/ jsx_runtime_.jsx("head", {
+                children: /*#__PURE__*/ jsx_runtime_.jsx("link", {
+                    href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+                    rel: "stylesheet"
                 })
-            ]
-        })
+            }),
+            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("body", {
+                style: {
+                    display: "flex",
+                    minHeight: "100vh",
+                    backgroundColor: "#0B0F19",
+                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif",
+                    margin: 0
+                },
+                children: [
+                    !isLoginPage && /*#__PURE__*/ jsx_runtime_.jsx(e0, {
+                        currentLang: lang
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("main", {
+                        style: {
+                            flex: 1,
+                            padding: isLoginPage ? 0 : "40px 50px",
+                            overflowY: "auto"
+                        },
+                        children: children
+                    })
+                ]
+            })
+        ]
     });
 }
 
@@ -415,45 +442,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(56786);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(25759);
-/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(87347);
-
-
 
 function Loading() {
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
         style: {
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
             justifyContent: "center",
+            alignItems: "center",
             height: "60vh",
+            flexDirection: "column",
             gap: 16
         },
         children: [
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(lucide_react__WEBPACK_IMPORTED_MODULE_2__/* .Loader2 */ .zM5, {
-                className: "animate-spin",
-                size: 32,
-                color: "#38BDF8",
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                 style: {
-                    animation: "spin 1s linear infinite"
+                    width: 40,
+                    height: 40,
+                    border: "3px solid rgba(255,255,255,0.1)",
+                    borderTopColor: "#4F46E5",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite"
                 }
             }),
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("p", {
-                style: {
-                    color: "#6B7280",
-                    fontSize: 14,
-                    fontWeight: 500
-                },
-                children: "Fetching live database metrics..."
-            }),
             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("style", {
-                children: `
-                    @keyframes spin {
-                        from { transform: rotate(0deg); }
-                        to { transform: rotate(360deg); }
-                    }
-                `
+                children: `@keyframes spin { to { transform: rotate(360deg); } }`
             })
         ]
     });

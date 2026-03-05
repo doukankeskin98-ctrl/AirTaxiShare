@@ -78,7 +78,7 @@ export function Sidebar({ currentLang }: { currentLang: string }) {
                     <Globe size={18} />
                     {currentLang === 'en' ? 'Türkçe\'ye Geç' : 'Switch to English'}
                 </button>
-                <LogoutButton />
+                <LogoutButton label={t.signOut} />
             </div>
         </aside>
     );

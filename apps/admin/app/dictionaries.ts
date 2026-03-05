@@ -39,7 +39,8 @@ export const dictionaries = {
         ago: 'önce',
         mins: 'dk',
         hours: 'sa',
-        days: 'g'
+        days: 'g',
+        dashboardSubtitle: 'Gerçek zamanlı platform metrikleri · Canlı veritabanı bağlantısı'
     },
     en: {
         dashboard: 'Dashboard',
@@ -81,7 +82,8 @@ export const dictionaries = {
         ago: 'ago',
         mins: 'm',
         hours: 'h',
-        days: 'd'
+        days: 'd',
+        dashboardSubtitle: 'Real-time platform metrics · Live database connection'
     }
 };
 

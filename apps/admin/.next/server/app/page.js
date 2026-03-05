@@ -674,7 +674,7 @@ async function AdminDashboard() {
                             margin: "6px 0 0",
                             fontSize: 14
                         },
-                        children: "Real-time platform metrics \xb7 Live database connection"
+                        children: t.dashboardSubtitle
                     })
                 ]
             }),
@@ -790,7 +790,7 @@ async function AdminDashboard() {
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [534,635,756,342,65], () => (__webpack_exec__(48526)));
+var __webpack_exports__ = __webpack_require__.X(0, [534,731,587,342,65], () => (__webpack_exec__(48526)));
 module.exports = __webpack_exports__;
 
 })();

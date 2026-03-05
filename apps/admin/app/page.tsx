@@ -55,7 +55,7 @@ export default async function AdminDashboard() {
         <div>
             <div style={{ marginBottom: 32 }}>
                 <h1 style={{ fontSize: 26, fontWeight: 700, color: '#F9FAFB', margin: 0 }}>{t.dashboard}</h1>
-                <p style={{ color: '#6B7280', margin: '6px 0 0', fontSize: 14 }}>Real-time platform metrics · Live database connection</p>
+                <p style={{ color: '#6B7280', margin: '6px 0 0', fontSize: 14 }}>{t.dashboardSubtitle}</p>
             </div>
 
             <div style={gridStyle}>

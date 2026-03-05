@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 
-export function LogoutButton() {
+export function LogoutButton({ label }: { label?: string }) {
     const router = useRouter();
 
     const handleLogout = async () => {
@@ -21,6 +22,9 @@ export function LogoutButton() {
             onClick={handleLogout}
             style={{
                 width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
                 padding: '10px 15px',
                 borderRadius: 8,
                 backgroundColor: 'rgba(239, 68, 68, 0.15)',
@@ -28,11 +32,13 @@ export function LogoutButton() {
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 cursor: 'pointer',
                 textAlign: 'left',
-                marginTop: 'auto',
                 transition: 'all 0.2s',
+                fontSize: 14,
+                fontWeight: 500,
             }}
         >
-            🚪 Sign Out
+            <LogOut size={16} />
+            {label || 'Sign Out'}
         </button>
     );
 }

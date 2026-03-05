@@ -51,7 +51,8 @@ const dictionaries = {
         ago: "\xf6nce",
         mins: "dk",
         hours: "sa",
-        days: "g"
+        days: "g",
+        dashboardSubtitle: "Ger\xe7ek zamanlı platform metrikleri \xb7 Canlı veritabanı bağlantısı"
     },
     en: {
         dashboard: "Dashboard",
@@ -93,7 +94,8 @@ const dictionaries = {
         ago: "ago",
         mins: "m",
         hours: "h",
-        days: "d"
+        days: "d",
+        dashboardSubtitle: "Real-time platform metrics \xb7 Live database connection"
     }
 };
 const getDictionary = (lang)=>dictionaries[lang] || dictionaries.tr;
