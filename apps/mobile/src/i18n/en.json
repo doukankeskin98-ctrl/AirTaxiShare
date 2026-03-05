@@ -149,6 +149,7 @@
     },
     "history": {
         "title": "My Past Rides",
+        "rate_now": "Rate Now",
         "empty": {
             "title": "No Past Rides",
             "desc": "You do not have any ride history fully recorded on our platform yet."

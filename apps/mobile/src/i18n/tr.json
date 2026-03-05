@@ -149,6 +149,7 @@
     },
     "history": {
         "title": "Geçmiş Yolculuklarım",
+        "rate_now": "Puanla",
         "empty": {
             "title": "Geçmiş Yolculuk Yok",
             "desc": "Platformumuzda henüz bir yolculuk geçmişiniz bulunmuyor."

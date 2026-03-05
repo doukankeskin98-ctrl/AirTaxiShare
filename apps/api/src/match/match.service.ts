@@ -126,6 +126,16 @@ export class MatchService {
         const partners = await this.userService.findByIds(uniquePartnerIds);
         const partnerMap = new Map(partners.map(u => [u.id, u]));
 
+        // Check which matches have already been rated by this user
+        const matchSocketIds = matches.map(m => m.matchSocketId);
+        const userRatings = await this.ratingRepository.find({
+            where: {
+                fromUserId: userId,
+                matchId: In(matchSocketIds)
+            }
+        });
+        const ratedMatchIds = new Set(userRatings.map(r => r.matchId));
+
         return matches.map(match => {
             const otherUserId = match.user1Id === userId ? match.user2Id : match.user1Id;
             const otherUser = partnerMap.get(otherUserId);
@@ -136,6 +146,7 @@ export class MatchService {
                 status: match.status,
                 matchedAt: match.matchedAt,
                 completedAt: match.completedAt,
+                isRated: ratedMatchIds.has(match.matchSocketId),
                 otherUser: otherUser ? {
                     id: otherUser.id,
                     fullName: otherUser.fullName,

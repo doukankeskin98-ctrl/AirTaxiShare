@@ -40,6 +40,7 @@ export default function MatchHistoryScreen() {
     const renderItem = ({ item, index }: { item: any; index: number }) => {
         const isCompleted = item.status === 'COMPLETED';
         const partnerName = item.otherUser?.fullName || t('common.passenger');
+        const showRateBtn = isCompleted && !item.isRated && item.otherUser;
 
         return (
             <MotiView
@@ -77,6 +78,19 @@ export default function MatchHistoryScreen() {
                                 </Text>
                             </View>
                         </View>
+
+                        {showRateBtn && (
+                            <TouchableOpacity
+                                style={styles.rateButton}
+                                onPress={() => navigation.navigate('Rating', {
+                                    matchId: item.matchSocketId,
+                                    otherUser: item.otherUser
+                                })}
+                            >
+                                <Ionicons name="star" size={16} color="#FFF" style={{ marginRight: 4 }} />
+                                <Text style={styles.rateButtonText}>{t('history.rate_now', { defaultValue: 'Puanla' })}</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </BlurView>
             </MotiView>
@@ -157,4 +171,6 @@ const styles = StyleSheet.create({
     emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, paddingHorizontal: spacing.xl },
     emptyTitle: { ...typography.h3, color: colors.textSecondary, marginTop: spacing.l },
     emptySubtitle: { ...typography.body, color: colors.textDisabled, textAlign: 'center', marginTop: spacing.s, lineHeight: 22 },
+    rateButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.m, paddingVertical: spacing.s, borderRadius: 100 },
+    rateButtonText: { ...typography.caption, color: '#FFF', fontWeight: 'bold' },
 });

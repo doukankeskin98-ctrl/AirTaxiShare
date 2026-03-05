@@ -12,6 +12,7 @@ import { BlurView } from 'expo-blur';
 import SocketService from '../services/socket';
 import { useChatContext } from '../context/ChatContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ProfileZoomModal } from '../components/ProfileZoomModal';
 
 const ACTIVE_MATCH_KEY = '@active_match';
 
@@ -21,6 +22,8 @@ export default function MatchFoundScreen() {
     const route = useRoute<any>();
     const { otherUser, luggage, matchId } = route.params || {};
     const safeOtherUser = otherUser || { name: t('common.passenger'), rating: 5.0, trips: 10, trustBadge: false, phoneVerified: false, emailVerified: false };
+
+    const [isZoomModalVisible, setIsZoomModalVisible] = React.useState(false);
 
     const { getUnread } = useChatContext();
     const unreadCount = getUnread(matchId);
@@ -179,18 +182,20 @@ export default function MatchFoundScreen() {
                         <BlurView intensity={40} tint="dark" style={styles.glassCard}>
                             <View style={styles.cardHighlight} />
                             <View style={styles.userRow}>
-                                <View style={styles.avatarContainer}>
-                                    {safeOtherUser.photoUrl ? (
-                                        <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
-                                    ) : (
-                                        <View style={styles.avatar}>
-                                            <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
+                                <TouchableOpacity activeOpacity={0.8} onPress={() => setIsZoomModalVisible(true)}>
+                                    <View style={styles.avatarContainer}>
+                                        {safeOtherUser.photoUrl ? (
+                                            <Image source={{ uri: safeOtherUser.photoUrl }} style={styles.avatarPhoto} />
+                                        ) : (
+                                            <View style={styles.avatar}>
+                                                <Text style={styles.avatarText}>{safeOtherUser.name?.[0] || '?'}</Text>
+                                            </View>
+                                        )}
+                                        <View style={styles.badge}>
+                                            <Ionicons name="shield-checkmark" size={14} color="#FFF" />
                                         </View>
-                                    )}
-                                    <View style={styles.badge}>
-                                        <Ionicons name="shield-checkmark" size={14} color="#FFF" />
                                     </View>
-                                </View>
+                                </TouchableOpacity>
 
                                 <View style={styles.userInfo}>
                                     <Text style={styles.userName}>{safeOtherUser.name}</Text>
@@ -386,6 +391,14 @@ export default function MatchFoundScreen() {
                     </BlurView>
                 </MotiView>
             </SafeAreaView>
+
+            {/* Secure Anti-Screenshot Zoom Modal */}
+            <ProfileZoomModal
+                visible={isZoomModalVisible}
+                imageUrl={safeOtherUser.photoUrl || null}
+                userName={safeOtherUser.name || safeOtherUser.fullName || t('common.passenger')}
+                onClose={() => setIsZoomModalVisible(false)}
+            />
         </View>
     );
 }
