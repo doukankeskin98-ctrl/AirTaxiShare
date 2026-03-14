@@ -25,7 +25,7 @@ class SocketService {
     // Callbacks registered before the socket was created — replayed on connect
     private pendingCallbacks: Map<string, ((...args: any[]) => void)[]> = new Map();
 
-    private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+    private readonly SERVER_URL = process.env.EXPO_PUBLIC_API_URL || 'https://airtaxishare-api.onrender.com';
 
     /** Queue or immediately register an event listener. Returns an unsubscribe function. */
     private on(event: string, cb: (...args: any[]) => void): () => void {

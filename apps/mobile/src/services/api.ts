@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigationRef } from '../navigation/RootNavigation';
 
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
-const FALLBACK_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+const FALLBACK_URL = 'https://airtaxishare-api.onrender.com';
 const BASE_URL = ENV_URL || FALLBACK_URL;
 
 const TIMEOUT_MS = 50000;        // 50 second request timeout (to allow Render Cold Starts)
